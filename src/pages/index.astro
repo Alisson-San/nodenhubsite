@@ -1,0 +1,864 @@
+---
+import NodenSymbol from "../components/NodenSymbol.astro";
+import NodenMarkFinal from "../components/NodenMarkFinal.astro";
+---
+
+<html lang="pt-BR">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta
+			name="description"
+			content="Noden Technology Hub — tecnologia, performance e dados conectados."
+		/>
+		<title>NODEN — Technology Hub</title>
+	</head>
+
+	<body>
+		<main class="experience">
+			<section class="scroll-stage">
+				<div class="scene">
+					<div class="ambient ambient-one"></div>
+					<div class="ambient ambient-two"></div>
+
+					<NodenSymbol />
+
+					<div id="brand" class="brand">
+						<div class="brand-name">
+							<span>N</span>
+
+							<div class="brand-symbol-mini">
+								<span></span>
+								<span></span>
+								<span></span>
+							</div>
+
+							<span>DEN</span>
+						</div>
+
+						<p>TECHNOLOGY HUB</p>
+					</div>
+					
+					<div id="start-copy" class="copy start-copy">
+						<span>NODEN TECHNOLOGY HUB</span>
+						<h1>Tecnologia começa<br />quando tudo conecta.</h1>
+					</div>
+
+					<div id="intro-copy" class="copy intro-copy">
+						<span>TECNOLOGIA. CONECTADA.</span>
+						<h1>Três especialidades.<br />Um único ecossistema.</h1>
+					</div>
+
+					<div id="home-copy" class="copy division-copy">
+						<span>NODEN HOME</span>
+						<h2>Tecnologia funcionando.<br />Como deveria.</h2>
+						<p>Manutenção · Suporte · Upgrades</p>
+					</div>
+
+					<div id="game-copy" class="copy division-copy">
+						<span>NODEN GAME</span>
+						<h2>Performance<br />não é detalhe.</h2>
+						<p>Setup gamer · Hardware · Otimização</p>
+					</div>
+
+					<div id="data-copy" class="copy division-copy">
+						<span>NODEN DATA</span>
+						<h2>Dados existem.<br />Inteligência é construída.</h2>
+						<p>Data Engineering · BI · Analytics</p>
+					</div>
+
+					<div id="final-copy" class="copy final-copy">
+						<span>TRÊS NÓS.</span>
+						<h2>UMA CONEXÃO.</h2>
+						<strong>NODEN.</strong>
+
+						<a href="#contact">FALAR COM A NODEN</a>
+					</div>
+
+					<!-- src/components/NodenMarkFinal.astro -->
+					<div id="final-logo-mark" class="final-logo-mark" aria-hidden="true">
+						<img src="/noden-logo-clean-transparent.png" alt="" loading="eager" />
+					</div>
+
+					<div class="scroll-hint">
+						<span>SCROLL</span>
+						<div></div>
+					</div>
+				</div>
+			</section>
+
+			<section id="contact" class="contact">
+				<span>NODEN</span>
+				<h2>Vamos conectar<br />a tecnologia certa.</h2>
+
+				<a href="#">WHATSAPP</a>
+			</section>
+		</main>
+
+		<script>
+			import gsap from "gsap";
+			import { ScrollTrigger } from "gsap/ScrollTrigger";
+			import Lenis from "lenis";
+
+			gsap.registerPlugin(ScrollTrigger);
+
+			const lenis = new Lenis({
+				duration: 1.2,
+				smoothWheel: true,
+			});
+
+			lenis.on("scroll", ScrollTrigger.update);
+
+			gsap.ticker.add((time) => {
+				lenis.raf(time * 1000);
+			});
+
+			gsap.ticker.lagSmoothing(0);
+
+			const timeline = gsap.timeline({
+				scrollTrigger: {
+					trigger: ".scroll-stage",
+					start: "top top",
+					end: "bottom bottom",
+					scrub: 1.2,
+				},
+			});
+
+			gsap.set(".node-icon", {
+				opacity: 0,
+				scale: 0.5,
+			});
+
+			gsap.set(".copy:not(#start-copy)", {
+				opacity: 0,
+				y: 50,
+			});
+
+			gsap.set("#start-copy", {
+				opacity: 1,
+				y: 0,
+			});
+
+			gsap.set("#brand-symbol", {
+				scale: 0.72,
+				y: -40,
+			});
+
+			gsap.set("#connector-layer", {
+				opacity: 0,
+			});
+
+			gsap.set("#final-logo-mark", {
+				opacity: 0,
+				scale: 0.72,
+				y: -40,
+			});
+
+			gsap.set("#node-home", { x: 0, y: -90, rotation: -45 });
+			gsap.set("#node-game", { x: -95, y: 75, rotation: 30 });
+			gsap.set("#node-data", { x: 95, y: 75, rotation: -30 });
+
+			timeline.to(
+					"#start-copy",
+					{
+						opacity: 0,
+						y: -45,
+						duration: 0.8,
+					},
+					1.2,
+				)
+				.to(
+					"#node-home, #node-game, #node-data",
+					{
+						x: 0,
+						y: 0,
+						rotation: 0,
+						duration: 2,
+						ease: "power3.inOut",
+					},
+					0,
+				)
+				.to(
+					"#connector-layer",
+					{
+						opacity: 1,
+						duration: 0.8,
+					},
+					1.25,
+				)
+				.to(
+					"#final-logo-mark",
+					{
+						opacity: 1,
+						scale: 0.95,
+						y: 0,
+						duration: 0.8,
+					},
+					1.25,
+				)
+				.to(
+					"#brand-symbol",
+					{
+						scale: 0.95,
+						y: 0,
+						duration: 2,
+					},
+					0,
+				)
+				.to(
+					"#brand",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 1,
+					},
+					1.5,
+				)
+
+				.to(
+					"#intro-copy",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 1,
+					},
+					2,
+				)
+
+				.to(
+					"#intro-copy, #brand",
+					{
+						opacity: 0,
+						y: -50,
+						duration: 1,
+					},
+					4,
+				)
+
+				.to(
+					"#brand-symbol",
+					{
+						scale: 1.75,
+						y: 80,
+						duration: 2,
+					},
+					4,
+				)
+
+				.to(
+					"#node-game, #node-data",
+					{
+						opacity: 0.08,
+						duration: 1,
+					},
+					5,
+				)
+
+				.to(
+					"#node-home .node-icon",
+					{
+						opacity: 1,
+						scale: 1,
+						duration: 1,
+					},
+					5,
+				)
+
+				.to(
+					"#home-copy",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 1,
+					},
+					5.3,
+				)
+
+				.to(
+					"#home-copy",
+					{
+						opacity: 0,
+						y: -50,
+						duration: 0.8,
+					},
+					7,
+				)
+
+				.to(
+					"#node-home .node-icon",
+					{
+						opacity: 0,
+						scale: 0.5,
+					},
+					7,
+				)
+
+				.to(
+					"#brand-symbol",
+					{
+						rotation: 120,
+						duration: 1.5,
+					},
+					7,
+				)
+
+				.to(
+					"#node-home, #node-data",
+					{
+						opacity: 0.08,
+					},
+					7,
+				)
+
+				.to(
+					"#node-game",
+					{
+						opacity: 1,
+					},
+					7,
+				)
+
+				.to(
+					"#node-game .node-icon",
+					{
+						opacity: 1,
+						scale: 1,
+					},
+					7.7,
+				)
+
+				.to(
+					"#game-copy",
+					{
+						opacity: 1,
+						y: 0,
+					},
+					7.7,
+				)
+
+				.to(
+					"#game-copy",
+					{
+						opacity: 0,
+						y: -50,
+					},
+					9.5,
+				)
+
+				.to(
+					"#node-game .node-icon",
+					{
+						opacity: 0,
+					},
+					9.5,
+				)
+
+				.to(
+					"#brand-symbol",
+					{
+						rotation: 240,
+						duration: 1.5,
+					},
+					9.5,
+				)
+
+				.to(
+					"#node-game",
+					{
+						opacity: 0.08,
+					},
+					9.5,
+				)
+
+				.to(
+					"#node-data",
+					{
+						opacity: 1,
+					},
+					9.5,
+				)
+
+				.to(
+					"#node-data .node-icon",
+					{
+						opacity: 1,
+						scale: 1,
+					},
+					10.2,
+				)
+
+				.to(
+					"#data-copy",
+					{
+						opacity: 1,
+						y: 0,
+					},
+					10.2,
+				)
+
+				.to(
+					"#data-copy",
+					{
+						opacity: 0,
+						y: -50,
+					},
+					12,
+				)
+				.to(
+					"#final-logo-mark",
+					{
+						opacity: 0,
+						duration: 0.5,
+					},
+					4,
+				)
+				.to(
+					"#brand-symbol",
+					{
+						scale: 1,
+						rotation: 360,
+						y: 0,
+						duration: 2,
+					},
+					12,
+				)
+
+				.to(
+					".node",
+					{
+						opacity: 1,
+					},
+					12,
+				)
+
+				.to(
+					".node-icon",
+					{
+						opacity: 0,
+					},
+					12,
+				)
+
+				.to(
+					"#final-copy",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 1.5,
+					},
+					13,
+				);
+		</script>
+	</body>
+</html>
+
+<style is:global>
+	@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+	:root {
+		background: #02050a;
+		color: #ffffff;
+		font-family: "Inter", sans-serif;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+		background: #02050a;
+	}
+
+	body {
+		overflow-x: hidden;
+	}
+
+	.start-copy {	
+		left: 8vw;
+		top: 42%;
+		opacity: 1;
+	}
+
+	.start-copy h1 {
+		font-size: clamp(2.6rem, 4.4vw, 5.4rem);
+		line-height: 0.95;
+		font-weight: 400;
+		letter-spacing: -0.06em;
+		margin: 25px 0;
+		max-width: 760px;
+	}
+
+	.scroll-stage {
+		height: 900vh;
+	}
+
+	.scene {
+		position: sticky;
+		top: 0;
+		width: 100%;
+		height: 100vh;
+		overflow: hidden;
+		background:
+			radial-gradient(circle at 50% 45%, rgba(17, 76, 140, 0.16), transparent 35%),
+			#02050a;
+	}
+
+	.ambient {
+		position: absolute;
+		width: 600px;
+		height: 600px;
+		border-radius: 50%;
+		filter: blur(150px);
+		opacity: 0.13;
+	}
+
+	.ambient-one {
+		background: #006eff;
+		left: 10%;
+		top: 20%;
+	}
+
+	.ambient-two {
+		background: #7733ff;
+		right: 10%;
+		bottom: 10%;
+	}
+
+
+	.noden-symbol {
+		position: absolute;
+		width: clamp(280px, 30vw, 500px);
+		height: auto;
+		aspect-ratio: 1;
+
+		left: 68%;
+		top: 38%;
+
+		transform: translate(-50%, -50%);
+
+		filter: drop-shadow(0 0 35px rgba(33, 133, 255, 0.22));
+	}
+
+	..noden-symbol {
+	position: absolute;
+	width: clamp(280px, 30vw, 500px);
+	height: auto;
+	aspect-ratio: 1;
+	left: 68%;
+	top: 38%;
+	transform: translate(-50%, -50%);
+	filter: drop-shadow(0 0 35px rgba(33, 133, 255, 0.22));
+	z-index: 3;
+}
+
+.noden-symbol svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+.noden-symbol .module-ring {
+	fill: none;
+	stroke-width: 78;
+}
+
+.noden-symbol .ring-top {
+	stroke: url(#gradTop);
+}
+
+.noden-symbol .ring-left {
+	stroke: url(#gradLeft);
+}
+
+.noden-symbol .ring-right {
+	stroke: url(#gradRight);
+}
+
+.noden-symbol .connector-layer {
+	opacity: 0;
+}
+.noden-symbol .connector-piece {
+	transform-box: fill-box;
+	transform-origin: center;
+}
+.noden-symbol .orbital {
+	fill: none;
+	stroke-width: 28;
+	stroke-linecap: round;
+	opacity: 0.9;
+}
+
+.noden-symbol .orbital-left {
+	stroke: url(#gradLeft);
+}
+
+.noden-symbol .orbital-right {
+	stroke: url(#gradRight);
+}
+
+.noden-symbol .orbital-bottom {
+	stroke: url(#gradPurpleBlue);
+}
+
+.noden-symbol .flow {
+	fill: none;
+	stroke-width: 78;
+	stroke-linecap: round;
+	opacity: 0.95;
+}
+
+.noden-symbol .flow-main {
+	stroke: url(#gradPurpleBlue);
+}
+
+.noden-symbol .flow-right {
+	stroke: url(#gradRight);
+}
+
+.noden-symbol .node {
+	transform-box: fill-box;
+	transform-origin: center;
+}
+
+.noden-symbol .node-icon {
+	opacity: 0;
+	transform: scale(0.45);
+	transform-box: fill-box;
+	transform-origin: center;
+}
+
+.noden-symbol .node-icon path,
+.noden-symbol .node-icon circle,
+.noden-symbol .node-icon ellipse {
+	fill: none;
+	stroke: #ffffff;
+	stroke-width: 16;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.final-logo-mark {
+	position: absolute;
+	width: clamp(280px, 30vw, 500px);
+	aspect-ratio: 1;
+
+	left: 68%;
+	top: 38%;
+
+	transform: translate(-50%, -50%);
+	opacity: 0;
+	pointer-events: none;
+
+	filter: drop-shadow(0 0 35px rgba(33, 133, 255, 0.22));
+	z-index: 3;
+}
+
+.final-logo-mark img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	display: block;
+}
+
+	.brand {
+		position: absolute;
+		left: 50%;
+		top: 70%;
+		transform: translateX(-50%);
+		text-align: center;
+		opacity: 0;
+	}
+
+	.brand-name {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		font-size: clamp(3rem, 6vw, 6rem);
+		font-weight: 500;
+		letter-spacing: 0.15em;
+	}
+
+	.brand-symbol-mini {
+		position: relative;
+		width: 70px;
+		height: 70px;
+	}
+
+	.brand-symbol-mini span {
+		position: absolute;
+		width: 34px;
+		height: 34px;
+		border: 4px solid #2487ff;
+		border-radius: 50%;
+	}
+
+	.brand-symbol-mini span:nth-child(1) {
+		left: 18px;
+	}
+
+	.brand-symbol-mini span:nth-child(2) {
+		left: 2px;
+		top: 31px;
+		border-color: #7d35ff;
+	}
+
+	.brand-symbol-mini span:nth-child(3) {
+		right: 2px;
+		top: 31px;
+		border-color: #00c8ff;
+	}
+
+	.brand p,
+	.copy span {
+		letter-spacing: 0.5em;
+		font-size: 0.7rem;
+		color: #7894b8;
+	}
+
+	.copy {
+		position: absolute;
+		z-index: 10;
+	}
+
+	.intro-copy {
+		left: 8vw;
+		top: 45%;
+	}
+
+	.copy h1,
+	.copy h2 {
+		font-size: clamp(2.7rem, 5vw, 6rem);
+		line-height: 0.98;
+		font-weight: 400;
+		letter-spacing: -0.05em;
+		margin: 25px 0;
+	}
+
+	.division-copy {
+		right: 8vw;
+		top: 38%;
+		width: 38vw;
+	}
+
+	.division-copy p {
+		color: #8393a7;
+		letter-spacing: 0.12em;
+	}
+
+	.final-copy {
+		right: 8vw;
+		top: 34%;
+		text-align: left;
+	}
+
+	.final-copy strong {
+		display: block;
+		font-size: clamp(4rem, 8vw, 9rem);
+		font-weight: 500;
+		letter-spacing: 0.08em;
+	}
+
+	.final-copy a,
+	.contact a {
+		display: inline-block;
+		margin-top: 40px;
+		color: #ffffff;
+		text-decoration: none;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		padding: 18px 28px;
+		letter-spacing: 0.18em;
+		font-size: 0.7rem;
+	}
+
+	.scroll-hint {
+		position: absolute;
+		bottom: 30px;
+		left: 50%;
+		transform: translateX(-50%);
+		text-align: center;
+		color: #53657c;
+		font-size: 0.55rem;
+		letter-spacing: 0.4em;
+	}
+
+	.scroll-hint div {
+		width: 1px;
+		height: 40px;
+		background: linear-gradient(#53657c, transparent);
+		margin: 10px auto;
+	}
+
+	.contact {
+		min-height: 100vh;
+		padding: 15vh 10vw;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		background: #050a12;
+	}
+
+	.contact span {
+		color: #318aff;
+		letter-spacing: 0.5em;
+	}
+
+	.contact h2 {
+		font-size: clamp(3rem, 7vw, 8rem);
+		font-weight: 400;
+		line-height: 0.95;
+		letter-spacing: -0.05em;
+	}
+
+	@media (max-width: 800px) {
+		.symbol {
+			width: 260px;
+			height: 260px;
+		}
+
+		.node {
+			width: 110px;
+			height: 110px;
+		}
+
+		.node-home {
+			left: 75px;
+		}
+
+		.node-game {
+			left: 15px;
+			top: 110px;
+		}
+
+		.node-data {
+			right: 15px;
+			top: 110px;
+		}
+
+		.tail {
+			width: 80px;
+			height: 40px;
+			left: 48px;
+			top: 55px;
+		}
+
+		.division-copy,
+		.final-copy,
+		.intro-copy {
+			left: 8vw;
+			right: auto;
+			top: 65%;
+			width: 84vw;
+		}
+
+		.copy h1,
+		.copy h2 {
+			font-size: 2.7rem;
+		}
+
+	}
+</style>
