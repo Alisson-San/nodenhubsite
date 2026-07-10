@@ -13,22 +13,6 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 		/>
 		<title>NODEN — Technology Hub</title>
 
-		<script is:inline>
-			(() => {
-				const mobileBreakpoint = 820;
-				const currentPath = window.location.pathname.replace(/\/$/, "");
-
-				if (
-					window.innerWidth <= mobileBreakpoint &&
-					currentPath !== "/mobile"
-				) {
-					window.location.replace(
-						`/mobile${window.location.search}${window.location.hash}`,
-					);
-				}
-			})();
-		</script>
-
 	</head>
 
 	<body>

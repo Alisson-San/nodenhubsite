@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/mobile",
+      "permanent": false,
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Android|iPhone|iPad|iPod|Mobile|IEMobile|Opera Mini).*"
+        }
+      ]
+    }
+  ]
+}

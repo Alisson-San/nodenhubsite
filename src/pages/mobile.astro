@@ -11,6 +11,13 @@ const whatsappUrl =
 		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+		/>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta
 			name="description"
@@ -283,8 +290,6 @@ const whatsappUrl =
 </html>
 
 <style is:global>
-	@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
-
 	:root {
 		background: #02050a;
 		color: #ffffff;
@@ -324,7 +329,7 @@ const whatsappUrl =
 		padding: 0 16px;
 		border-bottom: 1px solid rgba(115, 147, 197, 0.11);
 		background: rgba(2, 5, 10, 0.78);
-		backdrop-filter: blur(18px);
+		backdrop-filter: blur(10px);
 	}
 
 	.mobile-logo,
@@ -381,7 +386,7 @@ const whatsappUrl =
 		width: 330px;
 		height: 330px;
 		border-radius: 50%;
-		filter: blur(100px);
+		filter: blur(65px);
 		opacity: 0.17;
 		pointer-events: none;
 	}
@@ -402,7 +407,7 @@ const whatsappUrl =
 		position: relative;
 		width: min(58vw, 230px);
 		margin: 0 auto 34px;
-		filter: drop-shadow(0 0 36px rgba(46, 130, 255, 0.24));
+		filter: drop-shadow(0 0 22px rgba(46, 130, 255, 0.18));
 	}
 
 	.hero-copy {
@@ -589,7 +594,7 @@ const whatsappUrl =
 		left: 28px;
 		height: 74px;
 		border-radius: 999px;
-		filter: blur(27px);
+		filter: blur(18px);
 		opacity: 0.32;
 		content: "";
 	}
