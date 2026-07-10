@@ -55,10 +55,13 @@ const gradFlowRight = `${idPrefix}-grad-flow-right`;
 			y2="515"
 			gradientUnits="userSpaceOnUse"
 		>
-			<stop offset="0%" stop-color="#b52dff" stop-opacity="0.92" />
-			<stop offset="42%" stop-color="#8b35ff" stop-opacity="1" />
-			<stop offset="72%" stop-color="#5360ff" stop-opacity="1" />
-			<stop offset="100%" stop-color="#209cff" stop-opacity="0.94" />
+			<stop offset="0%" stop-color="#a835ff" stop-opacity="0" />
+			<stop offset="15%" stop-color="#a835ff" stop-opacity="0.8" />
+			<stop offset="35%" stop-color="#a835ff" stop-opacity="1" />
+			<stop offset="65%" stop-color="#6252ff" stop-opacity="1" />
+			<stop offset="90%" stop-color="#209cff" stop-opacity="0.84" />
+			<stop offset="95%" stop-color="#209cff" stop-opacity="0.1" />
+			<stop offset="100%" stop-color="#209cff" stop-opacity="0" />
 		</linearGradient>
 
 		<linearGradient
@@ -69,12 +72,18 @@ const gradFlowRight = `${idPrefix}-grad-flow-right`;
 			y2="560"
 			gradientUnits="userSpaceOnUse"
 		>
-			<stop offset="0%" stop-color="#514cff" stop-opacity="0.94" />
-			<stop offset="52%" stop-color="#356eff" stop-opacity="1" />
-			<stop offset="100%" stop-color="#14c9ef" stop-opacity="0.94" />
+			<stop offset="0%" stop-color="#4b4dff" stop-opacity="0" />
+			<stop offset="12%" stop-color="#4b4dff" stop-opacity="0.78" />
+			<stop offset="45%" stop-color="#4b4dff" stop-opacity="1" />
+			<stop offset="82%" stop-color="#1f69ff" stop-opacity="1" />
+			<stop offset="95%" stop-color="#1f69ff" stop-opacity="0.8" />
+			<stop offset="100%" stop-color="#1f69ff" stop-opacity="0" />
 		</linearGradient>
 	</defs>
 
+
+
+	<!-- Círculos por cima dos conectores. -->
 	<circle
 		cx="525"
 		cy="310"
@@ -101,8 +110,8 @@ const gradFlowRight = `${idPrefix}-grad-flow-right`;
 		stroke={`url(#${gradRight})`}
 		stroke-width="92"
 	/>
-</svg>
 
+		<!-- Conectores primeiro: ficam por baixo dos círculos e escondem as emendas. -->
 	<g class="static-connector-shadow" aria-hidden="true">
 		<path
 			d="M 300 524 C 430 546 515 524 600 472"
@@ -123,7 +132,7 @@ const gradFlowRight = `${idPrefix}-grad-flow-right`;
 		/>
 	</g>
 
-	<g class="static-connector-layer">
+	<g class="static-connector-layer" aria-hidden="true">
 		<path
 			d="M 300 524 C 430 546 515 524 600 472"
 			fill="none"
@@ -142,7 +151,7 @@ const gradFlowRight = `${idPrefix}-grad-flow-right`;
 			stroke-linejoin="round"
 		/>
 	</g>
-
+</svg>
 
 <style>
 	.noden-mark-static {

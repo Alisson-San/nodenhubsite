@@ -1,0 +1,776 @@
+---
+import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
+
+const whatsappUrl =
+	"whatsapp://send?phone=5554996306632&text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20Noden.";
+---
+
+<html lang="pt-BR">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta
+			name="description"
+			content="Noden Technology Hub — suporte residencial, setups gamer e soluções em dados."
+		/>
+		<meta name="theme-color" content="#02050a" />
+		<link rel="canonical" href="/" />
+		<title>NODEN — Technology Hub</title>
+
+		<script is:inline>
+			(() => {
+				const mobileBreakpoint = 820;
+				const currentPath = window.location.pathname.replace(/\/$/, "");
+
+				if (
+					window.innerWidth > mobileBreakpoint &&
+					currentPath === "/mobile"
+				) {
+					window.location.replace(
+						`/${window.location.search}${window.location.hash}`,
+					);
+				}
+			})();
+		</script>
+	</head>
+
+	<body>
+		<header class="mobile-header">
+			<a class="mobile-logo" href="#inicio" aria-label="Noden — início">
+				<span>N</span>
+
+				<span class="mobile-logo-mark" aria-hidden="true">
+					<NodenMarkStatic idPrefix="mobile-header-mark" />
+				</span>
+
+				<span>DEN</span>
+			</a>
+
+			<a class="header-contact" href={whatsappUrl}>
+				Contato
+			</a>
+		</header>
+
+		<main>
+			<section id="inicio" class="hero mobile-section">
+				<div class="hero-glow hero-glow-blue"></div>
+				<div class="hero-glow hero-glow-purple"></div>
+
+				<div class="hero-mark reveal" aria-hidden="true">
+					<NodenMarkStatic idPrefix="mobile-hero-mark" />
+				</div>
+
+				<div class="hero-copy reveal">
+					<span class="section-kicker">NODEN TECHNOLOGY HUB</span>
+
+					<h1>
+						Tecnologia para
+						<span>resolver de verdade.</span>
+					</h1>
+
+					<p>
+						Suporte residencial, performance gamer e soluções em dados
+						reunidos em um só lugar.
+					</p>
+
+					<div class="hero-actions">
+						<a class="primary-action" href="#servicos">
+							Conheça os serviços
+						</a>
+
+						<a class="secondary-action" href={whatsappUrl}>
+							Falar no WhatsApp
+						</a>
+					</div>
+				</div>
+
+				<a class="hero-scroll" href="#quem-somos" aria-label="Continuar">
+					<span>CONTINUAR</span>
+					<i></i>
+				</a>
+			</section>
+
+			<section id="quem-somos" class="about mobile-section">
+				<div class="section-heading reveal">
+					<span class="section-index">01</span>
+					<span class="section-kicker">QUEM SOMOS</span>
+
+					<h2>
+						Um hub.
+						<span>Três frentes.</span>
+					</h2>
+
+					<p>
+						A Noden conecta serviços complementares para acompanhar você
+						desde as necessidades do dia a dia até projetos de performance,
+						automação e inteligência de dados.
+					</p>
+				</div>
+
+				<div class="coverage reveal">
+					<span class="coverage-title">ATENDIMENTO DOMICILIAR</span>
+
+					<div class="coverage-list">
+						<span>Barão</span>
+						<span>Carlos Barbosa</span>
+						<span>Salvador do Sul</span>
+						<span>São Pedro da Serra</span>
+					</div>
+				</div>
+			</section>
+
+			<section id="servicos" class="services mobile-section">
+				<div class="section-heading reveal">
+					<span class="section-index">02</span>
+					<span class="section-kicker">SERVIÇOS</span>
+
+					<h2>
+						Várias demandas.
+						<span>Uma só Noden.</span>
+					</h2>
+				</div>
+
+				<div class="service-stack">
+					<article class="mobile-service service-home reveal">
+						<div class="service-icon service-icon-home" aria-hidden="true">
+							<svg viewBox="0 0 120 120">
+								<path d="M 23 56 L 60 24 L 97 56" />
+								<path d="M 34 51 V 94 H 86 V 51" />
+								<path d="M 51 94 V 67 H 69 V 94" />
+							</svg>
+						</div>
+
+						<div class="service-copy">
+							<span class="service-label">NODEN HOME</span>
+							<h3>Suporte técnico presencial para sua casa.</h3>
+
+							<p>
+								Atendimento residencial com diagnóstico claro,
+								instalações, manutenção e orientação.
+							</p>
+
+							<ul>
+								<li>Instalação e configuração de equipamentos</li>
+								<li>Limpeza, formatação e otimização</li>
+								<li>Upgrades de memória e SSD</li>
+								<li>Consultoria para dúvidas e problemas</li>
+							</ul>
+						</div>
+					</article>
+
+					<article class="mobile-service service-game reveal">
+						<div class="service-icon service-icon-game" aria-hidden="true">
+							<svg viewBox="0 0 160 120">
+								<path d="M 43 36 H 117 C 137 36 147 54 142 73 L 136 92 C 132 106 117 110 106 99 L 92 82 H 68 L 54 99 C 43 110 28 106 24 92 L 18 73 C 13 54 23 36 43 36 Z" />
+								<path d="M 47 55 V 78 M 36 66.5 H 58" />
+								<circle cx="109" cy="56" r="6" />
+								<circle cx="124" cy="74" r="6" />
+							</svg>
+						</div>
+
+						<div class="service-copy">
+							<span class="service-label">NODEN GAME</span>
+							<h3>Setup gamer pensado para render mais.</h3>
+
+							<p>
+								Montagem, revisão e evolução do setup com foco em
+								desempenho, estabilidade e custo-benefício.
+							</p>
+
+							<ul>
+								<li>Montagem e revisão completa do setup</li>
+								<li>Diagnóstico de gargalos</li>
+								<li>Upgrades e refrigeração</li>
+								<li>Consultoria de peças e compatibilidade</li>
+							</ul>
+						</div>
+					</article>
+
+					<article class="mobile-service service-data reveal">
+						<div class="service-icon service-icon-data" aria-hidden="true">
+							<svg viewBox="0 0 120 120">
+								<ellipse cx="60" cy="31" rx="31" ry="13" />
+								<path d="M 29 31 V 58 C 29 70 43 80 60 80 C 77 80 91 70 91 58 V 31" />
+								<path d="M 29 58 V 86 C 29 98 43 108 60 108 C 77 108 91 98 91 86 V 58" />
+							</svg>
+						</div>
+
+						<div class="service-copy">
+							<span class="service-label">NODEN DATA</span>
+							<h3>Dados organizados para decisões reais.</h3>
+
+							<p>
+								BI, analytics, automação e soluções de software para
+								transformar informação em resultado.
+							</p>
+
+							<ul>
+								<li>Dashboards e indicadores</li>
+								<li>Soluções de software e automação</li>
+								<li>Integração e tratamento de dados</li>
+								<li>BI, analytics e apoio à decisão</li>
+							</ul>
+						</div>
+					</article>
+				</div>
+			</section>
+
+			<section class="contact mobile-section">
+				<div class="contact-mark reveal" aria-hidden="true">
+					<NodenMarkStatic idPrefix="mobile-contact-mark" />
+				</div>
+
+				<div class="contact-copy reveal">
+					<span class="section-kicker">NODEN</span>
+
+					<h2>
+						Várias demandas.
+						<span>Um só lugar.</span>
+					</h2>
+
+					<p>
+						Conte o que você precisa e vamos encontrar o melhor caminho.
+					</p>
+
+					<a class="contact-button" href={whatsappUrl}>
+						<span class="whatsapp-icon" aria-hidden="true">
+							<svg viewBox="0 0 24 24">
+								<path d="M 20.52 3.48 A 11.92 11.92 0 0 0 12.04 0 C 5.42 0 0.04 5.38 0.04 12 C 0.04 14.12 0.6 16.19 1.65 18.01 L 0 24 L 6.15 22.39 A 11.99 11.99 0 0 0 12.04 24 C 18.66 24 24.04 18.62 24.04 12 A 11.92 11.92 0 0 0 20.52 3.48 Z M 12.04 21.88 A 9.9 9.9 0 0 1 7 20.5 L 6.64 20.29 L 2.99 21.24 L 3.97 17.68 L 3.73 17.31 A 9.86 9.86 0 1 1 12.04 21.88 Z" />
+								<path d="M 17.75 14.87 C 17.47 14.73 16.1 14.06 15.85 13.97 C 15.59 13.87 15.41 13.83 15.22 14.11 C 15.04 14.38 14.51 15.01 14.35 15.19 C 14.19 15.37 14.03 15.39 13.74 15.24 C 12.02 14.39 10.89 13.72 9.75 11.76 C 9.45 11.24 10.05 11.27 10.61 10.15 C 10.7 9.97 10.66 9.82 10.59 9.68 C 10.52 9.54 9.96 8.17 9.73 7.62 C 9.5 7.09 9.27 7.16 9.1 7.15 C 8.94 7.14 8.75 7.14 8.57 7.14 C 8.39 7.14 8.09 7.21 7.83 7.49 C 7.57 7.76 6.84 8.44 6.84 9.81 C 6.84 11.18 7.86 12.51 8 12.7 C 8.14 12.88 10 15.91 12.86 17.14 C 15.69 18.35 15.69 17.95 16.17 17.91 C 16.64 17.86 17.71 17.24 17.92 16.65 C 18.14 16.05 18.14 15.54 18.06 15.4 C 17.99 15.26 17.82 15.01 17.75 14.87 Z" />
+							</svg>
+						</span>
+
+						<span>ENTRE EM CONTATO</span>
+					</a>
+				</div>
+			</section>
+		</main>
+
+		<footer>
+			<div class="footer-logo" aria-label="NODEN">
+				<span>N</span>
+
+				<span class="footer-logo-mark" aria-hidden="true">
+					<NodenMarkStatic idPrefix="mobile-footer-mark" />
+				</span>
+
+				<span>DEN</span>
+			</div>
+
+			<p>Technology Hub</p>
+		</footer>
+
+		<script>
+			const revealElements = document.querySelectorAll<HTMLElement>(".reveal");
+
+			const observer = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						if (entry.isIntersecting) {
+							entry.target.classList.add("is-visible");
+							observer.unobserve(entry.target);
+						}
+					});
+				},
+				{
+					threshold: 0.14,
+					rootMargin: "0px 0px -8% 0px",
+				},
+			);
+
+			revealElements.forEach((element) => observer.observe(element));
+		</script>
+	</body>
+</html>
+
+<style is:global>
+	@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+	:root {
+		background: #02050a;
+		color: #ffffff;
+		font-family: "Inter", sans-serif;
+		scroll-behavior: smooth;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+		background: #02050a;
+	}
+
+	body {
+		overflow-x: hidden;
+	}
+
+	a {
+		color: inherit;
+	}
+
+	.mobile-header {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 100;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		height: 62px;
+		padding: 0 16px;
+		border-bottom: 1px solid rgba(115, 147, 197, 0.11);
+		background: rgba(2, 5, 10, 0.78);
+		backdrop-filter: blur(18px);
+	}
+
+	.mobile-logo,
+	.footer-logo {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		color: #f7f9ff;
+		font-size: 0.82rem;
+		font-weight: 600;
+		letter-spacing: 0.15em;
+		text-decoration: none;
+	}
+
+	.mobile-logo-mark {
+		display: inline-block;
+		width: 28px;
+		height: 28px;
+	}
+
+	.header-contact {
+		padding: 9px 13px;
+		border: 1px solid rgba(70, 147, 255, 0.35);
+		border-radius: 999px;
+		color: #f4f8ff;
+		font-size: 0.58rem;
+		font-weight: 600;
+		letter-spacing: 0.12em;
+		text-decoration: none;
+		text-transform: uppercase;
+	}
+
+	main {
+		overflow: hidden;
+	}
+
+	.mobile-section {
+		position: relative;
+		padding: 86px 20px;
+	}
+
+	.hero {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		min-height: 100svh;
+		padding-top: 104px;
+		padding-bottom: 86px;
+		text-align: center;
+	}
+
+	.hero-glow {
+		position: absolute;
+		width: 330px;
+		height: 330px;
+		border-radius: 50%;
+		filter: blur(100px);
+		opacity: 0.17;
+		pointer-events: none;
+	}
+
+	.hero-glow-blue {
+		top: 8%;
+		right: -42%;
+		background: #0878ff;
+	}
+
+	.hero-glow-purple {
+		bottom: 8%;
+		left: -45%;
+		background: #8231ff;
+	}
+
+	.hero-mark {
+		position: relative;
+		width: min(58vw, 230px);
+		margin: 0 auto 34px;
+		filter: drop-shadow(0 0 36px rgba(46, 130, 255, 0.24));
+	}
+
+	.hero-copy {
+		position: relative;
+		z-index: 2;
+	}
+
+	.section-kicker,
+	.section-index {
+		display: block;
+		color: #7390b8;
+		font-size: 0.54rem;
+		font-weight: 600;
+		letter-spacing: 0.27em;
+		text-transform: uppercase;
+	}
+
+	.hero h1,
+	.section-heading h2,
+	.contact h2 {
+		margin: 15px 0 0;
+		font-size: clamp(2.8rem, 13vw, 4.5rem);
+		font-weight: 400;
+		line-height: 0.98;
+		letter-spacing: -0.065em;
+	}
+
+	.hero h1 span,
+	.section-heading h2 span,
+	.contact h2 span {
+		display: block;
+		background: linear-gradient(92deg, #ffffff 0%, #a8c9ff 58%, #8a74ff 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.hero-copy > p,
+	.section-heading > p,
+	.contact-copy > p {
+		margin: 20px auto 0;
+		color: #91a1b8;
+		font-size: 0.95rem;
+		font-weight: 300;
+		line-height: 1.65;
+	}
+
+	.hero-actions {
+		display: grid;
+		gap: 10px;
+		margin-top: 28px;
+	}
+
+	.primary-action,
+	.secondary-action,
+	.contact-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 50px;
+		padding: 14px 20px;
+		border-radius: 999px;
+		font-size: 0.65rem;
+		font-weight: 600;
+		letter-spacing: 0.13em;
+		text-decoration: none;
+		text-transform: uppercase;
+	}
+
+	.primary-action,
+	.contact-button {
+		border: 1px solid rgba(64, 150, 255, 0.52);
+		background:
+			linear-gradient(90deg, rgba(65, 64, 255, 0.28), rgba(19, 168, 239, 0.22));
+		box-shadow: 0 12px 36px rgba(31, 105, 220, 0.13);
+	}
+
+	.secondary-action {
+		border: 1px solid rgba(129, 153, 192, 0.18);
+		background: rgba(8, 17, 30, 0.46);
+	}
+
+	.hero-scroll {
+		position: absolute;
+		bottom: 18px;
+		left: 50%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		color: #536985;
+		font-size: 0.45rem;
+		letter-spacing: 0.22em;
+		text-decoration: none;
+		transform: translateX(-50%);
+	}
+
+	.hero-scroll i {
+		display: block;
+		width: 1px;
+		height: 24px;
+		background: linear-gradient(#667c99, transparent);
+	}
+
+	.about,
+	.services {
+		background:
+			radial-gradient(circle at 90% 12%, rgba(30, 106, 220, 0.08), transparent 25%),
+			#040912;
+	}
+
+	.section-heading {
+		max-width: 540px;
+	}
+
+	.section-index {
+		margin-bottom: 8px;
+		color: rgba(113, 142, 184, 0.46);
+	}
+
+	.section-heading h2,
+	.contact h2 {
+		font-size: clamp(2.45rem, 11.5vw, 4rem);
+	}
+
+	.coverage {
+		margin-top: 28px;
+		padding: 20px;
+		border: 1px solid rgba(104, 139, 192, 0.14);
+		border-radius: 18px;
+		background: rgba(13, 27, 47, 0.38);
+	}
+
+	.coverage-title {
+		display: block;
+		margin-bottom: 12px;
+		color: #7897c1;
+		font-size: 0.5rem;
+		font-weight: 600;
+		letter-spacing: 0.2em;
+	}
+
+	.coverage-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 7px;
+	}
+
+	.coverage-list span {
+		padding: 7px 10px;
+		border: 1px solid rgba(93, 135, 198, 0.16);
+		border-radius: 999px;
+		color: #b0bfd3;
+		font-size: 0.68rem;
+	}
+
+	.services {
+		padding-top: 94px;
+	}
+
+	.service-stack {
+		display: grid;
+		gap: 18px;
+		margin-top: 34px;
+	}
+
+	.mobile-service {
+		position: relative;
+		padding: 24px 20px 22px;
+		overflow: hidden;
+		border: 1px solid rgba(111, 146, 199, 0.16);
+		border-radius: 24px;
+		background:
+			linear-gradient(180deg, rgba(15, 31, 54, 0.78), rgba(7, 13, 23, 0.6));
+		box-shadow: 0 24px 54px rgba(0, 0, 0, 0.18);
+	}
+
+	.mobile-service::before {
+		position: absolute;
+		top: -34px;
+		right: 28px;
+		left: 28px;
+		height: 74px;
+		border-radius: 999px;
+		filter: blur(27px);
+		opacity: 0.32;
+		content: "";
+	}
+
+	.service-home::before {
+		background: linear-gradient(90deg, #423cff, #18d5ee);
+	}
+
+	.service-game::before {
+		background: linear-gradient(90deg, #c42aff, #553cff);
+	}
+
+	.service-data::before {
+		background: linear-gradient(90deg, #2b59ff, #18d7ef);
+	}
+
+	.service-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 72px;
+		height: 72px;
+		margin-bottom: 20px;
+		border: 1px solid rgba(119, 160, 220, 0.18);
+		border-radius: 50%;
+		background: rgba(10, 21, 38, 0.64);
+	}
+
+	.service-icon svg {
+		width: 50px;
+		height: 50px;
+		overflow: visible;
+		fill: none;
+		stroke: #ffffff;
+		stroke-width: 7;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.service-icon-game svg {
+		width: 58px;
+		height: 48px;
+	}
+
+	.service-label {
+		color: #79a7e8;
+		font-size: 0.55rem;
+		font-weight: 600;
+		letter-spacing: 0.24em;
+	}
+
+	.service-copy h3 {
+		margin: 13px 0 0;
+		font-size: 1.8rem;
+		font-weight: 400;
+		line-height: 1.06;
+		letter-spacing: -0.045em;
+	}
+
+	.service-copy > p {
+		margin: 14px 0 0;
+		color: #96a5ba;
+		font-size: 0.87rem;
+		font-weight: 300;
+		line-height: 1.55;
+	}
+
+	.service-copy ul {
+		display: grid;
+		gap: 9px;
+		margin: 20px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.service-copy li {
+		position: relative;
+		padding-left: 18px;
+		color: #d1dbea;
+		font-size: 0.79rem;
+		font-weight: 300;
+		line-height: 1.42;
+	}
+
+	.service-copy li::before {
+		position: absolute;
+		top: 0.5em;
+		left: 0;
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #ba39ff, #28a3ff);
+		content: "";
+	}
+
+	.contact {
+		padding-top: 110px;
+		padding-bottom: 110px;
+		text-align: center;
+		background:
+			radial-gradient(circle at 50% 30%, rgba(48, 107, 216, 0.12), transparent 28%),
+			#02050a;
+	}
+
+	.contact-mark {
+		width: min(46vw, 180px);
+		margin: 0 auto 30px;
+		filter: drop-shadow(0 0 32px rgba(42, 124, 255, 0.23));
+	}
+
+	.contact-copy > p {
+		max-width: 320px;
+	}
+
+	.contact-button {
+		gap: 10px;
+		width: 100%;
+		margin-top: 28px;
+	}
+
+	.whatsapp-icon {
+		display: inline-flex;
+		width: 18px;
+		height: 18px;
+	}
+
+	.whatsapp-icon svg {
+		width: 100%;
+		height: 100%;
+		fill: currentColor;
+	}
+
+	footer {
+		padding: 28px 20px 38px;
+		text-align: center;
+		border-top: 1px solid rgba(109, 141, 190, 0.11);
+		background: #02050a;
+	}
+
+	.footer-logo {
+		justify-content: center;
+	}
+
+	.footer-logo-mark {
+		display: inline-block;
+		width: 30px;
+		height: 30px;
+	}
+
+	footer p {
+		margin: 8px 0 0;
+		color: #5f718a;
+		font-size: 0.52rem;
+		letter-spacing: 0.24em;
+		text-transform: uppercase;
+	}
+
+	.reveal {
+		opacity: 0;
+		transform: translateY(24px);
+		transition:
+			opacity 700ms ease,
+			transform 700ms ease;
+	}
+
+	.reveal.is-visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:root {
+			scroll-behavior: auto;
+		}
+
+		.reveal {
+			opacity: 1;
+			transform: none;
+			transition: none;
+		}
+	}
+</style>
