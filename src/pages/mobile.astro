@@ -127,10 +127,6 @@ const whatsappUrl =
 					<span class="section-index">02</span>
 					<span class="section-kicker">SERVIÇOS</span>
 
-					<h2>
-						Várias demandas.
-						<span>Uma só Noden.</span>
-					</h2>
 				</div>
 
 				<div class="service-stack">
@@ -173,7 +169,7 @@ const whatsappUrl =
 
 						<div class="service-copy">
 							<span class="service-label">NODEN GAME</span>
-							<h3>Setup gamer pensado para render mais.</h3>
+							<h3>Setup gamer pensado em otimização.</h3>
 
 							<p>
 								Montagem, revisão e evolução do setup com foco em
@@ -430,14 +426,16 @@ const whatsappUrl =
 		margin: 15px 0 0;
 		font-size: clamp(2.8rem, 13vw, 4.5rem);
 		font-weight: 400;
-		line-height: 0.98;
-		letter-spacing: -0.065em;
+		line-height: 1.05;
+		letter-spacing: -0.05em;
+		padding-bottom: 0.08em;
 	}
 
 	.hero h1 span,
 	.section-heading h2 span,
 	.contact h2 span {
 		display: block;
+		padding-bottom: 0.06em;
 		background: linear-gradient(92deg, #ffffff 0%, #a8c9ff 58%, #8a74ff 100%);
 		-webkit-background-clip: text;
 		background-clip: text;
@@ -685,6 +683,17 @@ const whatsappUrl =
 		border-radius: 50%;
 		background: linear-gradient(135deg, #ba39ff, #28a3ff);
 		content: "";
+	}
+
+	.static-connector-shadow {
+		opacity: 0.12;
+		filter: blur(10px);
+		pointer-events: none;
+	}
+
+	.static-connector-layer {
+		opacity: 0.92;
+		pointer-events: none;
 	}
 
 	.contact {
