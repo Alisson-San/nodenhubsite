@@ -187,16 +187,6 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 					1.25,
 				)
 				.to(
-					"#final-logo-mark",
-					{
-						opacity: 1,
-						scale: 0.95,
-						y: 0,
-						duration: 0.8,
-					},
-					1.25,
-				)
-				.to(
 					"#brand-symbol",
 					{
 						scale: 0.95,
@@ -405,14 +395,6 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 					12,
 				)
 				.to(
-					"#final-logo-mark",
-					{
-						opacity: 0,
-						duration: 0.5,
-					},
-					4,
-				)
-				.to(
 					"#brand-symbol",
 					{
 						scale: 1,
@@ -542,13 +524,14 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 		filter: drop-shadow(0 0 35px rgba(33, 133, 255, 0.22));
 	}
 
-	..noden-symbol {
+.noden-symbol {
 	position: absolute;
 	width: clamp(280px, 30vw, 500px);
-	height: auto;
 	aspect-ratio: 1;
+
 	left: 68%;
 	top: 38%;
+
 	transform: translate(-50%, -50%);
 	filter: drop-shadow(0 0 35px rgba(33, 133, 255, 0.22));
 	z-index: 3;
@@ -561,9 +544,12 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 	overflow: visible;
 }
 
+/* CÍRCULOS */
 .noden-symbol .module-ring {
 	fill: none;
-	stroke-width: 78;
+	stroke-width: 92;
+	stroke-linecap: round;
+	stroke-linejoin: round;
 }
 
 .noden-symbol .ring-top {
@@ -578,17 +564,38 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 	stroke: url(#gradRight);
 }
 
+/* CONECTORES */
 .noden-symbol .connector-layer {
-	opacity: 0;
+	opacity: 1;
+	pointer-events: none;
 }
+
 .noden-symbol .connector-piece {
 	transform-box: fill-box;
 	transform-origin: center;
 }
+
+.noden-symbol .flow {
+	fill: none;
+	stroke-width: 76;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	opacity: 0.95;
+}
+
+.noden-symbol .flow-main {
+	stroke: url(#gradPurpleBlue);
+}
+
+.noden-symbol .flow-right {
+	stroke: url(#gradRight);
+}
+
 .noden-symbol .orbital {
 	fill: none;
-	stroke-width: 28;
+	stroke-width: 38;
 	stroke-linecap: round;
+	stroke-linejoin: round;
 	opacity: 0.9;
 }
 
@@ -606,24 +613,25 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 
 .noden-symbol .flow {
 	fill: none;
-	stroke-width: 78;
+	stroke-width: 90;
 	stroke-linecap: round;
+	stroke-linejoin: round;
 	opacity: 0.95;
 }
-
 .noden-symbol .flow-main {
-	stroke: url(#gradPurpleBlue);
+	stroke: url(#gradFlowMain);
 }
 
 .noden-symbol .flow-right {
-	stroke: url(#gradRight);
+	stroke: url(#gradFlowRight);
 }
-
+/* ANIMAÇÃO DOS NÓS */
 .noden-symbol .node {
 	transform-box: fill-box;
 	transform-origin: center;
 }
 
+/* ÍCONES INTERNOS */
 .noden-symbol .node-icon {
 	opacity: 0;
 	transform: scale(0.45);
