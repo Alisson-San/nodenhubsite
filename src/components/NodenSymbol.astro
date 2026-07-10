@@ -19,25 +19,48 @@
 				<stop offset="100%" stop-color="#17d9ef" />
 			</linearGradient>
 
-			<linearGradient id="gradFlowMain" x1="300" y1="540" x2="650" y2="515" gradientUnits="userSpaceOnUse">
-				<stop offset="0%" stop-color="#a835ff" stop-opacity="0.00" />
-				<stop offset="15%" stop-color="#a835ff" stop-opacity="0.80" />
-				<stop offset="35%" stop-color="#a835ff" stop-opacity="1." />
-				<stop offset="65%" stop-color="#6252ff" stop-opacity="1.78" />
-				<stop offset="90%" stop-color="#209cff" stop-opacity="0.84" />
-				<stop offset="95%" stop-color="#209cff" stop-opacity="0.10" />
-				<stop offset="100%" stop-color="#209cff" stop-opacity="0.00" />
+			<linearGradient
+				id="gradFlowMain"
+				x1="300"
+				y1="540"
+				x2="650"
+				y2="515"
+				gradientUnits="userSpaceOnUse"
+			>
+				<stop offset="0%" stop-color="#a835ff" stop-opacity="0" />
+				<stop offset="12%" stop-color="#a835ff" stop-opacity="0.22" />
+				<stop offset="24%" stop-color="#a835ff" stop-opacity="0.72" />
+				<stop offset="43%" stop-color="#8b3cff" stop-opacity="0.96" />
+				<stop offset="65%" stop-color="#6252ff" stop-opacity="0.96" />
+				<stop offset="82%" stop-color="#327fff" stop-opacity="0.72" />
+				<stop offset="94%" stop-color="#209cff" stop-opacity="0.20" />
+				<stop offset="100%" stop-color="#209cff" stop-opacity="0" />
 			</linearGradient>
 
-			<linearGradient id="gradFlowRight" x1="500" y1="800" x2="690" y2="560" gradientUnits="userSpaceOnUse">
-				<stop offset="0%" stop-color="#4b4dff" stop-opacity="0.00" />
-				<stop offset="12%" stop-color="#4b4dff" stop-opacity="1.78" />
-				<stop offset="45%" stop-color="#4b4dff" stop-opacity="1.72" />
-				<stop offset="95%" stop-color="#1f69ff" stop-opacity="1.80" />
-				<stop offset="100%" stop-color="#1f69ff" stop-opacity="0.00" />
+			<linearGradient
+				id="gradFlowRight"
+				x1="500"
+				y1="800"
+				x2="690"
+				y2="560"
+				gradientUnits="userSpaceOnUse"
+			>
+				<stop offset="0%" stop-color="#4b4dff" stop-opacity="0" />
+				<stop offset="12%" stop-color="#4b4dff" stop-opacity="0.20" />
+				<stop offset="25%" stop-color="#4b4dff" stop-opacity="0.70" />
+				<stop offset="48%" stop-color="#4657ff" stop-opacity="0.94" />
+				<stop offset="70%" stop-color="#3467ff" stop-opacity="0.90" />
+				<stop offset="88%" stop-color="#2675ff" stop-opacity="0.58" />
+				<stop offset="96%" stop-color="#1f69ff" stop-opacity="0.16" />
+				<stop offset="100%" stop-color="#1f69ff" stop-opacity="0" />
 			</linearGradient>
 		</defs>
-	
+
+		<!--
+			Os conectores vêm primeiro para ficarem atrás dos anéis.
+			Assim, o próprio stroke dos círculos cobre as pontas/emendas.
+		-->
+
 
 		<g id="pos-home" transform="translate(525 310)">
 			<g id="idle-home" class="intro-idle">
@@ -87,7 +110,6 @@
 				</g>
 			</g>
 		</g>
-
 		<g id="connector-layer" class="connector-layer">
 			<g
 				id="connector-flow-main"

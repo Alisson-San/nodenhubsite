@@ -298,7 +298,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 			gsap.registerPlugin(ScrollTrigger);
 
 			const lenis = new Lenis({
-				duration: 1.2,
+				duration: 0.82,
 				smoothWheel: true,
 			});
 
@@ -390,7 +390,11 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 					trigger: ".scroll-stage",
 					start: "top top",
 					end: "bottom bottom",
-					scrub: 1.2,
+					/*
+					 * O Lenis já suaviza a rolagem.
+					 * scrub:true evita um segundo atraso em cima do scroll.
+					 */
+					scrub: true,
 					invalidateOnRefresh: true,
 
 					onUpdate: (self) => {
@@ -682,7 +686,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 						duration: 1,
 						ease: "power2.inOut",
 					},
-					0.45,
+					0.1,
 				)
 				.to(
 					"#node-home, #node-game, #node-data",
@@ -694,7 +698,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 						duration: 2.25,
 						ease: "power3.inOut",
 					},
-					0.35,
+					0.05,
 				)
 				.to(
 					connectorPaths,
@@ -716,7 +720,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 						duration: 0.45,
 						ease: "power2.out",
 					},
-					2.15,
+					0.12,
 				)
 				.to(
 					"#brand-symbol",
@@ -725,7 +729,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 						y: 0,
 						duration: 2,
 					},
-					0.35,
+					0.05,
 				)
 
 				.to(
@@ -1260,26 +1264,34 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 
 				if (!trigger) return;
 
-				if (label === "contato") {
-					lenis.scrollTo(trigger.end, {
-						duration: 1.5,
-					});
-
-					return;
-				}
-
-				const targetTime = menuTargetTimes[label];
+				const targetTime =
+					label === "contato"
+						? timeline.duration()
+						: menuTargetTimes[label];
 
 				if (typeof targetTime !== "number") return;
 
-				const progress = targetTime / timeline.duration();
+				const progress = gsap.utils.clamp(
+					0,
+					1,
+					targetTime / timeline.duration(),
+				);
 
 				const destination =
 					trigger.start + (trigger.end - trigger.start) * progress;
 
+				/*
+				 * Salta diretamente para a cena selecionada,
+				 * sem reproduzir visualmente as etapas intermediárias.
+				 */
 				lenis.scrollTo(destination, {
-					duration: 1.35,
+					immediate: true,
+					force: true,
 				});
+
+				timeline.time(targetTime, false);
+				ScrollTrigger.update();
+				setActiveNavigation(label);
 			};
 
 			document
@@ -1563,7 +1575,10 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 	}
 
 	.scroll-stage {
-		height: 1400vh;
+		/*
+		 * Mais curto e responsivo que os 1400vh originais.
+		 */
+		height: 1000vh;
 	}
 
 	.scene {
@@ -1982,17 +1997,20 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 		margin: 25px 0;
 	}
 	
+	/*
+	 * O wrapper ocupa toda a cena e faz somente o posicionamento.
+	 * O card interno continua livre para o GSAP animar x/y/opacity.
+	 */
 	.division-shell {
 		position: absolute;
-		top: 0;
-		right: clamp(44px, 5.4vw, 88px);
-		bottom: 0;
+		inset: 0;
 		z-index: 10;
 
-		display: flex;
+		display: grid;
 		align-items: center;
+		justify-items: end;
 
-		width: clamp(370px, 30vw, 500px);
+		padding: 0 clamp(44px, 5.4vw, 88px);
 		pointer-events: none;
 	}
 
@@ -2003,9 +2021,11 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 		bottom: auto;
 		left: auto;
 
-		width: 100%;
-		pointer-events: auto;
+		width: clamp(370px, 30vw, 500px);
+		max-width: 100%;
+		pointer-events: none;
 	}
+
 	.division-copy {
 		--division-glow: linear-gradient(90deg, #3e49ff, #18d5ee);
 
@@ -2532,21 +2552,16 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 			display: none;
 		}
 
-		/* Fallback caso a página desktop seja aberta em uma tela pequena. */
+		/* Fallback da página desktop em telas pequenas. */
 		.division-shell {
-			top: 0;
-			right: 5vw;
-			bottom: 0;
-			left: 5vw;
-			width: auto;
+			inset: 0 5vw;
+			padding: 0;
+			justify-items: stretch;
 		}
 
 		.division-shell > .division-copy {
-			top: auto;
-			right: auto;
-			bottom: auto;
-			left: auto;
 			width: 100%;
+			max-width: none;
 			padding: 17px 16px 15px;
 			border-radius: 17px;
 			backdrop-filter: blur(12px);
@@ -2652,12 +2667,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 			padding: 8px 10px;
 		}
 
-		.division-copy,
-		.intro-copy {
-			top: 67%;
-		}
-
-		.division-copy {
+		.division-shell > .division-copy {
 			padding: 14px 15px 13px;
 		}
 
@@ -2698,15 +2708,15 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 			text-align: center;
 		}
 
-		.division-copy,
-		.intro-copy {
-			left: auto;
-			right: 4vw;
-			top: 54%;
+		.division-shell {
+			inset: 0 4vw 0 auto;
 			width: 46vw;
+			padding: 0;
+			justify-items: stretch;
 		}
 
-		.division-copy {
+		.division-shell > .division-copy {
+			width: 100%;
 			padding: 13px 14px;
 		}
 
