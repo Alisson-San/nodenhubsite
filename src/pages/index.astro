@@ -172,66 +172,72 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 						</p>
 					</div>
 
-					<div id="home-copy" class="copy division-copy division-home">
-						<span class="division-kicker">NODEN HOME</span>
-						<h2>Suporte técnico presencial para sua casa.</h2>
-						<p class="division-lead">
-							Atendimento residencial com deslocamento até o local para
-							resolver problemas, instalar equipamentos e orientar você com
-							clareza.
-						</p>
+					<div class="division-shell">
+						<div id="home-copy" class="copy division-copy division-home">
+							<span class="division-kicker">NODEN HOME</span>
+							<h2>Suporte técnico presencial para sua casa.</h2>
+							<p class="division-lead">
+								Atendimento residencial com deslocamento até o local para
+								resolver problemas, instalar equipamentos e orientar você com
+								clareza.
+							</p>
 
-						<ul class="division-list">
-							<li>Instalação e configuração de equipamentos</li>
-							<li>Limpeza, formatação e otimização do sistema</li>
-							<li>Upgrades básicos de memória e SSD</li>
-							<li>Consultoria gratuita para dúvidas e problemas</li>
-						</ul>
+							<ul class="division-list">
+								<li>Instalação e configuração de equipamentos</li>
+								<li>Limpeza, formatação e otimização do sistema</li>
+								<li>Upgrades básicos de memória e SSD</li>
+								<li>Consultoria gratuita para dúvidas e problemas</li>
+							</ul>
 
-						<p class="division-meta">
-							Atendimento local · Diagnóstico · Solução prática
-						</p>
+							<p class="division-meta">
+								Atendimento local · Diagnóstico · Solução prática
+							</p>
+						</div>
 					</div>
 
-					<div id="game-copy" class="copy division-copy division-game">
-						<span class="division-kicker">NODEN GAME</span>
-						<h2>Setup gamer pensado para render mais.</h2>
-						<p class="division-lead">
-							Para quem quer montar, revisar ou evoluir o setup com foco em
-							desempenho, estabilidade e melhor escolha de hardware.
-						</p>
+					<div class="division-shell">
+						<div id="game-copy" class="copy division-copy division-game">
+							<span class="division-kicker">NODEN GAME</span>
+							<h2>Setup gamer pensado em otimização.</h2>
+							<p class="division-lead">
+								Para quem quer montar, revisar ou evoluir o setup com foco em
+								desempenho, estabilidade e melhor escolha de hardware.
+							</p>
 
-						<ul class="division-list">
-							<li>Montagem e revisão completa do setup gamer</li>
-							<li>Diagnóstico de desempenho e gargalos</li>
-							<li>Upgrades de hardware e refrigeração</li>
-							<li>Consultoria para peças, compatibilidade e custo-benefício</li>
-						</ul>
+							<ul class="division-list">
+								<li>Montagem e revisão completa do setup gamer</li>
+								<li>Diagnóstico de desempenho e gargalos</li>
+								<li>Upgrades de hardware e refrigeração</li>
+								<li>Consultoria para peças, compatibilidade e custo-benefício</li>
+							</ul>
 
-						<p class="division-meta">
-							Hardware · Performance · Otimização
-						</p>
+							<p class="division-meta">
+								Hardware · Performance · Otimização
+							</p>
+						</div>
 					</div>
 
-					<div id="data-copy" class="copy division-copy division-data">
-						<span class="division-kicker">NODEN DATA</span>
-						<h2>Dados organizados para apoiar decisões reais.</h2>
-						<p class="division-lead">
-							Soluções para estruturar informações, automatizar análises e
-							transformar dados em visão de negócio.
-						</p>
+					<div class="division-shell">
+						<div id="data-copy" class="copy division-copy division-data">
+							<span class="division-kicker">NODEN DATA</span>
+							<h2>Dados organizados para apoiar decisões reais.</h2>
+							<p class="division-lead">
+								Soluções para estruturar informações, automatizar análises e
+								transformar dados em visão de negócio.
+							</p>
 
-						<ul class="division-list">
-							<li>Dashboards, indicadores e visualização de resultados</li>
-							<li>Soluções de Software, evoluindo processos.</li>
-							<li>Integração, tratamento e organização de dados</li>
-							<li>Automação de relatórios e fluxos analíticos</li>
-							<li>BI, analytics e apoio à tomada de decisão</li>
-						</ul>
+							<ul class="division-list">
+								<li>Dashboards, indicadores e visualização de resultados</li>
+								<li>Soluções de Software, evoluindo processos.</li>
+								<li>Integração, tratamento e organização de dados</li>
+								<li>Automação de relatórios e fluxos analíticos</li>
+								<li>BI, analytics e apoio à tomada de decisão</li>
+							</ul>
 
-						<p class="division-meta">
-							Data Engineering · BI · Analytics · Developer
-						</p>
+							<p class="division-meta">
+								Data Engineering · BI · Analytics · Developer
+							</p>
+						</div>
 					</div>
 
 					<div id="final-copy" class="copy final-copy">
@@ -1975,27 +1981,51 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 		letter-spacing: -0.05em;
 		margin: 25px 0;
 	}
+	
+	.division-shell {
+		position: absolute;
+		top: 0;
+		right: clamp(44px, 5.4vw, 88px);
+		bottom: 0;
+		z-index: 10;
 
+		display: flex;
+		align-items: center;
+
+		width: clamp(370px, 30vw, 500px);
+		pointer-events: none;
+	}
+
+	.division-shell > .division-copy {
+		position: relative;
+		top: auto;
+		right: auto;
+		bottom: auto;
+		left: auto;
+
+		width: 100%;
+		pointer-events: auto;
+	}
 	.division-copy {
 		--division-glow: linear-gradient(90deg, #3e49ff, #18d5ee);
-		position: absolute;
-		right: clamp(44px, 5.4vw, 88px);
-		top: 50%;
-		width: clamp(370px, 30vw, 500px);
+
+		position: relative;
+		width: 100%;
 		padding: 30px 32px 28px;
 		overflow: hidden;
+
 		border: 1px solid rgba(116, 150, 202, 0.14);
 		border-radius: 24px;
+
 		background:
-			linear-gradient(180deg, rgba(12, 25, 45, 0.76), rgba(6, 11, 20, 0.42));
+			linear-gradient(
+				180deg,
+				rgba(12, 25, 45, 0.76),
+				rgba(6, 11, 20, 0.42)
+			);
+
 		backdrop-filter: blur(16px);
 		box-shadow: 0 26px 60px rgba(0, 0, 0, 0.18);
-
-		/*
-		 * Centralização independente do transform usado pelo GSAP.
-		 * Assim, as animações em x/y não conseguem remover o -50%.
-		 */
-		translate: 0 -50%;
 	}
 
 	.division-copy::before {
@@ -2502,19 +2532,23 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 			display: none;
 		}
 
-		/* Home, Game e Data: símbolo em cima e card embaixo */
-		.division-copy,
-		.intro-copy {
-			left: 5vw;
+		/* Fallback caso a página desktop seja aberta em uma tela pequena. */
+		.division-shell {
+			top: 0;
 			right: 5vw;
-			top: 66%;
+			bottom: 0;
+			left: 5vw;
 			width: auto;
 		}
 
-		.division-copy {
+		.division-shell > .division-copy {
+			top: auto;
+			right: auto;
+			bottom: auto;
+			left: auto;
+			width: 100%;
 			padding: 17px 16px 15px;
 			border-radius: 17px;
-			translate: 0 -50%;
 			backdrop-filter: blur(12px);
 		}
 
