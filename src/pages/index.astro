@@ -1,6 +1,6 @@
 ---
 import NodenSymbol from "../components/NodenSymbol.astro";
-import NodenMarkFinal from "../components/NodenMarkFinal.astro";
+import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
 ---
 
 <html lang="pt-BR">
@@ -15,6 +15,44 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 	</head>
 
 	<body>
+
+		<header id="site-header" class="site-header">
+			<a
+				href="#inicio"
+				class="site-logo"
+				data-timeline-label="inicio"
+				aria-label="Noden — voltar ao início"
+			>
+				<span>N</span>
+
+				<span class="site-logo-mark" aria-hidden="true">
+					<NodenMarkStatic idPrefix="header-noden-mark" />
+				</span>
+
+				<span>DEN</span>
+			</a>
+
+			<button
+				id="menu-toggle"
+				class="menu-toggle"
+				type="button"
+				aria-expanded="false"
+				aria-controls="site-navigation"
+				aria-label="Abrir menu"
+			>
+				<span></span>
+				<span></span>
+			</button>
+
+			<nav id="site-navigation" class="site-navigation" aria-label="Navegação principal">
+				<a href="#quem-somos" data-timeline-label="quem-somos">Quem somos</a>
+				<a href="#noden-home" data-timeline-label="home">Noden Home</a>
+				<a href="#noden-game" data-timeline-label="game">Noden Game</a>
+				<a href="#noden-data" data-timeline-label="data">Noden Data</a>
+				<a href="#contato" class="navigation-contact" data-timeline-label="contato">Contato</a>
+			</nav>
+		</header>
+
 		<main class="experience">
 			<section class="scroll-stage">
 				<div class="scene">
@@ -23,61 +61,200 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 
 					<NodenSymbol />
 
-					<div id="brand" class="brand">
-						<div class="brand-name">
-							<span>N</span>
-
-							<div class="brand-symbol-mini">
-								<span></span>
-								<span></span>
-								<span></span>
+					<div id="brand-scene" class="brand-scene">
+						<div class="brand-lockup" aria-label="NODEN Technology Hub">
+							<div class="brand-word">
+								<span class="brand-letter brand-letter-n">N</span>
+								<span
+									id="brand-symbol-slot"
+									class="brand-symbol-slot"
+									aria-hidden="true"
+								></span>
+								<span class="brand-letter brand-letter-den">DEN</span>
 							</div>
 
-							<span>DEN</span>
+							<span class="brand-subtitle">TECHNOLOGY HUB</span>
 						</div>
 
-						<p>TECHNOLOGY HUB</p>
+						<div id="about-copy" class="about-copy">
+							<div class="about-marker">
+								<span class="about-index">01</span>
+								<span class="about-eyebrow">QUEM SOMOS</span>
+								<span class="about-line" aria-hidden="true"></span>
+							</div>
+
+							<div class="about-content">
+								<div class="about-heading">
+									<span class="about-kicker">UM HUB. TRÊS FRENTES.</span>
+
+									<h2>
+										Tecnologia para
+										<span>pessoas, performance e dados.</span>
+									</h2>
+
+									<p class="about-lead">
+										A Noden reúne serviços complementares para resolver desde
+										o suporte do dia a dia até projetos de alta performance e
+										inteligência de dados.
+									</p>
+									<div
+										class="about-coverage"
+										aria-label="Cidades com atendimento domiciliar"
+									>
+										<span class="coverage-label">ATENDIMENTO DOMICILIAR</span>
+
+										<div class="coverage-cities">
+											<span>Barão</span>
+											<span>Carlos Barbosa</span>
+											<span>Salvador</span>
+											<span>São Pedro da Serra</span>
+										</div>
+									</div>
+								</div>
+
+								<div class="about-services" aria-label="Segmentos da Noden">
+									<article class="service-card service-home">
+										<span class="service-number">01</span>
+										<h3>Noden Home</h3>
+										<p>
+											Suporte, manutenção, upgrades e soluções para a
+											tecnologia do dia a dia.
+										</p>
+									</article>
+
+									<article class="service-card service-game">
+										<span class="service-number">02</span>
+										<h3>Noden Game</h3>
+										<p>
+											Montagem, otimização e upgrades para setups que precisam
+											entregar mais.
+										</p>
+									</article>
+
+									<article class="service-card service-data">
+										<span class="service-number">03</span>
+										<h3>Noden Data</h3>
+										<p>
+											Engenharia de dados, BI e analytics para transformar
+											informação em decisão.
+										</p>
+									</article>
+								</div>
+							</div>
+						</div>
 					</div>
-					
+
 					<div id="start-copy" class="copy start-copy">
-						<span>NODEN TECHNOLOGY HUB</span>
-						<h1>Tecnologia começa<br />quando tudo conecta.</h1>
+						<span class="start-kicker">NODEN TECHNOLOGY HUB</span>
+
+						<h1>BEM-VINDO</h1>
+
+						<p class="start-message">
+							<strong>A tecnologia nos conecta.</strong>
+							<span>A Noden transforma essa conexão.</span>
+						</p>
 					</div>
 
-					<div id="intro-copy" class="copy intro-copy">
-						<span>TECNOLOGIA. CONECTADA.</span>
-						<h1>Três especialidades.<br />Um único ecossistema.</h1>
+					<div id="home-copy" class="copy division-copy division-home">
+						<span class="division-kicker">NODEN HOME</span>
+						<h2>Suporte técnico presencial para sua casa.</h2>
+						<p class="division-lead">
+							Atendimento residencial com deslocamento até o local para
+							resolver problemas, instalar equipamentos e orientar você com
+							clareza.
+						</p>
+
+						<ul class="division-list">
+							<li>Instalação e configuração de equipamentos</li>
+							<li>Limpeza, formatação e otimização do sistema</li>
+							<li>Upgrades básicos de memória e SSD</li>
+							<li>Consultoria gratuita para dúvidas e problemas</li>
+						</ul>
+
+						<p class="division-meta">
+							Atendimento local · Diagnóstico · Solução prática
+						</p>
 					</div>
 
-					<div id="home-copy" class="copy division-copy">
-						<span>NODEN HOME</span>
-						<h2>Tecnologia funcionando.<br />Como deveria.</h2>
-						<p>Manutenção · Suporte · Upgrades</p>
+					<div id="game-copy" class="copy division-copy division-game">
+						<span class="division-kicker">NODEN GAME</span>
+						<h2>Setup gamer pensado para render mais.</h2>
+						<p class="division-lead">
+							Para quem quer montar, revisar ou evoluir o setup com foco em
+							desempenho, estabilidade e melhor escolha de hardware.
+						</p>
+
+						<ul class="division-list">
+							<li>Montagem e revisão completa do setup gamer</li>
+							<li>Diagnóstico de desempenho e gargalos</li>
+							<li>Upgrades de hardware e refrigeração</li>
+							<li>Consultoria para peças, compatibilidade e custo-benefício</li>
+						</ul>
+
+						<p class="division-meta">
+							Hardware · Performance · Otimização
+						</p>
 					</div>
 
-					<div id="game-copy" class="copy division-copy">
-						<span>NODEN GAME</span>
-						<h2>Performance<br />não é detalhe.</h2>
-						<p>Setup gamer · Hardware · Otimização</p>
-					</div>
+					<div id="data-copy" class="copy division-copy division-data">
+						<span class="division-kicker">NODEN DATA</span>
+						<h2>Dados organizados para apoiar decisões reais.</h2>
+						<p class="division-lead">
+							Soluções para estruturar informações, automatizar análises e
+							transformar dados em visão de negócio.
+						</p>
 
-					<div id="data-copy" class="copy division-copy">
-						<span>NODEN DATA</span>
-						<h2>Dados existem.<br />Inteligência é construída.</h2>
-						<p>Data Engineering · BI · Analytics</p>
+						<ul class="division-list">
+							<li>Dashboards, indicadores e visualização de resultados</li>
+							<li>Integração, tratamento e organização de dados</li>
+							<li>Automação de relatórios e fluxos analíticos</li>
+							<li>BI, analytics e apoio à tomada de decisão</li>
+						</ul>
+
+						<p class="division-meta">
+							Data Engineering · BI · Analytics
+						</p>
 					</div>
 
 					<div id="final-copy" class="copy final-copy">
-						<span>TRÊS NÓS.</span>
-						<h2>UMA CONEXÃO.</h2>
-						<strong>NODEN.</strong>
+						<div class="final-demand">
+							<h2>
+								<span class="final-demand-line final-demand-line-one">
+									Várias demandas
+								</span>
 
-						<a href="#contact">FALAR COM A NODEN</a>
-					</div>
+								<span class="final-demand-line final-demand-line-two">
+									Um só lugar.
+								</span>
+							</h2>
+						</div>
 
-					<!-- src/components/NodenMarkFinal.astro -->
-					<div id="final-logo-mark" class="final-logo-mark" aria-hidden="true">
-						<img src="/noden-logo-clean-transparent.png" alt="" loading="eager" />
+						<div class="final-brand-lockup" aria-label="NODEN">
+							<span class="final-brand-letter final-brand-letter-n">N</span>
+
+							<span
+								id="final-symbol-slot"
+								class="final-symbol-slot"
+								aria-hidden="true"
+							></span>
+
+							<span class="final-brand-letter final-brand-letter-den">DEN</span>
+						</div>
+
+						<a href="whatsapp://send?phone=5554996306632&text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20Noden." rel="noopener noreferrer" class="final-contact-link" aria-label="Entre em contato pelo WhatsApp">
+							<span class="final-contact-icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" role="img">
+									<path
+										d="M 20.52 3.48 A 11.92 11.92 0 0 0 12.04 0 C 5.42 0 0.04 5.38 0.04 12 C 0.04 14.12 0.6 16.19 1.65 18.01 L 0 24 L 6.15 22.39 A 11.99 11.99 0 0 0 12.04 24 C 18.66 24 24.04 18.62 24.04 12 A 11.92 11.92 0 0 0 20.52 3.48 Z M 12.04 21.88 A 9.9 9.9 0 0 1 7 20.5 L 6.64 20.29 L 2.99 21.24 L 3.97 17.68 L 3.73 17.31 A 9.86 9.86 0 1 1 12.04 21.88 Z"
+									/>
+									<path
+										d="M 17.75 14.87 C 17.47 14.73 16.1 14.06 15.85 13.97 C 15.59 13.87 15.41 13.83 15.22 14.11 C 15.04 14.38 14.51 15.01 14.35 15.19 C 14.19 15.37 14.03 15.39 13.74 15.24 C 12.02 14.39 10.89 13.72 9.75 11.76 C 9.45 11.24 10.05 11.27 10.61 10.15 C 10.7 9.97 10.66 9.82 10.59 9.68 C 10.52 9.54 9.96 8.17 9.73 7.62 C 9.5 7.09 9.27 7.16 9.1 7.15 C 8.94 7.14 8.75 7.14 8.57 7.14 C 8.39 7.14 8.09 7.21 7.83 7.49 C 7.57 7.76 6.84 8.44 6.84 9.81 C 6.84 11.18 7.86 12.51 8 12.7 C 8.14 12.88 10 15.91 12.86 17.14 C 15.69 18.35 15.69 17.95 16.17 17.91 C 16.64 17.86 17.71 17.24 17.92 16.65 C 18.14 16.05 18.14 15.54 18.06 15.4 C 17.99 15.26 17.82 15.01 17.75 14.87 Z"
+									/>
+								</svg>
+							</span>
+
+							<span>ENTRE EM CONTATO</span>
+						</a>
 					</div>
 
 					<div class="scroll-hint">
@@ -87,12 +264,6 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 				</div>
 			</section>
 
-			<section id="contact" class="contact">
-				<span>NODEN</span>
-				<h2>Vamos conectar<br />a tecnologia certa.</h2>
-
-				<a href="#">WHATSAPP</a>
-			</section>
 		</main>
 
 		<script>
@@ -121,6 +292,7 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 					start: "top top",
 					end: "bottom bottom",
 					scrub: 1.2,
+					invalidateOnRefresh: true,
 				},
 			});
 
@@ -139,52 +311,304 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 				y: 0,
 			});
 
-			gsap.set("#brand-symbol", {
-				scale: 0.72,
-				y: -40,
+			gsap.set("#brand-scene", {
+				opacity: 1,
+				y: 0,
 			});
+
+			gsap.set(".brand-letter-n", {
+				opacity: 0,
+				x: -70,
+			});
+
+			gsap.set(".brand-letter-den", {
+				opacity: 0,
+				x: 70,
+			});
+
+			gsap.set(".brand-subtitle", {
+				opacity: 0,
+				y: 14,
+			});
+
+			gsap.set("#about-copy .about-marker > *", {
+				opacity: 0,
+				x: -18,
+			});
+
+			gsap.set("#about-copy .about-heading > *", {
+				opacity: 0,
+				y: 24,
+			});
+
+			gsap.set("#about-copy .service-card", {
+				opacity: 0,
+				y: 24,
+			});
+
+			gsap.set("#brand-symbol", {
+				scale: 1,
+				x: 0,
+				y: 0,
+				rotation: 0,
+			});
+
+			const connectorPaths = gsap.utils.toArray<SVGPathElement>(
+				"#connector-layer .flow",
+			);
 
 			gsap.set("#connector-layer", {
-				opacity: 0,
+				opacity: 1,
 			});
 
-			gsap.set("#final-logo-mark", {
-				opacity: 0,
-				scale: 0.72,
-				y: -40,
+			connectorPaths.forEach((path) => {
+				const length = path.getTotalLength();
+
+				gsap.set(path, {
+					opacity: 0,
+					strokeDasharray: length,
+					strokeDashoffset: length,
+				});
 			});
 
-			gsap.set("#node-home", { x: 0, y: -90, rotation: -45 });
-			gsap.set("#node-game", { x: -95, y: 75, rotation: 30 });
-			gsap.set("#node-data", { x: 95, y: 75, rotation: -30 });
+
+			const placeIntroNode = (
+				selector: string,
+				targetX: number,
+				targetY: number,
+				scale: number,
+				rotation: number,
+			) => {
+				const node = document.querySelector<SVGGElement>(selector);
+				const ring = node?.querySelector<SVGGeometryElement>(".module-ring");
+
+				if (!node || !ring) return;
+
+				const bounds = ring.getBoundingClientRect();
+				const currentX = bounds.left + bounds.width / 2;
+				const currentY = bounds.top + bounds.height / 2;
+
+				gsap.set(node, {
+					x: targetX - currentX,
+					y: targetY - currentY,
+					scale,
+					rotation,
+				});
+			};
+
+			const placeIntroNodes = () => {
+				const mobile = window.innerWidth <= 800;
+				const nodeScale = mobile ? 0.5 : 0.68;
+				const bottomY = window.innerHeight * (mobile ? 0.79 : 0.8);
+
+				placeIntroNode(
+					"#node-home",
+					window.innerWidth * 0.5,
+					window.innerHeight * (mobile ? 0.16 : 0.15),
+					nodeScale,
+					-16,
+				);
+
+				placeIntroNode(
+					"#node-game",
+					window.innerWidth * (mobile ? 0.18 : 0.08),
+					bottomY,
+					nodeScale,
+					14,
+				);
+
+				placeIntroNode(
+					"#node-data",
+					window.innerWidth * (mobile ? 0.82 : 0.92),
+					bottomY,
+					nodeScale,
+					-14,
+				);
+			};
+
+			placeIntroNodes();
+
+			const brandSymbol =
+				document.querySelector<HTMLElement>("#brand-symbol");
+			const brandSymbolSlot =
+				document.querySelector<HTMLElement>("#brand-symbol-slot");
+
+			const getBrandSymbolTarget = () => {
+				if (!brandSymbol || !brandSymbolSlot) {
+					return { x: 0, y: 0, scale: 0.25 };
+				}
+
+				const slotBounds = brandSymbolSlot.getBoundingClientRect();
+				const symbolWidth = brandSymbol.offsetWidth || 1;
+
+				return {
+					x:
+						slotBounds.left +
+						slotBounds.width / 2 -
+						window.innerWidth / 2,
+					y:
+						slotBounds.top +
+						slotBounds.height / 2 -
+						window.innerHeight / 2,
+					scale: slotBounds.width / symbolWidth,
+				};
+			};
+
+			const getDivisionSymbolState = () => {
+				const mobile = window.innerWidth <= 800;
+
+				return {
+					x: mobile ? 0 : -205,
+					y: mobile ? -122 : 42,
+					scale: mobile ? 1.08 : 1.42,
+				};
+			};
+
+			const finalSymbolSlot =
+				document.querySelector<HTMLElement>("#final-symbol-slot");
+
+			const getFinalIntroSymbolState = () => {
+				const mobile = window.innerWidth <= 800;
+
+				return {
+					x: 0,
+					y: mobile ? -188 : -178,
+					scale: mobile ? 0.19 : 0.22,
+				};
+			};
+
+			const getFinalSymbolTarget = () => {
+				if (!brandSymbol || !finalSymbolSlot) {
+					return { x: 0, y: 0, scale: 0.28 };
+				}
+
+				const slotBounds = finalSymbolSlot.getBoundingClientRect();
+				const symbolWidth = brandSymbol.offsetWidth || 1;
+
+				return {
+					x:
+						slotBounds.left +
+						slotBounds.width / 2 -
+						window.innerWidth / 2,
+					y:
+						slotBounds.top +
+						slotBounds.height / 2 -
+						window.innerHeight / 2,
+					scale: slotBounds.width / symbolWidth,
+				};
+			};
+
+			gsap.set(".division-copy", {
+				x: 24,
+			});
+
+			gsap.set("#final-copy", {
+				opacity: 1,
+				y: 0,
+			});
+
+			gsap.set(".final-demand-line", {
+				opacity: 0,
+				y: 34,
+			});
+
+			gsap.set(".final-brand-letter-n", {
+				opacity: 0,
+				x: -70,
+			});
+
+			gsap.set(".final-brand-letter-den", {
+				opacity: 0,
+				x: 70,
+			});
+
+			gsap.set(".final-contact-link", {
+				opacity: 0,
+				y: 22,
+			});
+
+			gsap.from("#site-header", {
+				opacity: 0,
+				y: -18,
+				duration: 0.9,
+				delay: 0.12,
+				ease: "power2.out",
+			});
+
+			gsap.fromTo(
+				"#start-copy .start-kicker",
+				{ opacity: 0, y: 14 },
+				{ opacity: 1, y: 0, duration: 0.8, delay: 0.1, ease: "power2.out" },
+			);
+
+			gsap.fromTo(
+				"#start-copy h1",
+				{ opacity: 0, y: 28 },
+				{ opacity: 1, y: 0, duration: 1, delay: 0.2, ease: "power3.out" },
+			);
+
+			gsap.fromTo(
+				"#start-copy .start-message",
+				{ opacity: 0, y: 18 },
+				{ opacity: 1, y: 0, duration: 0.9, delay: 0.38, ease: "power2.out" },
+			);
+
+			gsap.fromTo(
+				".module-ring",
+				{ opacity: 0 },
+				{
+					opacity: 1,
+					duration: 1.1,
+					delay: 0.2,
+					stagger: 0.12,
+					ease: "power2.out",
+				},
+			);
 
 			timeline.to(
 					"#start-copy",
 					{
 						opacity: 0,
-						y: -45,
-						duration: 0.8,
+						y: -35,
+						scale: 0.96,
+						duration: 1,
+						ease: "power2.inOut",
 					},
-					1.2,
+					0.45,
 				)
 				.to(
 					"#node-home, #node-game, #node-data",
 					{
 						x: 0,
 						y: 0,
+						scale: 1,
 						rotation: 0,
-						duration: 2,
+						duration: 2.25,
 						ease: "power3.inOut",
 					},
-					0,
+					0.35,
 				)
 				.to(
-					"#connector-layer",
+					connectorPaths,
 					{
-						opacity: 1,
-						duration: 0.8,
+						opacity: 0.95,
+						strokeDashoffset: 0,
+						duration: 0.68,
+						stagger: 0.08,
+						ease: "power2.out",
 					},
-					1.25,
+					2.6,
+				)
+
+				.to(
+					".scroll-hint",
+					{
+						opacity: 0,
+						y: 12,
+						duration: 0.45,
+						ease: "power2.out",
+					},
+					2.15,
 				)
 				.to(
 					"#brand-symbol",
@@ -193,82 +617,138 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 						y: 0,
 						duration: 2,
 					},
-					0,
-				)
-				.to(
-					"#brand",
-					{
-						opacity: 1,
-						y: 0,
-						duration: 1,
-					},
-					1.5,
-				)
-
-				.to(
-					"#intro-copy",
-					{
-						opacity: 1,
-						y: 0,
-						duration: 1,
-					},
-					2,
-				)
-
-				.to(
-					"#intro-copy, #brand",
-					{
-						opacity: 0,
-						y: -50,
-						duration: 1,
-					},
-					4,
+					0.35,
 				)
 
 				.to(
 					"#brand-symbol",
 					{
-						scale: 1.75,
-						y: 80,
-						duration: 2,
+						x: () => getBrandSymbolTarget().x,
+						y: () => getBrandSymbolTarget().y,
+						scale: () => getBrandSymbolTarget().scale,
+						rotation: 0,
+						duration: 1.3,
+						ease: "power3.inOut",
 					},
-					4,
+					3.15,
+				)
+
+				.to(
+					".brand-letter-n",
+					{
+						opacity: 1,
+						x: 0,
+						duration: 0.8,
+						ease: "power3.out",
+					},
+					3.58,
+				)
+
+				.to(
+					".brand-letter-den",
+					{
+						opacity: 1,
+						x: 0,
+						duration: 0.8,
+						ease: "power3.out",
+					},
+					3.58,
+				)
+
+				.to(
+					".brand-subtitle",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 0.65,
+						ease: "power2.out",
+					},
+					4.02,
+				)
+
+				.to(
+					"#about-copy .about-marker > *",
+					{
+						opacity: 1,
+						x: 0,
+						duration: 0.5,
+						stagger: 0.07,
+						ease: "power2.out",
+					},
+					4.35,
+				)
+
+				.to(
+					"#about-copy .about-heading > *",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 0.72,
+						stagger: 0.11,
+						ease: "power3.out",
+					},
+					4.5,
+				)
+
+				.to(
+					"#about-copy .service-card",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 0.7,
+						stagger: 0.1,
+						ease: "power3.out",
+					},
+					5.05,
+				)
+
+				.to(
+					"#brand-scene",
+					{
+						opacity: 0,
+						y: -35,
+						duration: 0.9,
+						ease: "power2.inOut",
+					},
+					6.45,
+				)
+
+				.to(
+					"#brand-symbol",
+					{
+						x: () => getDivisionSymbolState().x,
+						y: () => getDivisionSymbolState().y,
+						scale: () => getDivisionSymbolState().scale,
+						rotation: 0,
+						duration: 1.8,
+						ease: "power3.inOut",
+					},
+					6.45,
+				)
+
+				.to(
+					connectorPaths,
+					{
+						opacity: 0.18,
+						duration: 0.7,
+						ease: "power2.out",
+					},
+					6.7,
 				)
 
 				.to(
 					"#node-game, #node-data",
 					{
-						opacity: 0.08,
-						duration: 1,
+						opacity: 0.12,
+						duration: 0.8,
 					},
-					5,
+					7,
 				)
 
 				.to(
-					"#node-home .node-icon",
+					"#node-home",
 					{
 						opacity: 1,
-						scale: 1,
-						duration: 1,
-					},
-					5,
-				)
-
-				.to(
-					"#home-copy",
-					{
-						opacity: 1,
-						y: 0,
-						duration: 1,
-					},
-					5.3,
-				)
-
-				.to(
-					"#home-copy",
-					{
-						opacity: 0,
-						y: -50,
 						duration: 0.8,
 					},
 					7,
@@ -277,35 +757,78 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 				.to(
 					"#node-home .node-icon",
 					{
+						opacity: 1,
+						scale: 1,
+						rotation: 0,
+						duration: 0.9,
+					},
+					7.05,
+				)
+
+				.to(
+					"#home-copy",
+					{
+						opacity: 1,
+						y: 0,
+						x: 0,
+						duration: 0.9,
+						ease: "power3.out",
+					},
+					7.28,
+				)
+
+				.to(
+					"#home-copy",
+					{
+						opacity: 0,
+						y: -32,
+						x: 0,
+						duration: 0.8,
+						ease: "power2.inOut",
+					},
+					9.2,
+				)
+
+				.to(
+					"#node-home .node-icon",
+					{
 						opacity: 0,
 						scale: 0.5,
+						rotation: 0,
+						duration: 0.55,
 					},
-					7,
+					9.2,
 				)
 
 				.to(
 					"#brand-symbol",
 					{
+						x: () => getDivisionSymbolState().x,
+						y: () => getDivisionSymbolState().y,
+						scale: () => getDivisionSymbolState().scale,
 						rotation: 120,
 						duration: 1.5,
+						ease: "power3.inOut",
 					},
-					7,
+					9.15,
 				)
 
 				.to(
 					"#node-home, #node-data",
 					{
-						opacity: 0.08,
+						opacity: 0.12,
+						duration: 0.7,
 					},
-					7,
+					9.2,
 				)
 
 				.to(
 					"#node-game",
 					{
 						opacity: 1,
+						duration: 0.7,
 					},
-					7,
+					9.2,
 				)
 
 				.to(
@@ -313,8 +836,10 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 					{
 						opacity: 1,
 						scale: 1,
+						rotation: -120,
+						duration: 0.85,
 					},
-					7.7,
+					9.72,
 				)
 
 				.to(
@@ -322,50 +847,65 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 					{
 						opacity: 1,
 						y: 0,
+						x: 0,
+						duration: 0.9,
+						ease: "power3.out",
 					},
-					7.7,
+					9.82,
 				)
 
 				.to(
 					"#game-copy",
 					{
 						opacity: 0,
-						y: -50,
+						y: -32,
+						x: 0,
+						duration: 0.8,
+						ease: "power2.inOut",
 					},
-					9.5,
+					11.72,
 				)
 
 				.to(
 					"#node-game .node-icon",
 					{
 						opacity: 0,
+						scale: 0.5,
+						rotation: -120,
+						duration: 0.55,
 					},
-					9.5,
+					11.72,
 				)
 
 				.to(
 					"#brand-symbol",
 					{
+						x: () => getDivisionSymbolState().x,
+						y: () => getDivisionSymbolState().y,
+						scale: () => getDivisionSymbolState().scale,
 						rotation: 240,
 						duration: 1.5,
+						ease: "power3.inOut",
 					},
-					9.5,
+					11.68,
 				)
 
 				.to(
-					"#node-game",
+					"#node-game, #node-home",
 					{
-						opacity: 0.08,
+						opacity: 0.12,
+						duration: 0.7,
 					},
-					9.5,
+					11.72,
 				)
 
 				.to(
 					"#node-data",
 					{
 						opacity: 1,
+						duration: 0.7,
 					},
-					9.5,
+					11.72,
 				)
 
 				.to(
@@ -373,8 +913,10 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 					{
 						opacity: 1,
 						scale: 1,
+						rotation: -240,
+						duration: 0.85,
 					},
-					10.2,
+					12.25,
 				)
 
 				.to(
@@ -382,54 +924,292 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 					{
 						opacity: 1,
 						y: 0,
+						x: 0,
+						duration: 0.9,
+						ease: "power3.out",
 					},
-					10.2,
+					12.35,
 				)
 
 				.to(
 					"#data-copy",
 					{
 						opacity: 0,
-						y: -50,
+						y: -32,
+						x: 0,
+						duration: 0.8,
+						ease: "power2.inOut",
 					},
-					12,
+					14.25,
 				)
 				.to(
 					"#brand-symbol",
 					{
-						scale: 1,
+						x: () => getFinalIntroSymbolState().x,
+						y: () => getFinalIntroSymbolState().y,
+						scale: () => getFinalIntroSymbolState().scale,
 						rotation: 360,
-						y: 0,
-						duration: 2,
+						duration: 1.65,
+						ease: "power3.inOut",
 					},
-					12,
+					14.25,
+				)
+
+				.to(
+					connectorPaths,
+					{
+						opacity: 0.95,
+						duration: 0.9,
+						ease: "power2.out",
+					},
+					14.45,
 				)
 
 				.to(
 					".node",
 					{
 						opacity: 1,
+						duration: 0.9,
 					},
-					12,
+					14.25,
 				)
 
 				.to(
 					".node-icon",
 					{
 						opacity: 0,
+						rotation: 0,
+						duration: 0.6,
 					},
-					12,
+					14.25,
 				)
 
 				.to(
-					"#final-copy",
+					".final-demand-line-one",
 					{
 						opacity: 1,
 						y: 0,
-						duration: 1.5,
+						duration: 0.9,
+						ease: "power3.out",
 					},
-					13,
+					14.9,
+				)
+
+				.to(
+					".final-demand-line-one",
+					{
+						y: -10,
+						duration: 0.75,
+						ease: "power2.inOut",
+					},
+					15.55,
+				)
+
+				.to(
+					".final-demand-line-two",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 0.9,
+						ease: "power3.out",
+					},
+					15.55,
+				)
+
+				.to(
+					".final-demand-line",
+					{
+						opacity: 0,
+						y: -58,
+						duration: 0.8,
+						stagger: 0.05,
+						ease: "power2.inOut",
+					},
+					16.45,
+				)
+
+				.to(
+					"#brand-symbol",
+					{
+						x: () => getFinalSymbolTarget().x,
+						y: () => getFinalSymbolTarget().y,
+						scale: () => getFinalSymbolTarget().scale,
+						rotation: 360,
+						duration: 1.25,
+						ease: "power3.inOut",
+					},
+					16.3,
+				)
+
+				.to(
+					".final-brand-letter-n",
+					{
+						opacity: 1,
+						x: 0,
+						duration: 0.8,
+						ease: "power3.out",
+					},
+					16.72,
+				)
+
+				.to(
+					".final-brand-letter-den",
+					{
+						opacity: 1,
+						x: 0,
+						duration: 0.8,
+						ease: "power3.out",
+					},
+					16.72,
+				)
+
+				.to(
+					".final-contact-link",
+					{
+						opacity: 1,
+						y: 0,
+						duration: 0.75,
+						ease: "power2.out",
+					},
+					17.18,
 				);
+
+			timeline.addLabel("inicio", 0);
+			timeline.addLabel("quem-somos", 4.5);
+			timeline.addLabel("home", 7.28);
+			timeline.addLabel("game", 9.82);
+			timeline.addLabel("data", 12.35);
+			timeline.addLabel("contato", 17.18);
+
+			const menuTargetTimes: Record<string, number> = {
+				inicio: 0,
+
+				// Marca, proposta, cidades e três segmentos já visíveis.
+				"quem-somos": 5.9,
+
+				// Ícone e painel Home completamente apresentados.
+				home: 8.2,
+
+				// Ícone e painel Game completamente apresentados.
+				game: 10.75,
+
+				// Ícone e painel Data completamente apresentados.
+				data: 13.3,
+
+				// Tratado separadamente para ir ao fim real.
+				contato: timeline.duration(),
+			};
+
+			const header = document.querySelector<HTMLElement>("#site-header");
+			const menuToggle = document.querySelector<HTMLButtonElement>("#menu-toggle");
+			const navigation = document.querySelector<HTMLElement>("#site-navigation");
+
+			const navigationLinks = Array.from(
+				document.querySelectorAll<HTMLAnchorElement>(
+					"[data-timeline-label]",
+				),
+			);
+
+			const setActiveNavigation = (activeLabel: string) => {
+				navigationLinks.forEach((link) => {
+					link.classList.toggle(
+						"is-active",
+						link.dataset.timelineLabel === activeLabel,
+					);
+				});
+			};
+
+			const getCurrentTimelineLabel = () => {
+				const currentTime = timeline.time();
+				const orderedLabels = [
+					{ name: "inicio", time: timeline.labels.inicio },
+					{ name: "quem-somos", time: timeline.labels["quem-somos"] },
+					{ name: "home", time: timeline.labels.home },
+					{ name: "game", time: timeline.labels.game },
+					{ name: "data", time: timeline.labels.data },
+					{ name: "contato", time: timeline.labels.contato },
+				];
+
+				let currentLabel = "inicio";
+
+				orderedLabels.forEach((label) => {
+					if (currentTime >= label.time - 0.25) {
+						currentLabel = label.name;
+					}
+				});
+
+				return currentLabel;
+			};
+
+			const closeMobileMenu = () => {
+				header?.classList.remove("is-menu-open");
+				menuToggle?.setAttribute("aria-expanded", "false");
+				menuToggle?.setAttribute("aria-label", "Abrir menu");
+			};
+
+			const scrollToTimelineLabel = (label: string) => {
+				const trigger = timeline.scrollTrigger;
+
+				if (!trigger) return;
+
+				if (label === "contato") {
+					lenis.scrollTo(trigger.end, {
+						duration: 1.5,
+					});
+
+					return;
+				}
+
+				const targetTime = menuTargetTimes[label];
+
+				if (typeof targetTime !== "number") return;
+
+				const progress = targetTime / timeline.duration();
+
+				const destination =
+					trigger.start + (trigger.end - trigger.start) * progress;
+
+				lenis.scrollTo(destination, {
+					duration: 1.35,
+				});
+			};
+
+			document
+				.querySelectorAll<HTMLAnchorElement>("[data-timeline-label]")
+				.forEach((link) => {
+					link.addEventListener("click", (event) => {
+						event.preventDefault();
+
+						const label = link.dataset.timelineLabel;
+						if (!label) return;
+
+						closeMobileMenu();
+						scrollToTimelineLabel(label);
+					});
+				});
+
+
+			menuToggle?.addEventListener("click", () => {
+				const isOpen = header?.classList.toggle("is-menu-open") ?? false;
+
+				menuToggle.setAttribute("aria-expanded", String(isOpen));
+				menuToggle.setAttribute(
+					"aria-label",
+					isOpen ? "Fechar menu" : "Abrir menu",
+				);
+			});
+
+			timeline.eventCallback("onUpdate", () => {
+				setActiveNavigation(getCurrentTimelineLabel());
+			});
+
+			lenis.on("scroll", (event: { scroll: number }) => {
+				header?.classList.toggle("is-scrolled", event.scroll > 24);
+				setActiveNavigation(getCurrentTimelineLabel());
+			});
+
+			window.addEventListener("resize", closeMobileMenu);
+			setActiveNavigation("inicio");
 		</script>
 	</body>
 </html>
@@ -454,27 +1234,223 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 		background: #02050a;
 	}
 
+
 	body {
 		overflow-x: hidden;
 	}
 
-	.start-copy {	
-		left: 8vw;
-		top: 42%;
+	.site-header {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 100;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		height: 78px;
+		padding: 0 clamp(24px, 5vw, 82px);
+		border-bottom: 1px solid transparent;
+		background: rgba(2, 5, 10, 0);
+		transition:
+			height 280ms ease,
+			background-color 280ms ease,
+			border-color 280ms ease,
+			backdrop-filter 280ms ease;
+	}
+
+	.site-header.is-scrolled {
+		height: 68px;
+		border-bottom-color: rgba(132, 162, 207, 0.12);
+		background: rgba(2, 5, 10, 0.7);
+		backdrop-filter: blur(18px);
+	}
+
+	.site-logo {
+		position: relative;
+		z-index: 102;
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		color: #f7f9ff;
+		font-size: 1.08rem;
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: 0.22em;
+		text-decoration: none;
+	}
+
+	.site-logo > span:not(.site-logo-mark) {
+		font-size: inherit;
+		line-height: inherit;
+		letter-spacing: inherit;
+		color: inherit;
+	}
+
+	.site-logo-mark {
+		display: inline-block;
+		flex: 0 0 auto;
+		width: 34px;
+		height: 34px;
+		margin: 0 2px;
+		filter: drop-shadow(0 0 10px rgba(48, 126, 255, 0.26));
+	}
+
+	.site-navigation {
+		display: flex;
+		align-items: center;
+		gap: clamp(22px, 2.2vw, 40px);
+	}
+
+	.site-navigation a {
+		position: relative;
+		padding: 11px 0;
+		color: rgba(218, 228, 244, 0.62);
+		font-size: 0.67rem;
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		text-decoration: none;
+		text-transform: uppercase;
+		transition: color 220ms ease;
+	}
+
+	.site-navigation a::after {
+		position: absolute;
+		right: 0;
+		bottom: 3px;
+		left: 0;
+		height: 1px;
+		background: linear-gradient(90deg, #9d32ff, #2686ff, #16d7ec);
+		content: "";
+		transform: scaleX(0);
+		transform-origin: center;
+		transition: transform 240ms ease;
+	}
+
+	.site-navigation a:hover,
+	.site-navigation a.is-active {
+		color: #ffffff;
+	}
+
+	.site-navigation a:hover::after,
+	.site-navigation a.is-active::after {
+		transform: scaleX(1);
+	}
+
+	.site-navigation .navigation-contact {
+		padding: 11px 17px;
+		border: 1px solid rgba(125, 155, 201, 0.24);
+		border-radius: 999px;
+		color: rgba(240, 246, 255, 0.86);
+		transition:
+			color 220ms ease,
+			border-color 220ms ease,
+			background-color 220ms ease;
+	}
+
+	.site-navigation .navigation-contact::after {
+		display: none;
+	}
+
+	.site-navigation .navigation-contact:hover,
+	.site-navigation .navigation-contact.is-active {
+		border-color: rgba(52, 139, 255, 0.6);
+		background: rgba(35, 104, 205, 0.13);
+		color: #ffffff;
+	}
+
+	.menu-toggle {
+		position: relative;
+		z-index: 102;
+		display: none;
+		width: 42px;
+		height: 42px;
+		padding: 0;
+		border: 1px solid rgba(132, 162, 207, 0.2);
+		border-radius: 50%;
+		background: rgba(11, 18, 31, 0.6);
+		cursor: pointer;
+	}
+
+	.menu-toggle span {
+		position: absolute;
+		left: 12px;
+		width: 16px;
+		height: 1px;
+		background: #ffffff;
+		transition:
+			top 220ms ease,
+			transform 220ms ease;
+	}
+
+	.menu-toggle span:first-child {
+		top: 16px;
+	}
+
+	.menu-toggle span:last-child {
+		top: 24px;
+	}
+
+	.site-header.is-menu-open .menu-toggle span:first-child {
+		top: 20px;
+		transform: rotate(45deg);
+	}
+
+	.site-header.is-menu-open .menu-toggle span:last-child {
+		top: 20px;
+		transform: rotate(-45deg);
+	}
+
+	.copy.start-copy {
+		left: 50%;
+		top: 50%;
+		width: min(90vw, 960px);
+		text-align: center;
+		transform: translate(-50%, -50%);
 		opacity: 1;
 	}
 
-	.start-copy h1 {
-		font-size: clamp(2.6rem, 4.4vw, 5.4rem);
-		line-height: 0.95;
+	.copy.start-copy .start-kicker {
+		display: block;
+		margin-bottom: 18px;
+		color: #6f89aa;
+		font-size: clamp(0.56rem, 0.7vw, 0.72rem);
+		font-weight: 500;
+		letter-spacing: 0.52em;
+		text-transform: uppercase;
+	}
+
+	.copy.start-copy h1 {
+		margin: 0;
+		font-size: clamp(4.4rem, 9vw, 9.5rem);
+		line-height: 0.84;
+		font-weight: 500;
+		letter-spacing: -0.075em;
+		text-wrap: balance;
+	}
+
+	.copy.start-copy .start-message {
+		display: flex;
+		flex-direction: column;
+		gap: 7px;
+		margin: 30px 0 0;
+		font-size: clamp(1.05rem, 1.75vw, 1.75rem);
+		line-height: 1.3;
+		letter-spacing: -0.025em;
+	}
+
+	.copy.start-copy .start-message strong {
 		font-weight: 400;
-		letter-spacing: -0.06em;
-		margin: 25px 0;
-		max-width: 760px;
+		color: #f7f9ff;
+	}
+
+	.copy.start-copy .start-message span {
+		font-weight: 300;
+		color: #8292aa;
 	}
 
 	.scroll-stage {
-		height: 900vh;
+		height: 1400vh;
 	}
 
 	.scene {
@@ -484,7 +1460,9 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 		height: 100vh;
 		overflow: hidden;
 		background:
-			radial-gradient(circle at 50% 45%, rgba(17, 76, 140, 0.16), transparent 35%),
+			radial-gradient(circle at 50% 50%, rgba(38, 75, 164, 0.18), transparent 29%),
+			radial-gradient(circle at 20% 85%, rgba(132, 40, 255, 0.08), transparent 30%),
+			radial-gradient(circle at 82% 18%, rgba(0, 191, 255, 0.07), transparent 28%),
 			#02050a;
 	}
 
@@ -512,30 +1490,14 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 
 	.noden-symbol {
 		position: absolute;
-		width: clamp(280px, 30vw, 500px);
-		height: auto;
+		left: 50%;
+		top: 50%;
+		width: clamp(300px, 30vw, 500px);
 		aspect-ratio: 1;
-
-		left: 68%;
-		top: 38%;
-
 		transform: translate(-50%, -50%);
-
-		filter: drop-shadow(0 0 35px rgba(33, 133, 255, 0.22));
+		filter: drop-shadow(0 0 42px rgba(33, 133, 255, 0.24));
+		z-index: 7;
 	}
-
-.noden-symbol {
-	position: absolute;
-	width: clamp(280px, 30vw, 500px);
-	aspect-ratio: 1;
-
-	left: 68%;
-	top: 38%;
-
-	transform: translate(-50%, -50%);
-	filter: drop-shadow(0 0 35px rgba(33, 133, 255, 0.22));
-	z-index: 3;
-}
 
 .noden-symbol svg {
 	display: block;
@@ -649,79 +1611,244 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 	stroke-linejoin: round;
 }
 
-.final-logo-mark {
-	position: absolute;
-	width: clamp(280px, 30vw, 500px);
-	aspect-ratio: 1;
 
-	left: 68%;
-	top: 38%;
-
-	transform: translate(-50%, -50%);
-	opacity: 0;
-	pointer-events: none;
-
-	filter: drop-shadow(0 0 35px rgba(33, 133, 255, 0.22));
-	z-index: 3;
-}
-
-.final-logo-mark img {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	display: block;
-}
-
-	.brand {
+	.brand-scene {
 		position: absolute;
-		left: 50%;
-		top: 70%;
-		transform: translateX(-50%);
-		text-align: center;
-		opacity: 0;
+		inset: 0;
+		z-index: 6;
+		pointer-events: none;
 	}
 
-	.brand-name {
+	.brand-lockup {
+		position: absolute;
+		top: 16%;
+		left: 50%;
+		width: min(92vw, 820px);
+		text-align: center;
+		transform: translateX(-50%);
+	}
+
+	.brand-word {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 12px;
-		font-size: clamp(3rem, 6vw, 6rem);
+		gap: clamp(7px, 0.9vw, 14px);
+		font-size: clamp(3.8rem, 6.2vw, 6.8rem);
 		font-weight: 500;
-		letter-spacing: 0.15em;
+		line-height: 0.86;
+		letter-spacing: 0.1em;
 	}
 
-	.brand-symbol-mini {
-		position: relative;
-		width: 70px;
-		height: 70px;
+	.brand-letter {
+		display: inline-block;
 	}
 
-	.brand-symbol-mini span {
+	.brand-letter-den {
+		margin-right: -0.1em;
+	}
+
+	.brand-symbol-slot {
+		display: block;
+		flex: 0 0 auto;
+		width: clamp(72px, 6vw, 102px);
+		aspect-ratio: 1;
+	}
+
+	.brand-subtitle {
+		display: block;
+		margin-top: 18px;
+		color: #667d9d;
+		font-size: clamp(0.54rem, 0.62vw, 0.68rem);
+		font-weight: 500;
+		letter-spacing: 0.48em;
+	}
+
+	.about-copy {
 		position: absolute;
-		width: 34px;
-		height: 34px;
-		border: 4px solid #2487ff;
-		border-radius: 50%;
+		top: 39%;
+		left: 50%;
+		display: grid;
+		grid-template-columns: minmax(130px, 170px) minmax(0, 1fr);
+		gap: clamp(38px, 4.5vw, 70px);
+		align-items: start;
+		width: min(90vw, 1160px);
+		text-align: left;
+		transform: translateX(-50%);
 	}
 
-	.brand-symbol-mini span:nth-child(1) {
-		left: 18px;
+	.about-marker {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		padding-top: 6px;
 	}
 
-	.brand-symbol-mini span:nth-child(2) {
-		left: 2px;
-		top: 31px;
-		border-color: #7d35ff;
+	.about-index {
+		color: rgba(112, 145, 190, 0.42);
+		font-size: 0.6rem;
+		font-weight: 500;
+		letter-spacing: 0.24em;
 	}
 
-	.brand-symbol-mini span:nth-child(3) {
-		right: 2px;
-		top: 31px;
-		border-color: #00c8ff;
+	.about-eyebrow {
+		display: block;
+		margin-top: 14px;
+		color: #79aaf0;
+		font-size: clamp(0.58rem, 0.66vw, 0.7rem);
+		font-weight: 600;
+		letter-spacing: 0.4em;
+		white-space: nowrap;
 	}
 
-	.brand p,
+	.about-line {
+		display: block;
+		width: min(100%, 128px);
+		height: 1px;
+		margin-top: 20px;
+		background: linear-gradient(
+			90deg,
+			rgba(167, 49, 255, 0.9),
+			rgba(38, 134, 255, 0.85),
+			transparent
+		);
+	}
+
+	.about-content {
+		min-width: 0;
+	}
+
+	.about-kicker {
+		display: block;
+		margin-bottom: 14px;
+		color: #6e86a7;
+		font-size: 0.6rem;
+		font-weight: 600;
+		letter-spacing: 0.32em;
+	}
+
+	.about-copy h2 {
+		max-width: 820px;
+		margin: 0;
+		padding-bottom: 0.12em;
+		overflow: visible;
+		color: #f7f9ff;
+		font-size: clamp(2.35rem, 3.35vw, 4rem);
+		font-weight: 400;
+		line-height: 1.08;
+		letter-spacing: -0.052em;
+	}
+
+	.about-copy h2 span {
+		color: #a9c7ff;
+	}
+
+	.about-lead {
+		max-width: 760px;
+		margin: 18px 0 0;
+		color: #91a1b8;
+		font-size: clamp(0.98rem, 1.05vw, 1.12rem);
+		font-weight: 300;
+		line-height: 1.65;
+	}
+
+	.about-coverage {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px 18px;
+		margin-top: 18px;
+	}
+
+	.coverage-label {
+		color: #7188a8;
+		font-size: 0.55rem;
+		font-weight: 600;
+		letter-spacing: 0.24em;
+		white-space: nowrap;
+	}
+
+	.coverage-cities {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.coverage-cities span {
+		display: inline-flex;
+		align-items: center;
+		min-height: 28px;
+		padding: 6px 10px;
+		border: 1px solid rgba(94, 135, 197, 0.16);
+		border-radius: 999px;
+		background: rgba(17, 39, 70, 0.16);
+		color: #a8b9d0;
+		font-size: 0.68rem;
+		font-weight: 400;
+		letter-spacing: 0.04em;
+	}
+
+	.about-services {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 14px;
+		margin-top: 28px;
+	}
+
+	.service-card {
+		position: relative;
+		min-height: 152px;
+		padding: 20px 20px 18px;
+		overflow: hidden;
+		border: 1px solid rgba(104, 139, 192, 0.15);
+		border-radius: 16px;
+		background:
+			linear-gradient(180deg, rgba(19, 37, 64, 0.32), rgba(8, 15, 27, 0.18));
+	}
+
+	.service-card::before {
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: 0;
+		height: 2px;
+		content: "";
+	}
+
+	.service-home::before {
+		background: linear-gradient(90deg, #463bff, #19d4ef);
+	}
+
+	.service-game::before {
+		background: linear-gradient(90deg, #c52aff, #523aff);
+	}
+
+	.service-data::before {
+		background: linear-gradient(90deg, #2858ff, #17d9ef);
+	}
+
+	.service-number {
+		color: rgba(128, 153, 190, 0.5);
+		font-size: 0.55rem;
+		font-weight: 600;
+		letter-spacing: 0.2em;
+	}
+
+	.service-card h3 {
+		margin: 17px 0 10px;
+		color: #f4f7fc;
+		font-size: clamp(1rem, 1.2vw, 1.25rem);
+		font-weight: 500;
+		letter-spacing: -0.025em;
+	}
+
+	.service-card p {
+		margin: 0;
+		color: #7f90a7;
+		font-size: clamp(0.76rem, 0.82vw, 0.88rem);
+		font-weight: 300;
+		line-height: 1.55;
+	}
+
 	.copy span {
 		letter-spacing: 0.5em;
 		font-size: 0.7rem;
@@ -731,11 +1858,6 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 	.copy {
 		position: absolute;
 		z-index: 10;
-	}
-
-	.intro-copy {
-		left: 8vw;
-		top: 45%;
 	}
 
 	.copy h1,
@@ -748,39 +1870,248 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 	}
 
 	.division-copy {
-		right: 8vw;
-		top: 38%;
-		width: 38vw;
+		--division-glow: linear-gradient(90deg, #3e49ff, #18d5ee);
+		position: absolute;
+		right: clamp(44px, 5.4vw, 88px);
+		top: 50%;
+		width: clamp(370px, 30vw, 500px);
+		padding: 30px 32px 28px;
+		overflow: hidden;
+		border: 1px solid rgba(116, 150, 202, 0.14);
+		border-radius: 24px;
+		background:
+			linear-gradient(180deg, rgba(12, 25, 45, 0.76), rgba(6, 11, 20, 0.42));
+		backdrop-filter: blur(16px);
+		box-shadow: 0 26px 60px rgba(0, 0, 0, 0.18);
+		transform: translateY(-50%);
 	}
 
-	.division-copy p {
-		color: #8393a7;
-		letter-spacing: 0.12em;
+	.division-copy::before {
+		position: absolute;
+		top: -28px;
+		left: 32px;
+		right: 32px;
+		height: 76px;
+		background: var(--division-glow);
+		border-radius: 999px;
+		filter: blur(26px);
+		opacity: 0.35;
+		content: "";
+	}
+
+	.division-copy::after {
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: 0;
+		height: 1px;
+		background: var(--division-glow);
+		opacity: 0.95;
+		content: "";
+	}
+
+	.division-home {
+		--division-glow: linear-gradient(90deg, #3e49ff, #18d5ee);
+	}
+
+	.division-game {
+		--division-glow: linear-gradient(90deg, #c32aff, #5f4cff);
+	}
+
+	.division-data {
+		--division-glow: linear-gradient(90deg, #2a5aff, #18d8ef);
+	}
+
+	.division-copy .division-kicker {
+		display: inline-block;
+		margin-bottom: 18px;
+		color: #77a6e7;
+		font-size: 0.62rem;
+		font-weight: 600;
+		letter-spacing: 0.34em;
+	}
+
+	.division-copy h2 {
+		margin: 0;
+		font-size: clamp(1.86rem, 2.85vw, 3.45rem);
+		line-height: 1.04;
+		letter-spacing: -0.052em;
+	}
+
+	.division-copy .division-lead {
+		margin: 18px 0 0;
+		color: #9aa8bc;
+		font-size: clamp(0.95rem, 0.96vw, 1.04rem);
+		font-weight: 300;
+		line-height: 1.62;
+		letter-spacing: 0;
+	}
+
+	.division-list {
+		display: grid;
+		gap: 10px;
+		margin: 22px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.division-list li {
+		position: relative;
+		padding-left: 20px;
+		color: #d4dded;
+		font-size: clamp(0.86rem, 0.9vw, 0.94rem);
+		font-weight: 300;
+		line-height: 1.5;
+	}
+
+	.division-list li::before {
+		position: absolute;
+		left: 0;
+		top: 0.58em;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #bd38ff, #29a5ff);
+		content: "";
+	}
+
+	.division-copy .division-meta {
+		margin: 22px 0 0;
+		color: #7487a3;
+		font-size: 0.62rem;
+		font-weight: 600;
+		letter-spacing: 0.26em;
+		text-transform: uppercase;
 	}
 
 	.final-copy {
-		right: 8vw;
-		top: 34%;
-		text-align: left;
+		left: 50%;
+		top: 52%;
+		width: min(92vw, 1050px);
+		text-align: center;
+		transform: translate(-50%, -50%);
 	}
 
-	.final-copy strong {
+	.final-demand {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 100%;
+		transform: translate(-50%, -50%);
+	}
+
+	.final-demand h2 {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		margin: 0;
+		font-size: clamp(3.2rem, 6.5vw, 7rem);
+		font-weight: 400;
+		line-height: 0.96;
+		letter-spacing: -0.06em;
+	}
+
+	.final-copy .final-demand-line {
 		display: block;
-		font-size: clamp(4rem, 8vw, 9rem);
-		font-weight: 500;
-		letter-spacing: 0.08em;
+		font-size: inherit;
+		line-height: inherit;
+		letter-spacing: inherit;
+		color: inherit;
 	}
 
-	.final-copy a,
-	.contact a {
+	.final-demand-line-two {
+		background: linear-gradient(92deg, #ffffff 0%, #a9c8ff 55%, #8e72ff 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.final-brand-lockup {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: clamp(7px, 0.85vw, 13px);
+		width: 100%;
+		color: #f7f9ff;
+		font-size: clamp(4.8rem, 8.4vw, 9.2rem);
+		font-weight: 500;
+		line-height: 0.86;
+		letter-spacing: 0.085em;
+		text-transform: uppercase;
+		transform: translate(-50%, -50%);
+	}
+
+	.final-copy .final-brand-letter {
 		display: inline-block;
-		margin-top: 40px;
+		font-size: inherit;
+		line-height: inherit;
+		letter-spacing: inherit;
+		color: inherit;
+	}
+
+	.final-brand-letter-den {
+		margin-right: -0.11em;
+	}
+
+	.final-symbol-slot {
+		display: block;
+		flex: 0 0 auto;
+		width: clamp(92px, 7.35vw, 132px);
+		aspect-ratio: 1;
+	}
+
+	.final-contact-link {
+		position: absolute;
+		left: 50%;
+		top: calc(50% + clamp(100px, 9vw, 150px));
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		padding: 17px 26px;
 		color: #ffffff;
 		text-decoration: none;
-		border: 1px solid rgba(255, 255, 255, 0.25);
-		padding: 18px 28px;
+		border: 1px solid rgba(255, 255, 255, 0.24);
+		border-radius: 999px;
+		background: rgba(11, 19, 33, 0.3);
 		letter-spacing: 0.18em;
-		font-size: 0.7rem;
+		font-size: 0.68rem;
+		font-weight: 600;
+		transform: translateX(-50%);
+		transition:
+			border-color 220ms ease,
+			background-color 220ms ease,
+			box-shadow 220ms ease;
+	}
+
+	.final-contact-link:hover {
+		border-color: rgba(66, 148, 255, 0.56);
+		background: rgba(24, 50, 88, 0.4);
+		box-shadow: 0 0 28px rgba(43, 121, 255, 0.14);
+	}
+
+	.final-contact-icon {
+		display: inline-flex;
+		width: 18px;
+		height: 18px;
+		color: #ffffff;
+	}
+
+	.final-contact-icon svg {
+		width: 100%;
+		height: 100%;
+		fill: currentColor;
+	}
+
+	.final-copy .final-contact-link > span:last-child {
+		color: inherit;
+		font-size: inherit;
+		line-height: 1;
+		letter-spacing: inherit;
 	}
 
 	.scroll-hint {
@@ -801,28 +2132,215 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 		margin: 10px auto;
 	}
 
-	.contact {
-		min-height: 100vh;
-		padding: 15vh 10vw;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		background: #050a12;
-	}
-
-	.contact span {
-		color: #318aff;
-		letter-spacing: 0.5em;
-	}
-
-	.contact h2 {
-		font-size: clamp(3rem, 7vw, 8rem);
-		font-weight: 400;
-		line-height: 0.95;
-		letter-spacing: -0.05em;
-	}
 
 	@media (max-width: 800px) {
+		.site-header,
+		.site-header.is-scrolled {
+			height: 66px;
+			padding: 0 20px;
+		}
+
+		.site-logo {
+			gap: 5px;
+			font-size: 0.92rem;
+			letter-spacing: 0.18em;
+		}
+
+		.site-logo-mark {
+			width: 30px;
+			height: 30px;
+			margin: 0 1px;
+		}
+
+		.menu-toggle {
+			display: block;
+		}
+
+		.site-navigation {
+			position: fixed;
+			inset: 0;
+			z-index: 101;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			justify-content: center;
+			gap: 12px;
+			padding: 92px 28px 40px;
+			background:
+				radial-gradient(circle at 75% 18%, rgba(25, 123, 226, 0.16), transparent 30%),
+				radial-gradient(circle at 20% 80%, rgba(143, 38, 255, 0.13), transparent 30%),
+				rgba(2, 5, 10, 0.96);
+			backdrop-filter: blur(22px);
+			opacity: 0;
+			pointer-events: none;
+			transform: translateY(-14px);
+			transition:
+				opacity 240ms ease,
+				transform 240ms ease;
+		}
+
+		.site-header.is-menu-open .site-navigation {
+			opacity: 1;
+			pointer-events: auto;
+			transform: translateY(0);
+		}
+
+		.site-navigation a {
+			width: 100%;
+			padding: 14px 0;
+			font-size: clamp(1.35rem, 7vw, 2.2rem);
+			font-weight: 400;
+			letter-spacing: -0.025em;
+			text-transform: none;
+		}
+
+		.site-navigation a::after {
+			right: auto;
+			bottom: 8px;
+			width: 56px;
+		}
+
+		.site-navigation .navigation-contact {
+			width: auto;
+			margin-top: 14px;
+			padding: 13px 22px;
+			font-size: 0.78rem;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+		}
+
+		.brand-lockup {
+			top: 15%;
+			width: 94vw;
+		}
+
+		.brand-word {
+			gap: 5px;
+			font-size: clamp(3rem, 14vw, 4.8rem);
+			letter-spacing: 0.065em;
+		}
+
+		.brand-symbol-slot {
+			width: clamp(58px, 16.5vw, 82px);
+		}
+
+		.brand-subtitle {
+			margin-top: 15px;
+			font-size: 0.5rem;
+			letter-spacing: 0.34em;
+		}
+
+		.about-copy {
+			top: 35%;
+			display: block;
+			width: 87vw;
+		}
+
+		.about-marker {
+			display: grid;
+			grid-template-columns: auto auto 1fr;
+			gap: 12px;
+			align-items: center;
+			padding: 0;
+		}
+
+		.about-index,
+		.about-eyebrow {
+			margin: 0;
+			font-size: 0.52rem;
+		}
+
+		.about-line {
+			width: 100%;
+			margin: 0;
+		}
+
+		.about-content {
+			margin-top: 22px;
+		}
+
+		.about-kicker {
+			margin-bottom: 11px;
+			font-size: 0.52rem;
+			letter-spacing: 0.24em;
+		}
+
+		.about-copy h2 {
+			padding-bottom: 0.14em;
+			font-size: clamp(2rem, 8.8vw, 3.2rem);
+			line-height: 1.08;
+		}
+
+		.about-lead {
+			margin-top: 15px;
+			font-size: 0.92rem;
+			line-height: 1.55;
+		}
+
+		.about-coverage {
+			display: block;
+			margin-top: 14px;
+		}
+
+		.coverage-label {
+			display: block;
+			margin-bottom: 9px;
+			font-size: 0.49rem;
+			letter-spacing: 0.19em;
+		}
+
+		.coverage-cities {
+			gap: 6px;
+		}
+
+		.coverage-cities span {
+			min-height: 25px;
+			padding: 5px 8px;
+			font-size: 0.6rem;
+		}
+
+		.about-services {
+			grid-template-columns: 1fr;
+			gap: 8px;
+			margin-top: 20px;
+		}
+
+		.service-card {
+			min-height: 0;
+			padding: 15px 16px;
+			border-radius: 13px;
+		}
+
+		.service-card h3 {
+			margin: 10px 0 6px;
+			font-size: 1rem;
+		}
+
+		.service-card p {
+			font-size: 0.78rem;
+			line-height: 1.45;
+		}
+
+		.copy.start-copy {
+			top: 48%;
+			width: 88vw;
+		}
+
+		.copy.start-copy .start-kicker {
+			margin-bottom: 14px;
+			letter-spacing: 0.34em;
+		}
+
+		.copy.start-copy h1 {
+			font-size: clamp(3.4rem, 17vw, 5.6rem);
+			line-height: 0.88;
+		}
+
+		.copy.start-copy .start-message {
+			margin-top: 22px;
+			font-size: clamp(1rem, 4.5vw, 1.3rem);
+		}
+
 		.symbol {
 			width: 260px;
 			height: 260px;
@@ -855,12 +2373,90 @@ import NodenMarkFinal from "../components/NodenMarkFinal.astro";
 		}
 
 		.division-copy,
-		.final-copy,
 		.intro-copy {
-			left: 8vw;
+			left: 7vw;
+			right: 7vw;
+			top: 58%;
+			width: auto;
+		}
+
+		.final-copy {
+			top: 51%;
+			left: 50%;
 			right: auto;
-			top: 65%;
-			width: 84vw;
+			width: 92vw;
+			transform: translate(-50%, -50%);
+		}
+
+		.division-copy {
+			padding: 20px 18px 18px;
+			border-radius: 18px;
+			transform: none;
+		}
+
+		.division-copy::before {
+			left: 20px;
+			right: 20px;
+			top: -22px;
+			height: 56px;
+			filter: blur(22px);
+			opacity: 0.32;
+		}
+
+		.division-copy .division-kicker {
+			margin-bottom: 12px;
+			font-size: 0.55rem;
+			letter-spacing: 0.28em;
+		}
+
+		.division-copy h2 {
+			font-size: clamp(1.65rem, 8vw, 2.35rem);
+			line-height: 1.04;
+		}
+
+		.division-copy .division-lead {
+			margin-top: 12px;
+			font-size: 0.9rem;
+			line-height: 1.5;
+		}
+
+		.division-list {
+			gap: 8px;
+			margin-top: 16px;
+		}
+
+		.division-list li {
+			font-size: 0.8rem;
+			line-height: 1.4;
+		}
+
+		.division-copy .division-meta {
+			margin-top: 16px;
+			font-size: 0.52rem;
+			letter-spacing: 0.18em;
+		}
+
+		.final-demand h2 {
+			gap: 5px;
+			font-size: clamp(2.65rem, 13vw, 4.5rem);
+		}
+
+		.final-brand-lockup {
+			gap: 4px;
+			font-size: clamp(3.2rem, 15.5vw, 5.35rem);
+			letter-spacing: 0.055em;
+		}
+
+		.final-symbol-slot {
+			width: clamp(58px, 16vw, 80px);
+		}
+
+		.final-contact-link {
+			top: calc(50% + 92px);
+			width: min(86vw, 330px);
+			padding: 15px 18px;
+			font-size: 0.61rem;
+			letter-spacing: 0.13em;
 		}
 
 		.copy h1,

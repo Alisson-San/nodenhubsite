@@ -1,0 +1,165 @@
+---
+interface Props {
+	idPrefix?: string;
+	class?: string;
+	label?: string;
+	decorative?: boolean;
+}
+
+const {
+	idPrefix = "noden-mark",
+	class: className = "",
+	label = "Símbolo Noden",
+	decorative = true,
+} = Astro.props;
+
+const gradTop = `${idPrefix}-grad-top`;
+const gradLeft = `${idPrefix}-grad-left`;
+const gradRight = `${idPrefix}-grad-right`;
+const gradFlowMain = `${idPrefix}-grad-flow-main`;
+const gradFlowRight = `${idPrefix}-grad-flow-right`;
+---
+
+<svg
+	class:list={["noden-mark-static", className]}
+	viewBox="0 0 1024 1024"
+	role={decorative ? undefined : "img"}
+	aria-hidden={decorative ? "true" : undefined}
+	aria-label={decorative ? undefined : label}
+	focusable="false"
+>
+	<defs>
+		<linearGradient id={gradTop} x1="0%" y1="50%" x2="100%" y2="50%">
+			<stop offset="0%" stop-color="#4236ff" />
+			<stop offset="45%" stop-color="#1f69ff" />
+			<stop offset="100%" stop-color="#13d5f2" />
+		</linearGradient>
+
+		<linearGradient id={gradLeft} x1="0%" y1="50%" x2="100%" y2="50%">
+			<stop offset="0%" stop-color="#c52aff" />
+			<stop offset="55%" stop-color="#8b31ff" />
+			<stop offset="100%" stop-color="#3347ff" />
+		</linearGradient>
+
+		<linearGradient id={gradRight} x1="0%" y1="50%" x2="100%" y2="50%">
+			<stop offset="0%" stop-color="#2454ff" />
+			<stop offset="50%" stop-color="#089dff" />
+			<stop offset="100%" stop-color="#17d9ef" />
+		</linearGradient>
+
+		<linearGradient
+			id={gradFlowMain}
+			x1="300"
+			y1="540"
+			x2="650"
+			y2="515"
+			gradientUnits="userSpaceOnUse"
+		>
+			<stop offset="0%" stop-color="#b52dff" stop-opacity="0.92" />
+			<stop offset="42%" stop-color="#8b35ff" stop-opacity="1" />
+			<stop offset="72%" stop-color="#5360ff" stop-opacity="1" />
+			<stop offset="100%" stop-color="#209cff" stop-opacity="0.94" />
+		</linearGradient>
+
+		<linearGradient
+			id={gradFlowRight}
+			x1="500"
+			y1="800"
+			x2="690"
+			y2="560"
+			gradientUnits="userSpaceOnUse"
+		>
+			<stop offset="0%" stop-color="#514cff" stop-opacity="0.94" />
+			<stop offset="52%" stop-color="#356eff" stop-opacity="1" />
+			<stop offset="100%" stop-color="#14c9ef" stop-opacity="0.94" />
+		</linearGradient>
+	</defs>
+
+	<circle
+		cx="525"
+		cy="310"
+		r="180"
+		fill="none"
+		stroke={`url(#${gradTop})`}
+		stroke-width="92"
+	/>
+
+	<circle
+		cx="305"
+		cy="706"
+		r="180"
+		fill="none"
+		stroke={`url(#${gradLeft})`}
+		stroke-width="92"
+	/>
+
+	<circle
+		cx="750"
+		cy="706"
+		r="180"
+		fill="none"
+		stroke={`url(#${gradRight})`}
+		stroke-width="92"
+	/>
+</svg>
+
+	<g class="static-connector-shadow" aria-hidden="true">
+		<path
+			d="M 300 524 C 430 546 515 524 600 472"
+			fill="none"
+			stroke="#7550ff"
+			stroke-width="118"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/>
+
+		<path
+			d="M 473 771 C 518 700 578 610 646 559"
+			fill="none"
+			stroke="#356cff"
+			stroke-width="118"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/>
+	</g>
+
+	<g class="static-connector-layer">
+		<path
+			d="M 300 524 C 430 546 515 524 600 472"
+			fill="none"
+			stroke={`url(#${gradFlowMain})`}
+			stroke-width="96"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/>
+
+		<path
+			d="M 473 771 C 518 700 578 610 646 559"
+			fill="none"
+			stroke={`url(#${gradFlowRight})`}
+			stroke-width="96"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/>
+	</g>
+
+
+<style>
+	.noden-mark-static {
+		display: block;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+	}
+
+	.static-connector-shadow {
+		opacity: 0.28;
+		filter: blur(14px);
+		pointer-events: none;
+	}
+
+	.static-connector-layer {
+		opacity: 1;
+		pointer-events: none;
+	}
+</style>
