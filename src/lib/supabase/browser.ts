@@ -7,9 +7,16 @@ import {
 	requireEnvironmentVariable,
 } from "./env";
 
-let browserClient: SupabaseClient | undefined;
+import type {
+	Database,
+} from "../../types/database.types";
 
-export function getSupabaseBrowserClient(): SupabaseClient {
+let browserClient:
+	| SupabaseClient<Database>
+	| undefined;
+
+export function getSupabaseBrowserClient():
+	SupabaseClient<Database> {
 	if (browserClient) {
 		return browserClient;
 	}
@@ -24,10 +31,11 @@ export function getSupabaseBrowserClient(): SupabaseClient {
 		"PUBLIC_SUPABASE_PUBLISHABLE_KEY",
 	);
 
-	browserClient = createClient(
+	browserClient = createClient<Database>(
 		url,
 		publishableKey,
 	);
 
 	return browserClient;
 }
+

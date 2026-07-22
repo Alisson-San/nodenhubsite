@@ -7,13 +7,18 @@ import {
 	requireEnvironmentVariable,
 } from "./env";
 
+import type {
+	Database,
+} from "../../types/database.types";
+
 const authOptions = {
 	autoRefreshToken: false,
 	persistSession: false,
 	detectSessionInUrl: false,
 } as const;
 
-export function createSupabaseServerClient(): SupabaseClient {
+export function createSupabaseServerClient():
+	SupabaseClient<Database> {
 	const url = requireEnvironmentVariable(
 		import.meta.env.PUBLIC_SUPABASE_URL,
 		"PUBLIC_SUPABASE_URL",
@@ -24,7 +29,7 @@ export function createSupabaseServerClient(): SupabaseClient {
 		"PUBLIC_SUPABASE_PUBLISHABLE_KEY",
 	);
 
-	return createClient(
+	return createClient<Database>(
 		url,
 		publishableKey,
 		{
@@ -33,7 +38,8 @@ export function createSupabaseServerClient(): SupabaseClient {
 	);
 }
 
-export function createSupabaseAdminClient(): SupabaseClient {
+export function createSupabaseAdminClient():
+	SupabaseClient<Database> {
 	if (!import.meta.env.SSR) {
 		throw new Error(
 			"O cliente administrativo do Supabase só pode ser usado no servidor.",
@@ -50,7 +56,7 @@ export function createSupabaseAdminClient(): SupabaseClient {
 		"SUPABASE_SECRET_KEY",
 	);
 
-	return createClient(
+	return createClient<Database>(
 		url,
 		secretKey,
 		{
@@ -58,3 +64,4 @@ export function createSupabaseAdminClient(): SupabaseClient {
 		},
 	);
 }
+
