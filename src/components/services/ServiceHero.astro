@@ -1,5 +1,6 @@
 ---
 import { getWhatsAppUrl } from "../../config/site";
+import DivisionMark from "./DivisionMark.astro";
 
 interface Props {
 	division: "home" | "game" | "data";
@@ -95,78 +96,11 @@ const primaryExternal =
 		<div class="service-hero__visual-glow"></div>
 
 		<div class="service-hero__icon">
-			{
-				division === "home" && (
-					<svg viewBox="0 0 120 120">
-						<path
-							d="M24 57 60 28l36 29v39H70V72H50v24H24V57Z"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="4"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-						<path
-							d="M82 35V22h10v21"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="4"
-							stroke-linecap="round"
-						/>
-					</svg>
-				)
-			}
-
-			{
-				division === "game" && (
-					<svg viewBox="0 0 120 120">
-						<path
-							d="M36 42h48c12 0 20 9 23 24l4 20c2 10-10 16-17 9L80 82H40L26 95c-7 7-19 1-17-9l4-20c3-15 11-24 23-24Z"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="4"
-							stroke-linejoin="round"
-						/>
-						<path
-							d="M35 58v18M26 67h18"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="4"
-							stroke-linecap="round"
-						/>
-						<circle cx="83" cy="61" r="4" fill="currentColor" />
-						<circle cx="94" cy="72" r="4" fill="currentColor" />
-					</svg>
-				)
-			}
-
-			{
-				division === "data" && (
-					<svg viewBox="0 0 120 120">
-						<ellipse
-							cx="60"
-							cy="31"
-							rx="36"
-							ry="14"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="4"
-						/>
-						<path
-							d="M24 31v29c0 8 16 14 36 14s36-6 36-14V31"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="4"
-						/>
-						<path
-							d="M24 59v29c0 8 16 14 36 14s36-6 36-14V59"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="4"
-						/>
-					</svg>
-				)
-			}
+			<DivisionMark
+				division={division}
+				idPrefix={`service-hero-${division}-mark`}
+				decorative={true}
+			/>
 		</div>
 
 		<span class="service-hero__division-name">
@@ -184,12 +118,14 @@ const primaryExternal =
 	.service-hero {
 		display: grid;
 		width: min(100% - 40px, 1120px);
-		min-height: 680px;
+		min-height: 640px;
 		margin: 0 auto;
-		padding: 90px 0 70px;
-		grid-template-columns: minmax(0, 1.08fr) minmax(330px, 0.92fr);
+		padding: 78px 0 62px;
+		grid-template-columns:
+			minmax(0, 1.15fr)
+			minmax(360px, 0.85fr);
+		gap: clamp(40px, 6vw, 76px);
 		align-items: center;
-		gap: clamp(50px, 8vw, 100px);
 	}
 
 	.service-hero__content {
@@ -210,12 +146,12 @@ const primaryExternal =
 	}
 
 	.service-hero h1 {
-		max-width: 720px;
+		max-width: 650;
 		margin: 21px 0 0;
-		font-size: clamp(3rem, 7vw, 6.3rem);
+		font-size: clamp(3.2rem, 6.1vw, 5.55rem);
 		font-weight: 300;
 		letter-spacing: -0.065em;
-		line-height: 0.94;
+		line-height: 0.96;
 	}
 
 	.service-hero__description {
@@ -347,6 +283,9 @@ const primaryExternal =
 	.service-hero__visual {
 		position: relative;
 		display: flex;
+		width: 100%;
+		max-width: 470px;
+		justify-self: end;
 		aspect-ratio: 1;
 		align-items: center;
 		justify-content: center;
@@ -385,7 +324,7 @@ const primaryExternal =
 	.service-hero__icon {
 		position: relative;
 		z-index: 1;
-		width: 42%;
+		width: min(68%, 320px);
 		color: color-mix(
 			in srgb,
 			var(--service-accent) 75%,
@@ -393,10 +332,10 @@ const primaryExternal =
 		);
 		filter:
 			drop-shadow(
-				0 0 28px
+				0 0 34px
 				color-mix(
 					in srgb,
-					var(--service-accent) 30%,
+					var(--service-accent) 28%,
 					transparent
 				)
 			);
@@ -410,11 +349,11 @@ const primaryExternal =
 
 	.service-hero__division-name {
 		position: absolute;
-		bottom: 30px;
+		bottom: 27px;
 		color: #617691;
-		font-size: 0.56rem;
+		font-size: 0.6rem;
 		font-weight: 600;
-		letter-spacing: 0.25em;
+		letter-spacing: 0.27em;
 	}
 
 	@media (max-width: 860px) {

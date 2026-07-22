@@ -1,0 +1,226 @@
+---
+import type {
+	ServiceDivision,
+} from "../../types/services";
+
+interface Props {
+	division: ServiceDivision;
+	idPrefix?: string;
+	label?: string;
+	decorative?: boolean;
+	class?: string;
+}
+
+const {
+	division,
+	idPrefix = `division-mark-${division}`,
+	label,
+	decorative = true,
+	class: className = "",
+} = Astro.props;
+
+const divisionLabels: Record<ServiceDivision, string> = {
+	home: "Símbolo Noden Home",
+	game: "Símbolo Noden Game",
+	data: "Símbolo Noden Data",
+};
+
+const gradientColors: Record<
+	ServiceDivision,
+	Array<{
+		offset: string;
+		color: string;
+	}>
+> = {
+	home: [
+		{
+			offset: "0%",
+			color: "#4236ff",
+		},
+		{
+			offset: "45%",
+			color: "#1f69ff",
+		},
+		{
+			offset: "100%",
+			color: "#13d5f2",
+		},
+	],
+
+	game: [
+		{
+			offset: "0%",
+			color: "#c52aff",
+		},
+		{
+			offset: "55%",
+			color: "#8b31ff",
+		},
+		{
+			offset: "100%",
+			color: "#3347ff",
+		},
+	],
+
+	data: [
+		{
+			offset: "0%",
+			color: "#2454ff",
+		},
+		{
+			offset: "50%",
+			color: "#089dff",
+		},
+		{
+			offset: "100%",
+			color: "#17d9ef",
+		},
+	],
+};
+
+const gradientId = `${idPrefix}-gradient`;
+const accessibleLabel =
+	label ?? divisionLabels[division];
+---
+
+<svg
+	class:list={["division-mark", className]}
+	viewBox="0 0 240 240"
+	role={decorative ? undefined : "img"}
+	aria-hidden={decorative ? "true" : undefined}
+	aria-label={decorative ? undefined : accessibleLabel}
+	focusable="false"
+>
+	<defs>
+		<linearGradient
+			id={gradientId}
+			x1="0%"
+			y1="50%"
+			x2="100%"
+			y2="50%"
+		>
+			{
+				gradientColors[division].map((stop) => (
+					<stop
+						offset={stop.offset}
+						stop-color={stop.color}
+					/>
+				))
+			}
+		</linearGradient>
+	</defs>
+
+	<circle
+		class="division-mark__halo"
+		cx="120"
+		cy="120"
+		r="79"
+		fill="none"
+		stroke={`url(#${gradientId})`}
+		stroke-width="45"
+	/>
+
+	<circle
+		class="division-mark__ring"
+		cx="120"
+		cy="120"
+		r="79"
+		fill="none"
+		stroke={`url(#${gradientId})`}
+		stroke-width="32"
+	/>
+
+    {
+        division === "home" && (
+            <g
+                class="division-mark__icon"
+                transform="translate(120 114)"
+            >
+                <path d="M -39 3 L 0 -32 L 39 3" />
+                <path d="M -29 -1 V 44 H 29 V -1" />
+                <path d="M -10 44 V 18 H 10 V 44" />
+            </g>
+        )
+    }
+
+	{
+		division === "game" && (
+			<g
+				class="division-mark__icon"
+				transform="translate(120 120)"
+			>
+				<path d="M -47 -18 H 47 C 67 -18 79 2 74 25 L 68 47 C 64 64 46 68 33 55 L 17 35 H -17 L -33 55 C -46 68 -64 64 -68 47 L -74 25 C -79 2 -67 -18 -47 -18 Z" />
+
+				<path d="M -39 4 V 30 M -52 17 H -26" />
+
+				<circle
+					class="division-mark__filled"
+					cx="39"
+					cy="5"
+					r="5"
+				/>
+
+				<circle
+					class="division-mark__filled"
+					cx="51"
+					cy="25"
+					r="5"
+				/>
+			</g>
+		)
+	}
+
+	{
+		division === "data" && (
+			<g
+				class="division-mark__icon"
+				transform="translate(120 120)"
+			>
+				<ellipse
+					cx="0"
+					cy="-31"
+					rx="39"
+					ry="15"
+				/>
+
+				<path d="M -39 -31 V 0 C -39 14 -21 25 0 25 C 21 25 39 14 39 0 V -31" />
+
+				<path d="M -39 0 V 31 C -39 45 -21 56 0 56 C 21 56 39 45 39 31 V 0" />
+			</g>
+		)
+	}
+</svg>
+
+<style>
+	.division-mark {
+		display: block;
+		width: 100%;
+		height: auto;
+		overflow: visible;
+	}
+
+	.division-mark__halo {
+		opacity: 0.3;
+		filter: blur(15px);
+	}
+
+	.division-mark__ring {
+		filter: drop-shadow(
+			0 0 18px
+			rgba(48, 122, 255, 0.32)
+		);
+	}
+
+	.division-mark__icon {
+		fill: none;
+		stroke: #dceaff;
+		stroke-width: 5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.division-mark__filled {
+		fill: #dceaff;
+		stroke: none;
+	}
+</style>

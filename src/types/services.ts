@@ -24,3 +24,56 @@ export interface PricingItem {
 	ctaLabel?: string;
 	ctaMessage?: string;
 }
+
+export interface ServicePageConfig {
+	division: ServiceDivision;
+
+	seo: {
+		title: string;
+		description: string;
+		canonical: string;
+	};
+
+	theme: {
+		accent: string;
+		accentSecondary: string;
+	};
+
+	hero: {
+		eyebrow: string;
+		title: string;
+		description: string;
+		highlights: string[];
+		primaryLabel?: string;
+		primaryMessage: string;
+		secondaryLabel?: string;
+		secondaryHref?: string;
+	};
+
+	servicesSection: {
+		eyebrow?: string;
+		title: string;
+		description: string;
+	};
+
+	services: ServiceItem[];
+
+	pricingSection: {
+		eyebrow?: string;
+		title: string;
+		description: string;
+		disclaimer?: string;
+	};
+
+	pricing: PricingItem[];
+
+	cta: {
+		eyebrow: string;
+		title: string;
+		description: string;
+		buttonLabel: string;
+		message: string;
+		secondaryLabel?: string;
+		secondaryHref?: string;
+	};
+}
