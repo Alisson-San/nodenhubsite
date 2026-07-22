@@ -1,0 +1,138 @@
+---
+import ServiceCard from "./ServiceCard.astro";
+
+import type {
+	ServiceItem,
+} from "../../types/services";
+
+interface Props {
+	id?: string;
+	eyebrow?: string;
+	title: string;
+	description?: string;
+	services: ServiceItem[];
+}
+
+const {
+	id = "servicos",
+	eyebrow = "SERVIÇOS",
+	title,
+	description,
+	services,
+} = Astro.props;
+
+const titleId = `${id}-title`;
+---
+
+<section
+	class="services-grid"
+	id={id}
+	aria-labelledby={titleId}
+>
+	<header class="services-grid__header">
+		<span>{eyebrow}</span>
+
+		<h2 id={titleId}>
+			{title}
+		</h2>
+
+		{
+			description && (
+				<p>{description}</p>
+			)
+		}
+	</header>
+
+	<div class="services-grid__items">
+		{
+			services.map((service, index) => (
+				<ServiceCard
+					index={index + 1}
+					title={service.title}
+					description={service.description}
+					features={service.features}
+					badge={service.badge}
+				/>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.services-grid,
+	.services-grid * {
+		box-sizing: border-box;
+	}
+
+	.services-grid {
+		width: min(100% - 40px, 1120px);
+		margin: 0 auto;
+		padding: 90px 0 40px;
+		scroll-margin-top: 100px;
+	}
+
+	.services-grid__header {
+		display: grid;
+		max-width: 850px;
+		grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+		align-items: end;
+		column-gap: 60px;
+	}
+
+	.services-grid__header > span {
+		grid-column: 1 / -1;
+		color: color-mix(
+			in srgb,
+			var(--service-accent) 67%,
+			#ffffff
+		);
+		font-size: 0.59rem;
+		font-weight: 600;
+		letter-spacing: 0.24em;
+	}
+
+	.services-grid h2 {
+		margin: 17px 0 0;
+		font-size: clamp(2.4rem, 5.5vw, 4.6rem);
+		font-weight: 300;
+		letter-spacing: -0.055em;
+		line-height: 1;
+	}
+
+	.services-grid__header p {
+		margin: 17px 0 2px;
+		color: #8798ae;
+		font-size: 0.82rem;
+		line-height: 1.7;
+	}
+
+	.services-grid__items {
+		display: grid;
+		margin-top: 48px;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 16px;
+	}
+
+	@media (max-width: 900px) {
+		.services-grid__header {
+			max-width: 680px;
+			grid-template-columns: 1fr;
+		}
+
+		.services-grid__items {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (max-width: 620px) {
+		.services-grid {
+			width: min(100% - 28px, 1120px);
+			padding-top: 68px;
+		}
+
+		.services-grid__items {
+			margin-top: 36px;
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

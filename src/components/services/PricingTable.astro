@@ -1,0 +1,522 @@
+---
+import {
+	formatCurrency,
+} from "../../lib/formatting";
+
+import {
+	getWhatsAppUrl,
+} from "../../config/site";
+
+import type {
+	PricingItem,
+	ServiceDivision,
+} from "../../types/services";
+
+interface Props {
+	id?: string;
+	division: ServiceDivision;
+	eyebrow?: string;
+	title: string;
+	description?: string;
+	items: PricingItem[];
+	disclaimer?: string;
+}
+
+const {
+	id = "precos",
+	division,
+	eyebrow = "VALORES",
+	title,
+	description,
+	items,
+	disclaimer = "Os valores podem variar conforme o estado do equipamento, complexidade do serviço, peças necessárias e deslocamento.",
+} = Astro.props;
+
+const titleId = `${id}-title`;
+
+const resolvePrice = (item: PricingItem) => {
+	if (item.priceLabel) {
+		return item.priceLabel;
+	}
+
+	if (typeof item.price === "number") {
+		return formatCurrency(item.price);
+	}
+
+	return "Sob consulta";
+};
+
+const resolveWhatsAppUrl = (item: PricingItem) => {
+	const message =
+		item.ctaMessage ??
+		`Olá! Vim pela página Noden ${division.toUpperCase()} e gostaria de saber mais sobre o serviço: ${item.name}.`;
+
+	return getWhatsAppUrl(message);
+};
+---
+
+<section
+	class="pricing-table"
+	id={id}
+	aria-labelledby={titleId}
+>
+	<header class="pricing-table__header">
+		<div>
+			<span>{eyebrow}</span>
+
+			<h2 id={titleId}>
+				{title}
+			</h2>
+		</div>
+
+		{
+			description && (
+				<p>{description}</p>
+			)
+		}
+	</header>
+
+	<div class="pricing-table__items">
+		{
+			items.map((item) => (
+				<article
+					class:list={[
+						"pricing-card",
+						{
+							"is-featured": item.featured,
+						},
+					]}
+				>
+					<div class="pricing-card__top">
+						{
+							(item.badge || item.featured) && (
+								<span class="pricing-card__badge">
+									{item.badge ?? "Mais procurado"}
+								</span>
+							)
+						}
+
+						<h3>{item.name}</h3>
+
+						<p>{item.description}</p>
+					</div>
+
+					<div class="pricing-card__price">
+						{
+							item.pricePrefix && (
+								<span class="pricing-card__prefix">
+									{item.pricePrefix}
+								</span>
+							)
+						}
+
+						<strong>
+							{resolvePrice(item)}
+						</strong>
+
+						{
+							item.priceSuffix && (
+								<span class="pricing-card__suffix">
+									{item.priceSuffix}
+								</span>
+							)
+						}
+					</div>
+
+					{
+						item.features &&
+							item.features.length > 0 && (
+								<ul>
+									{item.features.map((feature) => (
+										<li>
+											<svg
+												viewBox="0 0 20 20"
+												aria-hidden="true"
+											>
+												<path
+													d="m5.5 10.5 3 3 6-7"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="1.8"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												/>
+											</svg>
+
+											{feature}
+										</li>
+									))}
+								</ul>
+							)
+					}
+
+					{
+						item.note && (
+							<p class="pricing-card__note">
+								{item.note}
+							</p>
+						)
+					}
+
+					<a
+						href={resolveWhatsAppUrl(item)}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{item.ctaLabel ?? "Consultar pelo WhatsApp"}
+
+						<svg
+							viewBox="0 0 20 20"
+							aria-hidden="true"
+						>
+							<path
+								d="M6 14 14 6M8 6h6v6"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.7"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+					</a>
+				</article>
+			))
+		}
+	</div>
+
+	<p class="pricing-table__disclaimer">
+		{disclaimer}
+	</p>
+</section>
+
+<style>
+	.pricing-table,
+	.pricing-table * {
+		box-sizing: border-box;
+	}
+
+	.pricing-table {
+		width: min(100% - 40px, 1120px);
+		margin: 0 auto;
+		padding: 110px 0 30px;
+		scroll-margin-top: 100px;
+	}
+
+	.pricing-table__header {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(300px, 0.62fr);
+		align-items: end;
+		gap: 60px;
+	}
+
+	.pricing-table__header > div > span {
+		color: color-mix(
+			in srgb,
+			var(--service-accent) 67%,
+			#ffffff
+		);
+		font-size: 0.59rem;
+		font-weight: 600;
+		letter-spacing: 0.24em;
+	}
+
+	.pricing-table h2 {
+		max-width: 700px;
+		margin: 17px 0 0;
+		font-size: clamp(2.4rem, 5.5vw, 4.6rem);
+		font-weight: 300;
+		letter-spacing: -0.055em;
+		line-height: 1;
+	}
+
+	.pricing-table__header > p {
+		margin: 0 0 3px;
+		color: #8798ae;
+		font-size: 0.82rem;
+		line-height: 1.7;
+	}
+
+	.pricing-table__items {
+		display: grid;
+		margin-top: 48px;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 16px;
+	}
+
+	.pricing-card {
+		position: relative;
+		display: flex;
+		min-height: 100%;
+		padding: 28px;
+		flex-direction: column;
+		border: 1px solid rgba(104, 145, 204, 0.16);
+		border-radius: 23px;
+		background:
+			linear-gradient(
+				145deg,
+				rgba(15, 32, 57, 0.82),
+				rgba(6, 14, 27, 0.92)
+			);
+	}
+
+	.pricing-card.is-featured {
+		border-color:
+			color-mix(
+				in srgb,
+				var(--service-accent) 43%,
+				transparent
+			);
+		background:
+			linear-gradient(
+				145deg,
+				color-mix(
+					in srgb,
+					var(--service-accent) 15%,
+					rgba(15, 32, 57, 0.92)
+				),
+				rgba(7, 15, 29, 0.96)
+			);
+		box-shadow:
+			0 24px 65px
+			color-mix(
+				in srgb,
+				var(--service-accent) 9%,
+				transparent
+			);
+	}
+
+	.pricing-card__top {
+		min-height: 145px;
+	}
+
+	.pricing-card__badge {
+		display: inline-flex;
+		margin-bottom: 18px;
+		padding: 6px 9px;
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--service-accent) 28%,
+				transparent
+			);
+		border-radius: 999px;
+		background:
+			color-mix(
+				in srgb,
+				var(--service-accent) 10%,
+				transparent
+			);
+		color: color-mix(
+			in srgb,
+			var(--service-accent) 58%,
+			#ffffff
+		);
+		font-size: 0.51rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.pricing-card h3 {
+		margin: 0;
+		font-size: 1.35rem;
+		font-weight: 400;
+		letter-spacing: -0.03em;
+		line-height: 1.2;
+	}
+
+	.pricing-card__top > p {
+		margin: 14px 0 0;
+		color: #8393a9;
+		font-size: 0.74rem;
+		line-height: 1.65;
+	}
+
+	.pricing-card__price {
+		display: flex;
+		min-height: 82px;
+		padding: 23px 0;
+		align-items: baseline;
+		gap: 7px;
+		flex-wrap: wrap;
+		border-top: 1px solid rgba(103, 143, 201, 0.1);
+		border-bottom: 1px solid rgba(103, 143, 201, 0.1);
+	}
+
+	.pricing-card__price strong {
+		color: #ffffff;
+		font-size: clamp(1.7rem, 3vw, 2.4rem);
+		font-weight: 400;
+		letter-spacing: -0.045em;
+	}
+
+	.pricing-card__prefix,
+	.pricing-card__suffix {
+		color: #708299;
+		font-size: 0.62rem;
+	}
+
+	.pricing-card ul {
+		display: flex;
+		margin: 24px 0 0;
+		padding: 0;
+		flex-direction: column;
+		gap: 12px;
+		list-style: none;
+	}
+
+	.pricing-card li {
+		display: flex;
+		align-items: flex-start;
+		gap: 9px;
+		color: #99a8bb;
+		font-size: 0.69rem;
+		line-height: 1.5;
+	}
+
+	.pricing-card li svg {
+		width: 16px;
+		height: 16px;
+		margin-top: 1px;
+		flex-shrink: 0;
+		color: color-mix(
+			in srgb,
+			var(--service-accent) 68%,
+			#ffffff
+		);
+	}
+
+	.pricing-card__note {
+		margin: 20px 0 0;
+		color: #66788f;
+		font-size: 0.61rem;
+		line-height: 1.55;
+	}
+
+	.pricing-card > a {
+		display: inline-flex;
+		width: 100%;
+		min-height: 45px;
+		margin-top: auto;
+		padding: 0 15px;
+		align-items: center;
+		justify-content: center;
+		gap: 9px;
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--service-accent) 32%,
+				transparent
+			);
+		border-radius: 12px;
+		background:
+			color-mix(
+				in srgb,
+				var(--service-accent) 11%,
+				transparent
+			);
+		color: #ffffff;
+		font-size: 0.68rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			border-color 180ms ease,
+			background-color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.pricing-card ul + a,
+	.pricing-card__note + a,
+	.pricing-card__price + a {
+		margin-top: 26px;
+	}
+
+	.pricing-card > a svg {
+		width: 17px;
+		height: 17px;
+	}
+
+	.pricing-card > a:hover {
+		border-color:
+			color-mix(
+				in srgb,
+				var(--service-accent) 62%,
+				transparent
+			);
+		background:
+			color-mix(
+				in srgb,
+				var(--service-accent) 20%,
+				transparent
+			);
+		transform: translateY(-1px);
+	}
+
+	.pricing-card > a:focus-visible {
+		outline: 2px solid
+			color-mix(
+				in srgb,
+				var(--service-accent) 75%,
+				#ffffff
+			);
+		outline-offset: 4px;
+	}
+
+	.pricing-table__disclaimer {
+		max-width: 800px;
+		margin: 23px 0 0;
+		color: #5f7086;
+		font-size: 0.61rem;
+		line-height: 1.65;
+	}
+
+	@media (max-width: 900px) {
+		.pricing-table__header {
+			grid-template-columns: 1fr;
+			gap: 18px;
+		}
+
+		.pricing-table__header > p {
+			max-width: 640px;
+		}
+
+		.pricing-table__items {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.pricing-card:last-child:nth-child(odd) {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 620px) {
+		.pricing-table {
+			width: min(100% - 28px, 1120px);
+			padding-top: 82px;
+		}
+
+		.pricing-table__items {
+			margin-top: 36px;
+			grid-template-columns: 1fr;
+		}
+
+		.pricing-card:last-child:nth-child(odd) {
+			grid-column: auto;
+		}
+
+		.pricing-card {
+			padding: 24px;
+			border-radius: 20px;
+		}
+
+		.pricing-card__top {
+			min-height: auto;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.pricing-card > a {
+			transition: none;
+		}
+	}
+</style>
