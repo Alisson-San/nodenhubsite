@@ -1,6 +1,9 @@
 ---
 export const prerender = false;
 
+import CatalogItemControls
+	from "../../../components/admin/CatalogItemControls.astro";
+
 import type {
 	Json,
 } from "../../../types/database.types";
@@ -139,6 +142,12 @@ const savedMessages:
 
 	updated:
 		"Serviço atualizado com sucesso.",
+
+	moved:
+		"Ordem dos serviços atualizada.",
+
+	deleted:
+		"Serviço excluído permanentemente.",
 };
 
 const errorMessages:
@@ -151,6 +160,12 @@ const errorMessages:
 
 	"not-found":
 		"O serviço informado não foi encontrado.",
+
+	confirmation:
+		"O nome digitado não corresponde ao serviço.",
+
+	action:
+		"Não foi possível executar a ação solicitada.",
 
 	save:
 		"Não foi possível salvar o serviço.",
@@ -321,7 +336,7 @@ const errorMessages:
 					nesta divisão.
 				</p>
 			) : (
-				services.map((service) => (
+				services.map((service, index) => (
 					<details
 						class:list={[
 							"service-card",
@@ -358,6 +373,18 @@ const errorMessages:
 								}
 							</span>
 						</summary>
+
+						<CatalogItemControls
+							action={`/api/admin/catalog/${division}/item-actions`}
+							itemType="service"
+							itemId={service.id}
+							itemLabel={service.title}
+							canMoveUp={index > 0}
+							canMoveDown={
+								index <
+								services.length - 1
+							}
+						/>
 
 						<form
 							method="post"

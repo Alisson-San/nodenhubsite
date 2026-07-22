@@ -1,6 +1,9 @@
 ---
 export const prerender = false;
 
+import CatalogItemControls
+	from "../../../../components/admin/CatalogItemControls.astro";
+
 import AdminLayout
 	from "../../../../layouts/AdminLayout.astro";
 
@@ -165,6 +168,12 @@ const savedMessages:
 
 	updated:
 		"Preço atualizado com sucesso.",
+
+	moved:
+		"Ordem dos preços atualizada.",
+
+	deleted:
+		"Preço excluído permanentemente.",
 };
 
 const errorMessages:
@@ -177,6 +186,12 @@ const errorMessages:
 
 	"not-found":
 		"O preço informado não foi encontrado.",
+
+	confirmation:
+		"O nome digitado não corresponde ao preço.",
+
+	action:
+		"Não foi possível executar a ação solicitada.",
 
 	save:
 		"Não foi possível salvar o preço.",
@@ -275,7 +290,7 @@ const errorMessages:
 					nesta divisão.
 				</p>
 			) : (
-				pricingItems.map((item) => (
+				pricingItems.map((item, index) => (
 					<details
 						class:list={[
 							"price-card",
@@ -324,6 +339,18 @@ const errorMessages:
 								</span>
 							</div>
 						</summary>
+
+                        <CatalogItemControls
+                            action={`/api/admin/catalog/${division}/item-actions`}
+                            itemType="pricing"
+                            itemId={item.id}
+                            itemLabel={item.name}
+                            canMoveUp={index > 0}
+                            canMoveDown={
+                                index <
+                                pricingItems.length - 1
+                            }
+                        />
 
 						<div class="price-card__form">
 							<PricingForm
