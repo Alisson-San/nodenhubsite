@@ -1,6 +1,18 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import SiteLogo from "../../components/common/SiteLogo.astro";
+import SiteHeader from "../../components/common/SiteHeader.astro";
+
+const previewNavigation = [
+	{
+		label: "Identidade",
+		href: "#identidade",
+	},
+	{
+		label: "Variações",
+		href: "#variacoes",
+	},
+];
 ---
 
 <BaseLayout title="Componentes — Noden">
@@ -20,7 +32,15 @@ import SiteLogo from "../../components/common/SiteLogo.astro";
 		/>
 	</Fragment>
 
-	<main>
+	<SiteHeader
+		sticky={false}
+		navigation={previewNavigation}
+		ctaLabel="Ver componentes"
+		ctaHref="#variacoes"
+		logoIdPrefix="preview-header-logo"
+	/>
+
+	<main id="identidade">
 		<header>
 			<span>COMPONENT PREVIEW</span>
 			<h1>Identidade compartilhada</h1>
@@ -29,7 +49,7 @@ import SiteLogo from "../../components/common/SiteLogo.astro";
 			</p>
 		</header>
 
-		<section>
+		<section id="variacoes">
 			<div class="preview-card">
 				<span class="preview-label">SMALL</span>
 
@@ -74,8 +94,15 @@ import SiteLogo from "../../components/common/SiteLogo.astro";
 
 <style>
 	:global(html) {
+		scroll-behavior: smooth;
 		background: #02050a;
 	}
+
+	main,
+	section {
+		scroll-margin-top: 90px;
+	}
+
 
 	:global(body) {
 		min-height: 100vh;
