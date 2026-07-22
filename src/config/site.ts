@@ -30,7 +30,7 @@ export const siteConfig = {
 } as const;
 
 export function getWhatsAppUrl(
-	message = siteConfig.whatsapp.defaultMessage,
+	message: string = siteConfig.whatsapp.defaultMessage,
 ) {
 	return `https://wa.me/${siteConfig.whatsapp.phone}?text=${encodeURIComponent(
 		message,
