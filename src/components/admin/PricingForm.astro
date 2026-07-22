@@ -1,0 +1,406 @@
+---
+import type {
+	Json,
+	Tables,
+} from "../../types/database.types";
+
+import {
+	priceTypeOptions,
+} from "../../lib/admin/pricing";
+
+interface Props {
+	action: string;
+	item?: Tables<"pricing_items">;
+	defaultSortOrder?: number;
+	submitLabel: string;
+}
+
+const {
+	action,
+	item,
+	defaultSortOrder = 0,
+	submitLabel,
+} = Astro.props;
+
+function jsonArrayToLines(
+	value: Json | undefined,
+): string {
+	if (!Array.isArray(value)) {
+		return "";
+	}
+
+	return value
+		.filter(
+			(entry): entry is string =>
+				typeof entry === "string",
+		)
+		.join("\n");
+}
+
+function formatPriceInput(
+	price: number | null | undefined,
+): string {
+	if (price == null) {
+		return "";
+	}
+
+	return price
+		.toFixed(2)
+		.replace(".", ",");
+}
+
+const currentType =
+	item?.price_type ?? "fixed";
+---
+
+<form
+	method="post"
+	action={action}
+	class="pricing-form"
+>
+	{
+		item && (
+			<input
+				type="hidden"
+				name="pricing_id"
+				value={item.id}
+			/>
+		)
+	}
+
+	<div class="fields">
+		<label class="full">
+			<span>Nome do preço ou pacote</span>
+
+			<input
+				type="text"
+				name="name"
+				value={item?.name ?? ""}
+				placeholder="Formatação completa"
+				required
+			/>
+		</label>
+
+		<label class="full">
+			<span>Descrição</span>
+
+			<textarea
+				name="description"
+				rows="4"
+				required
+			>{item?.description ?? ""}</textarea>
+		</label>
+
+		<label>
+			<span>Tipo de preço</span>
+
+			<select name="price_type" required>
+				{
+					priceTypeOptions.map(
+						(option) => (
+							<option
+								value={option.value}
+								selected={
+									currentType ===
+										option.value
+								}
+							>
+								{option.label}
+							</option>
+						),
+					)
+				}
+			</select>
+		</label>
+
+		<label>
+			<span>Valor em reais</span>
+
+			<input
+				type="text"
+				name="price"
+				inputmode="decimal"
+				value={formatPriceInput(
+					item?.price,
+				)}
+				placeholder="99,90"
+			/>
+
+			<small>
+				Obrigatório para preço fixo
+				e “a partir de”.
+			</small>
+		</label>
+
+		<label>
+			<span>Prefixo opcional</span>
+
+			<input
+				type="text"
+				name="price_prefix"
+				value={
+					item?.price_prefix ?? ""
+				}
+				placeholder="A partir de"
+			/>
+		</label>
+
+		<label>
+			<span>Texto substituto do preço</span>
+
+			<input
+				type="text"
+				name="price_label"
+				value={
+					item?.price_label ?? ""
+				}
+				placeholder="Sob consulta"
+			/>
+		</label>
+
+		<label>
+			<span>Sufixo opcional</span>
+
+			<input
+				type="text"
+				name="price_suffix"
+				value={
+					item?.price_suffix ?? ""
+				}
+				placeholder="/ mês"
+			/>
+		</label>
+
+		<label>
+			<span>Selo opcional</span>
+
+			<input
+				type="text"
+				name="badge"
+				value={item?.badge ?? ""}
+				placeholder="Mais escolhido"
+			/>
+		</label>
+
+		<label class="full">
+			<span>
+				Recursos inclusos — um por linha
+			</span>
+
+			<textarea
+				name="features"
+				rows="6"
+			>{jsonArrayToLines(
+				item?.features,
+			)}</textarea>
+		</label>
+
+		<label class="full">
+			<span>Observação opcional</span>
+
+			<textarea
+				name="note"
+				rows="3"
+			>{item?.note ?? ""}</textarea>
+		</label>
+
+		<label>
+			<span>Texto do botão</span>
+
+			<input
+				type="text"
+				name="cta_label"
+				value={
+					item?.cta_label ?? ""
+				}
+				placeholder="Solicitar orçamento"
+			/>
+		</label>
+
+		<label>
+			<span>Mensagem do WhatsApp</span>
+
+			<input
+				type="text"
+				name="cta_message"
+				value={
+					item?.cta_message ?? ""
+				}
+				placeholder="Olá! Quero saber mais..."
+			/>
+		</label>
+
+		<label>
+			<span>Ordem</span>
+
+			<input
+				type="number"
+				name="sort_order"
+				min="0"
+				step="1"
+				value={
+					item?.sort_order ??
+						defaultSortOrder
+				}
+				required
+			/>
+		</label>
+
+		<div class="checkbox-group">
+			<label class="checkbox">
+				<input
+					type="checkbox"
+					name="is_featured"
+					value="true"
+					checked={
+						item?.is_featured ??
+							false
+					}
+				/>
+
+				<span>Destacar este pacote</span>
+			</label>
+
+			<label class="checkbox">
+				<input
+					type="checkbox"
+					name="is_active"
+					value="true"
+					checked={
+						item?.is_active ??
+							true
+					}
+				/>
+
+				<span>Exibir no site</span>
+			</label>
+		</div>
+	</div>
+
+	<footer class="form-footer">
+		<button type="submit">
+			{submitLabel}
+		</button>
+	</footer>
+</form>
+
+<style>
+	.pricing-form {
+		margin: 0;
+	}
+
+	.fields {
+		display: grid;
+		grid-template-columns:
+			repeat(2, minmax(0, 1fr));
+		gap: 18px;
+	}
+
+	label {
+		display: grid;
+		gap: 8px;
+	}
+
+	label > span {
+		color: #99abc1;
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+
+	label small {
+		color: #657991;
+		font-size: 0.62rem;
+		line-height: 1.5;
+	}
+
+	.full {
+		grid-column: 1 / -1;
+	}
+
+	input[type="text"],
+	input[type="number"],
+	select,
+	textarea {
+		width: 100%;
+		padding: 13px 14px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 10px;
+		outline: none;
+		background: rgba(2, 8, 16, 0.72);
+		color: #f7faff;
+		font: inherit;
+		line-height: 1.5;
+	}
+
+	select option {
+		background: #07111f;
+		color: #f7faff;
+	}
+
+	input:focus,
+	select:focus,
+	textarea:focus {
+		border-color: #428eff;
+		box-shadow:
+			0 0 0 3px
+			rgba(48, 132, 255, 0.12);
+	}
+
+	.checkbox-group {
+		display: flex;
+		align-items: center;
+		align-self: end;
+		gap: 20px;
+		min-height: 48px;
+	}
+
+	.checkbox {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+	}
+
+	.checkbox input {
+		width: 18px;
+		height: 18px;
+		accent-color: #347dff;
+	}
+
+	.form-footer {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 22px;
+	}
+
+	.form-footer button {
+		padding: 13px 20px;
+		border: 1px solid
+			rgba(80, 151, 255, 0.58);
+		border-radius: 10px;
+		cursor: pointer;
+		background:
+			linear-gradient(
+				135deg,
+				#245fc7,
+				#347dff
+			);
+		color: white;
+		font-weight: 700;
+	}
+
+	@media (max-width: 700px) {
+		.fields {
+			grid-template-columns: 1fr;
+		}
+
+		.full {
+			grid-column: auto;
+		}
+
+		.checkbox-group {
+			align-items: start;
+			flex-direction: column;
+		}
+	}
+</style>
