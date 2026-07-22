@@ -1,0 +1,29 @@
+---
+import ServiceLayout from "../../layouts/ServiceLayout.astro";
+import ServiceHero from "../../components/services/ServiceHero.astro";
+---
+
+<ServiceLayout
+	title="Serviços — Noden Home"
+	description="Prévia da estrutura compartilhada das páginas de serviços da Noden."
+	canonical="/dev/services"
+	division="home"
+	accent="#2387ff"
+	accentSecondary="#6f35ff"
+>
+	<Fragment slot="head">
+		<meta name="robots" content="noindex, nofollow" />
+	</Fragment>
+
+	<ServiceHero
+		division="home"
+		eyebrow="NODEN HOME"
+		title="Tecnologia funcionando bem dentro da sua casa."
+		description="Suporte técnico próximo e transparente para computadores, redes, dispositivos e toda a tecnologia que faz parte da sua rotina."
+		highlights={[
+			"Atendimento próximo",
+			"Preços justos",
+			"Explicação clara",
+		]}
+	/>
+</ServiceLayout>

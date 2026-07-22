@@ -1,0 +1,466 @@
+---
+import { getWhatsAppUrl } from "../../config/site";
+
+interface Props {
+	division: "home" | "game" | "data";
+	eyebrow: string;
+	title: string;
+	description: string;
+	highlights?: string[];
+	primaryLabel?: string;
+	primaryHref?: string;
+	secondaryLabel?: string;
+	secondaryHref?: string;
+}
+
+const {
+	division,
+	eyebrow,
+	title,
+	description,
+	highlights = [],
+	primaryLabel = "Solicitar atendimento",
+	primaryHref = getWhatsAppUrl(
+		`Olá! Vim pela página Noden ${division.toUpperCase()} e gostaria de solicitar atendimento.`,
+	),
+	secondaryLabel = "Ver serviços",
+	secondaryHref = "#servicos",
+} = Astro.props;
+
+const primaryExternal =
+	primaryHref.startsWith("http://") ||
+	primaryHref.startsWith("https://");
+---
+
+<section class="service-hero" data-division={division}>
+	<div class="service-hero__content">
+		<span class="service-hero__eyebrow">
+			{eyebrow}
+		</span>
+
+		<h1>{title}</h1>
+
+		<p class="service-hero__description">
+			{description}
+		</p>
+
+		{
+			highlights.length > 0 && (
+				<ul class="service-hero__highlights">
+					{highlights.map((item) => (
+						<li>
+							<span aria-hidden="true"></span>
+							{item}
+						</li>
+					))}
+				</ul>
+			)
+		}
+
+		<div class="service-hero__actions">
+			<a
+				class="service-hero__primary"
+				href={primaryHref}
+				target={primaryExternal ? "_blank" : undefined}
+				rel={
+					primaryExternal
+						? "noopener noreferrer"
+						: undefined
+				}
+			>
+				{primaryLabel}
+
+				<svg viewBox="0 0 20 20" aria-hidden="true">
+					<path
+						d="M6 14 14 6M8 6h6v6"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</a>
+
+			<a
+				class="service-hero__secondary"
+				href={secondaryHref}
+			>
+				{secondaryLabel}
+			</a>
+		</div>
+	</div>
+
+	<div class="service-hero__visual" aria-hidden="true">
+		<div class="service-hero__visual-glow"></div>
+
+		<div class="service-hero__icon">
+			{
+				division === "home" && (
+					<svg viewBox="0 0 120 120">
+						<path
+							d="M24 57 60 28l36 29v39H70V72H50v24H24V57Z"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="4"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+						<path
+							d="M82 35V22h10v21"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="4"
+							stroke-linecap="round"
+						/>
+					</svg>
+				)
+			}
+
+			{
+				division === "game" && (
+					<svg viewBox="0 0 120 120">
+						<path
+							d="M36 42h48c12 0 20 9 23 24l4 20c2 10-10 16-17 9L80 82H40L26 95c-7 7-19 1-17-9l4-20c3-15 11-24 23-24Z"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="4"
+							stroke-linejoin="round"
+						/>
+						<path
+							d="M35 58v18M26 67h18"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="4"
+							stroke-linecap="round"
+						/>
+						<circle cx="83" cy="61" r="4" fill="currentColor" />
+						<circle cx="94" cy="72" r="4" fill="currentColor" />
+					</svg>
+				)
+			}
+
+			{
+				division === "data" && (
+					<svg viewBox="0 0 120 120">
+						<ellipse
+							cx="60"
+							cy="31"
+							rx="36"
+							ry="14"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="4"
+						/>
+						<path
+							d="M24 31v29c0 8 16 14 36 14s36-6 36-14V31"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="4"
+						/>
+						<path
+							d="M24 59v29c0 8 16 14 36 14s36-6 36-14V59"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="4"
+						/>
+					</svg>
+				)
+			}
+		</div>
+
+		<span class="service-hero__division-name">
+			NODEN {division.toUpperCase()}
+		</span>
+	</div>
+</section>
+
+<style>
+	.service-hero,
+	.service-hero * {
+		box-sizing: border-box;
+	}
+
+	.service-hero {
+		display: grid;
+		width: min(100% - 40px, 1120px);
+		min-height: 680px;
+		margin: 0 auto;
+		padding: 90px 0 70px;
+		grid-template-columns: minmax(0, 1.08fr) minmax(330px, 0.92fr);
+		align-items: center;
+		gap: clamp(50px, 8vw, 100px);
+	}
+
+	.service-hero__content {
+		position: relative;
+		z-index: 2;
+	}
+
+	.service-hero__eyebrow {
+		color: color-mix(
+			in srgb,
+			var(--service-accent) 75%,
+			#ffffff
+		);
+		font-size: 0.62rem;
+		font-weight: 600;
+		letter-spacing: 0.24em;
+		text-transform: uppercase;
+	}
+
+	.service-hero h1 {
+		max-width: 720px;
+		margin: 21px 0 0;
+		font-size: clamp(3rem, 7vw, 6.3rem);
+		font-weight: 300;
+		letter-spacing: -0.065em;
+		line-height: 0.94;
+	}
+
+	.service-hero__description {
+		max-width: 620px;
+		margin: 28px 0 0;
+		color: #91a0b4;
+		font-size: clamp(0.93rem, 1.5vw, 1.05rem);
+		line-height: 1.72;
+	}
+
+	.service-hero__highlights {
+		display: flex;
+		margin: 28px 0 0;
+		padding: 0;
+		flex-wrap: wrap;
+		gap: 10px;
+		list-style: none;
+	}
+
+	.service-hero__highlights li {
+		display: inline-flex;
+		min-height: 34px;
+		padding: 0 12px;
+		align-items: center;
+		gap: 8px;
+		border: 1px solid rgba(109, 148, 204, 0.15);
+		border-radius: 999px;
+		background: rgba(14, 30, 54, 0.52);
+		color: #92a3ba;
+		font-size: 0.66rem;
+	}
+
+	.service-hero__highlights li > span {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--service-accent);
+		box-shadow:
+			0 0 10px
+			color-mix(
+				in srgb,
+				var(--service-accent) 60%,
+				transparent
+			);
+	}
+
+	.service-hero__actions {
+		display: flex;
+		margin-top: 34px;
+		align-items: center;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.service-hero__primary,
+	.service-hero__secondary {
+		display: inline-flex;
+		min-height: 48px;
+		padding: 0 19px;
+		align-items: center;
+		justify-content: center;
+		border-radius: 13px;
+		font-size: 0.73rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			border-color 180ms ease,
+			background-color 180ms ease,
+			color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.service-hero__primary {
+		gap: 9px;
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--service-accent) 50%,
+				transparent
+			);
+		background:
+			linear-gradient(
+				135deg,
+				color-mix(
+					in srgb,
+					var(--service-accent) 45%,
+					transparent
+				),
+				color-mix(
+					in srgb,
+					var(--service-accent-secondary) 38%,
+					transparent
+				)
+			);
+		color: #ffffff;
+	}
+
+	.service-hero__primary svg {
+		width: 17px;
+		height: 17px;
+	}
+
+	.service-hero__secondary {
+		border: 1px solid rgba(117, 151, 200, 0.18);
+		background: rgba(255, 255, 255, 0.025);
+		color: #a5b2c4;
+	}
+
+	.service-hero__primary:hover,
+	.service-hero__secondary:hover {
+		transform: translateY(-2px);
+	}
+
+	.service-hero__secondary:hover {
+		border-color: rgba(113, 158, 224, 0.34);
+		color: #ffffff;
+	}
+
+	.service-hero a:focus-visible {
+		outline: 2px solid
+			color-mix(
+				in srgb,
+				var(--service-accent) 75%,
+				#ffffff
+			);
+		outline-offset: 4px;
+	}
+
+	.service-hero__visual {
+		position: relative;
+		display: flex;
+		aspect-ratio: 1;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+		border: 1px solid rgba(104, 146, 208, 0.14);
+		border-radius: 36px;
+		background:
+			linear-gradient(
+				145deg,
+				rgba(16, 35, 62, 0.75),
+				rgba(5, 13, 25, 0.86)
+			);
+		box-shadow:
+			inset 0 1px rgba(255, 255, 255, 0.025),
+			0 30px 90px rgba(0, 0, 0, 0.25);
+	}
+
+	.service-hero__visual-glow {
+		position: absolute;
+		width: 70%;
+		height: 70%;
+		border-radius: 50%;
+		background:
+			radial-gradient(
+				circle,
+				color-mix(
+					in srgb,
+					var(--service-accent) 25%,
+					transparent
+				),
+				transparent 67%
+			);
+		filter: blur(10px);
+	}
+
+	.service-hero__icon {
+		position: relative;
+		z-index: 1;
+		width: 42%;
+		color: color-mix(
+			in srgb,
+			var(--service-accent) 75%,
+			#ffffff
+		);
+		filter:
+			drop-shadow(
+				0 0 28px
+				color-mix(
+					in srgb,
+					var(--service-accent) 30%,
+					transparent
+				)
+			);
+	}
+
+	.service-hero__icon svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.service-hero__division-name {
+		position: absolute;
+		bottom: 30px;
+		color: #617691;
+		font-size: 0.56rem;
+		font-weight: 600;
+		letter-spacing: 0.25em;
+	}
+
+	@media (max-width: 860px) {
+		.service-hero {
+			min-height: auto;
+			padding: 76px 0 40px;
+			grid-template-columns: 1fr;
+			gap: 55px;
+		}
+
+		.service-hero__visual {
+			width: min(100%, 510px);
+			margin: 0 auto;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.service-hero {
+			width: min(100% - 28px, 1120px);
+			padding-top: 58px;
+			gap: 42px;
+		}
+
+		.service-hero h1 {
+			font-size: clamp(2.8rem, 14vw, 4rem);
+		}
+
+		.service-hero__actions {
+			align-items: stretch;
+			flex-direction: column;
+		}
+
+		.service-hero__primary,
+		.service-hero__secondary {
+			width: 100%;
+		}
+
+		.service-hero__visual {
+			border-radius: 25px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.service-hero__primary,
+		.service-hero__secondary {
+			transition: none;
+		}
+	}
+</style>
