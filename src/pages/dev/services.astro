@@ -1,0 +1,134 @@
+---
+import ServiceLayout from "../../layouts/ServiceLayout.astro";
+
+import ServiceHero from "../../components/services/ServiceHero.astro";
+import ServicesGrid from "../../components/services/ServicesGrid.astro";
+import PricingTable from "../../components/services/PricingTable.astro";
+import ContactCTA from "../../components/common/ContactCTA.astro";
+
+import type {
+	PricingItem,
+	ServiceItem,
+} from "../../types/services";
+
+const services: ServiceItem[] = [
+	{
+		title: "Suporte e diagnóstico",
+		description:
+			"Identificação de falhas, lentidão, travamentos e problemas de configuração.",
+		features: [
+			"Análise inicial do equipamento",
+			"Explicação clara do problema",
+			"Orçamento antes da execução",
+		],
+		badge: "Essencial",
+	},
+	{
+		title: "Limpeza e manutenção",
+		description:
+			"Cuidados preventivos para preservar desempenho, temperatura e vida útil.",
+		features: [
+			"Limpeza interna",
+			"Verificação de temperaturas",
+			"Organização e revisão geral",
+		],
+	},
+	{
+		title: "Redes e conectividade",
+		description:
+			"Configuração e melhoria da conexão entre roteadores, computadores e dispositivos.",
+		features: [
+			"Configuração de Wi-Fi",
+			"Análise de cobertura",
+			"Conexão de dispositivos",
+		],
+	},
+];
+
+const pricingItems: PricingItem[] = [
+	{
+		name: "Atendimento básico",
+		description:
+			"Serviço simples de configuração ou correção realizado sem troca de peças.",
+		pricePrefix: "A partir de",
+		price: 60,
+		features: [
+			"Diagnóstico inicial",
+			"Configuração do sistema",
+			"Orientação ao cliente",
+		],
+	},
+	{
+		name: "Manutenção completa",
+		description:
+			"Revisão mais detalhada do equipamento com limpeza e otimização.",
+		pricePrefix: "A partir de",
+		price: 120,
+		featured: true,
+		features: [
+			"Limpeza preventiva",
+			"Verificação de desempenho",
+			"Testes após o serviço",
+		],
+	},
+	{
+		name: "Projeto personalizado",
+		description:
+			"Atendimento para redes, múltiplos equipamentos ou demandas específicas.",
+		priceLabel: "Sob consulta",
+		features: [
+			"Avaliação da necessidade",
+			"Proposta personalizada",
+			"Execução planejada",
+		],
+	},
+];
+---
+
+<ServiceLayout
+	title="Serviços — Noden Home"
+	description="Prévia da estrutura compartilhada das páginas de serviços da Noden."
+	canonical="/dev/services"
+	division="home"
+	accent="#2387ff"
+	accentSecondary="#6f35ff"
+>
+	<Fragment slot="head">
+		<meta name="robots" content="noindex, nofollow" />
+	</Fragment>
+
+	<ServiceHero
+		division="home"
+		eyebrow="NODEN HOME"
+		title="Tecnologia funcionando bem dentro da sua casa."
+		description="Suporte técnico próximo e transparente para computadores, redes, dispositivos e toda a tecnologia que faz parte da sua rotina."
+		highlights={[
+			"Atendimento próximo",
+			"Preços justos",
+			"Explicação clara",
+		]}
+	/>
+
+	<ServicesGrid
+		title="Soluções para facilitar sua rotina."
+		description="Do problema mais simples à organização completa da tecnologia da sua casa."
+		services={services}
+	/>
+
+	<PricingTable
+		division="home"
+		title="Valores claros antes de começar."
+		description="Uma referência inicial para você entender o investimento antes de solicitar o atendimento."
+		items={pricingItems}
+	/>
+
+	<ContactCTA
+		eyebrow="PRECISA DE AJUDA?"
+		title="Conte o que está acontecendo com sua tecnologia."
+		description="Explique o problema pelo WhatsApp e receba uma orientação inicial antes de agendar o atendimento."
+		buttonLabel="Falar com a Noden Home"
+		secondaryLabel="Voltar aos serviços"
+		secondaryHref="#servicos"
+		align="center"
+	/>
+</ServiceLayout>

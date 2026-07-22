@@ -1,0 +1,130 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import SiteHeader from "../components/common/SiteHeader.astro";
+import SiteFooter from "../components/common/SiteFooter.astro";
+
+interface Props {
+	title: string;
+	description: string;
+	canonical: string;
+	division: "home" | "game" | "data";
+	accent?: string;
+	accentSecondary?: string;
+	themeColor?: string;
+}
+
+const {
+	title,
+	description,
+	canonical,
+	division,
+	accent = "#2387ff",
+	accentSecondary = "#6f35ff",
+	themeColor = "#02050a",
+} = Astro.props;
+
+const headerLogoId = `service-${division}-header-logo`;
+const footerLogoId = `service-${division}-footer-logo`;
+---
+
+<BaseLayout
+	title={title}
+	description={description}
+	canonical={canonical}
+	themeColor={themeColor}
+>
+	<Fragment slot="head">
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin
+		/>
+
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+		/>
+
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+
+		<slot name="head" />
+	</Fragment>
+
+	<div
+		class="service-page"
+		data-division={division}
+		style={`--service-accent: ${accent}; --service-accent-secondary: ${accentSecondary};`}
+	>
+		<SiteHeader
+			logoIdPrefix={headerLogoId}
+			currentPath={Astro.url.pathname}
+		/>
+
+		<main>
+			<slot />
+		</main>
+
+		<SiteFooter logoIdPrefix={footerLogoId} />
+	</div>
+</BaseLayout>
+
+<style>
+	:global(html) {
+		background: #02050a;
+		scroll-behavior: smooth;
+	}
+
+	:global(body) {
+		min-width: 320px;
+		min-height: 100vh;
+		margin: 0;
+		background: #02050a;
+		color: #ffffff;
+		font-family: "Inter", sans-serif;
+	}
+
+	:global(*) {
+		box-sizing: border-box;
+	}
+
+	.service-page {
+		position: relative;
+		isolation: isolate;
+		min-height: 100vh;
+		overflow: hidden;
+		background:
+			radial-gradient(
+				circle at 80% 8%,
+				color-mix(
+					in srgb,
+					var(--service-accent) 15%,
+					transparent
+				),
+				transparent 28%
+			),
+			radial-gradient(
+				circle at 10% 44%,
+				color-mix(
+					in srgb,
+					var(--service-accent-secondary) 8%,
+					transparent
+				),
+				transparent 32%
+			),
+			#02050a;
+	}
+
+	main {
+		min-height: 70vh;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global(html) {
+			scroll-behavior: auto;
+		}
+	}
+</style>
