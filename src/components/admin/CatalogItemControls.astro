@@ -1,0 +1,251 @@
+---
+interface Props {
+	action: string;
+	itemType: "service" | "pricing";
+	itemId: string;
+	itemLabel: string;
+	canMoveUp: boolean;
+	canMoveDown: boolean;
+}
+
+const {
+	action,
+	itemType,
+	itemId,
+	itemLabel,
+	canMoveUp,
+	canMoveDown,
+} = Astro.props;
+---
+
+<section class="controls">
+	<form
+		class="movement"
+		method="post"
+		action={action}
+	>
+		<input
+			type="hidden"
+			name="item_type"
+			value={itemType}
+		/>
+
+		<input
+			type="hidden"
+			name="item_id"
+			value={itemId}
+		/>
+
+		<button
+			type="submit"
+			name="action"
+			value="move_up"
+			disabled={!canMoveUp}
+		>
+			↑ Subir
+		</button>
+
+		<button
+			type="submit"
+			name="action"
+			value="move_down"
+			disabled={!canMoveDown}
+		>
+			↓ Descer
+		</button>
+	</form>
+
+	<details class="danger-zone">
+		<summary>
+			Excluir permanentemente
+		</summary>
+
+		<form
+			method="post"
+			action={action}
+		>
+			<input
+				type="hidden"
+				name="item_type"
+				value={itemType}
+			/>
+
+			<input
+				type="hidden"
+				name="item_id"
+				value={itemId}
+			/>
+
+			<p>
+				Esta ação não pode ser desfeita.
+				Para confirmar, digite exatamente:
+			</p>
+
+			<code>{itemLabel}</code>
+
+			<label>
+				<span>Confirmação</span>
+
+				<input
+					type="text"
+					name="confirm_value"
+					autocomplete="off"
+					required
+				/>
+			</label>
+
+			<button
+				class="delete-button"
+				type="submit"
+				name="action"
+				value="delete"
+			>
+				Excluir permanentemente
+			</button>
+		</form>
+	</details>
+</section>
+
+<style>
+	.controls {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 20px;
+		padding: 14px 24px;
+		border-top: 1px solid
+			rgba(105, 145, 205, 0.16);
+		background: rgba(2, 8, 16, 0.28);
+	}
+
+	.movement {
+		display: flex;
+		gap: 8px;
+	}
+
+	.movement button {
+		padding: 8px 12px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 8px;
+		cursor: pointer;
+		background: rgba(40, 90, 165, 0.12);
+		color: #afc9ee;
+		font-size: 0.68rem;
+	}
+
+	.movement button:disabled {
+		cursor: not-allowed;
+		opacity: 0.35;
+	}
+
+	.danger-zone {
+		position: relative;
+	}
+
+	.danger-zone > summary {
+		cursor: pointer;
+		color: #c98489;
+		font-size: 0.67rem;
+		list-style: none;
+	}
+
+	.danger-zone > summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.danger-zone form {
+		position: absolute;
+		z-index: 10;
+		top: calc(100% + 12px);
+		right: 0;
+		width: min(360px, calc(100vw - 48px));
+		padding: 20px;
+		border: 1px solid
+			rgba(255, 100, 110, 0.32);
+		border-radius: 13px;
+		background: #0b111c;
+		box-shadow:
+			0 22px 60px
+			rgba(0, 0, 0, 0.5);
+	}
+
+	.danger-zone p {
+		margin: 0 0 12px;
+		color: #a7b4c5;
+		font-size: 0.72rem;
+		line-height: 1.55;
+	}
+
+	code {
+		display: block;
+		overflow-wrap: anywhere;
+		margin-bottom: 16px;
+		padding: 9px 10px;
+		border-radius: 7px;
+		background: rgba(255, 255, 255, 0.05);
+		color: #ffb8bd;
+		font-size: 0.68rem;
+	}
+
+	label {
+		display: grid;
+		gap: 7px;
+	}
+
+	label span {
+		color: #99abc1;
+		font-size: 0.66rem;
+	}
+
+	input {
+		width: 100%;
+		padding: 11px 12px;
+		border: 1px solid
+			rgba(255, 110, 120, 0.3);
+		border-radius: 8px;
+		outline: none;
+		background: rgba(2, 8, 16, 0.8);
+		color: white;
+		font: inherit;
+	}
+
+	input:focus {
+		border-color: #df626b;
+		box-shadow:
+			0 0 0 3px
+			rgba(220, 70, 80, 0.12);
+	}
+
+	.delete-button {
+		width: 100%;
+		margin-top: 14px;
+		padding: 11px 14px;
+		border: 1px solid
+			rgba(255, 100, 110, 0.45);
+		border-radius: 8px;
+		cursor: pointer;
+		background: rgba(170, 36, 48, 0.3);
+		color: #ffd9dc;
+		font-weight: 700;
+	}
+
+	@media (max-width: 600px) {
+		.controls {
+			align-items: stretch;
+			flex-direction: column;
+			padding: 14px 18px;
+		}
+
+		.movement {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.danger-zone form {
+			position: static;
+			width: 100%;
+			margin-top: 12px;
+		}
+	}
+</style>
