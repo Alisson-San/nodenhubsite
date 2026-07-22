@@ -1,0 +1,294 @@
+---
+import type {
+	LinkIcon,
+} from "../../data/links";
+
+interface Props {
+	title: string;
+	description: string;
+	href: string;
+	icon: LinkIcon;
+	external?: boolean;
+	featured?: boolean;
+}
+
+const {
+	title,
+	description,
+	href,
+	icon,
+	external = false,
+	featured = false,
+} = Astro.props;
+---
+
+<a
+	class:list={[
+		"link-card",
+		{
+			"is-featured": featured,
+		},
+	]}
+	href={href}
+	target={external ? "_blank" : undefined}
+	rel={external ? "noopener noreferrer" : undefined}
+>
+	<span class="link-card__icon" aria-hidden="true">
+		{
+			icon === "whatsapp" && (
+				<svg viewBox="0 0 24 24">
+					<path
+						d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4A8 8 0 1 1 20 11.5Z"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+					<path
+						d="M9 9.2c.4 2.4 2.3 4.3 4.7 4.8"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+					/>
+				</svg>
+			)
+		}
+
+		{
+			icon === "website" && (
+				<svg viewBox="0 0 24 24">
+					<circle
+						cx="12"
+						cy="12"
+						r="8"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+					/>
+					<path
+						d="M4.5 12h15M12 4c2 2.2 3 4.9 3 8s-1 5.8-3 8c-2-2.2-3-4.9-3-8s1-5.8 3-8Z"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+					/>
+				</svg>
+			)
+		}
+
+		{
+			icon === "instagram" && (
+				<svg viewBox="0 0 24 24">
+					<rect
+						x="4"
+						y="4"
+						width="16"
+						height="16"
+						rx="5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+					/>
+					<circle
+						cx="12"
+						cy="12"
+						r="3.4"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+					/>
+					<circle
+						cx="17.3"
+						cy="6.8"
+						r="1"
+						fill="currentColor"
+					/>
+				</svg>
+			)
+		}
+
+		{
+			icon === "phone" && (
+				<svg viewBox="0 0 24 24">
+					<path
+						d="M7.2 4.5 9.6 8l-1.8 2.2a13 13 0 0 0 6 6l2.2-1.8 3.5 2.4-.8 2.8c-.3 1-1.3 1.5-2.3 1.3C9.7 19.4 4.6 14.3 3.1 7.6c-.2-1 .3-2 1.3-2.3l2.8-.8Z"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			)
+		}
+	</span>
+
+	<span class="link-card__content">
+		<strong>{title}</strong>
+		<span>{description}</span>
+	</span>
+
+	<svg
+		class="link-card__arrow"
+		viewBox="0 0 20 20"
+		aria-hidden="true"
+	>
+		<path
+			d="M6 14 14 6M8 6h6v6"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.7"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/>
+	</svg>
+</a>
+
+<style>
+	.link-card,
+	.link-card * {
+		box-sizing: border-box;
+	}
+
+	.link-card {
+		display: grid;
+		width: 100%;
+		min-height: 76px;
+		padding: 13px 15px;
+		grid-template-columns: 46px minmax(0, 1fr) 22px;
+		align-items: center;
+		gap: 13px;
+		border: 1px solid rgba(105, 144, 201, 0.17);
+		border-radius: 18px;
+		background:
+			linear-gradient(
+				135deg,
+				rgba(17, 34, 60, 0.86),
+				rgba(7, 15, 28, 0.92)
+			);
+		color: #ffffff;
+		text-decoration: none;
+		transition:
+			border-color 180ms ease,
+			background-color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.link-card__icon {
+		display: flex;
+		width: 46px;
+		height: 46px;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid rgba(103, 150, 221, 0.18);
+		border-radius: 14px;
+		background: rgba(42, 90, 164, 0.1);
+		color: #82aef0;
+	}
+
+	.link-card__icon svg {
+		width: 22px;
+		height: 22px;
+	}
+
+	.link-card__content {
+		display: flex;
+		min-width: 0;
+		flex-direction: column;
+		gap: 5px;
+	}
+
+	.link-card__content strong {
+		overflow: hidden;
+		font-size: 0.8rem;
+		font-weight: 600;
+		line-height: 1.25;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.link-card__content > span {
+		overflow: hidden;
+		color: #8292a8;
+		font-size: 0.68rem;
+		line-height: 1.35;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.link-card__arrow {
+		width: 19px;
+		height: 19px;
+		color: #71829a;
+		transition:
+			color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.link-card:hover {
+		border-color: rgba(79, 151, 255, 0.42);
+		background:
+			linear-gradient(
+				135deg,
+				rgba(21, 46, 82, 0.96),
+				rgba(9, 20, 37, 0.98)
+			);
+		transform: translateY(-2px);
+	}
+
+	.link-card:hover .link-card__arrow {
+		color: #ffffff;
+		transform: translate(2px, -2px);
+	}
+
+	.link-card.is-featured {
+		border-color: rgba(93, 151, 238, 0.38);
+		background:
+			linear-gradient(
+				135deg,
+				rgba(34, 104, 214, 0.42),
+				rgba(78, 46, 202, 0.34)
+			);
+	}
+
+	.link-card.is-featured .link-card__icon {
+		border-color: rgba(157, 192, 255, 0.28);
+		background: rgba(255, 255, 255, 0.08);
+		color: #ffffff;
+	}
+
+	.link-card.is-featured
+		.link-card__content
+		> span,
+	.link-card.is-featured .link-card__arrow {
+		color: #b6c7df;
+	}
+
+	.link-card:focus-visible {
+		outline: 2px solid rgba(70, 147, 255, 0.82);
+		outline-offset: 4px;
+	}
+
+	@media (max-width: 390px) {
+		.link-card {
+			min-height: 72px;
+			padding: 11px 12px;
+			grid-template-columns: 42px minmax(0, 1fr) 20px;
+			gap: 11px;
+		}
+
+		.link-card__icon {
+			width: 42px;
+			height: 42px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.link-card,
+		.link-card__arrow {
+			transition: none;
+		}
+	}
+</style>
