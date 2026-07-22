@@ -1,0 +1,289 @@
+---
+export const prerender = false;
+
+const errorCode =
+	Astro.url.searchParams.get("error");
+
+const errorMessages:
+	Record<string, string> = {
+	credentials:
+		"E-mail ou senha inválidos.",
+
+	forbidden:
+		"Esta conta não possui acesso administrativo.",
+
+	invalid:
+		"Preencha o e-mail e a senha.",
+
+	session:
+		"Sua sessão expirou. Entre novamente.",
+
+	service:
+		"Não foi possível acessar o serviço de autenticação.",
+};
+
+const errorMessage =
+	errorCode
+		? errorMessages[errorCode]
+		: undefined;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width"
+		/>
+
+		<meta
+			name="robots"
+			content="noindex, nofollow"
+		/>
+
+		<title>
+			Acesso administrativo — Noden
+		</title>
+	</head>
+
+	<body>
+		<main class="login">
+			<section class="login__card">
+				<a
+					class="login__brand"
+					href="/"
+				>
+					NODEN
+				</a>
+
+				<p class="login__eyebrow">
+					PAINEL ADMINISTRATIVO
+				</p>
+
+				<h1>
+					Acesso restrito
+				</h1>
+
+				<p class="login__description">
+					Entre com a conta administrativa
+					da Noden.
+				</p>
+
+				{
+					errorMessage && (
+						<p
+							class="login__error"
+							role="alert"
+						>
+							{errorMessage}
+						</p>
+					)
+				}
+
+				<form
+					method="post"
+					action="/api/admin/login"
+				>
+					<label>
+						<span>E-mail</span>
+
+						<input
+							type="email"
+							name="email"
+							autocomplete="email"
+							required
+						/>
+					</label>
+
+					<label>
+						<span>Senha</span>
+
+						<input
+							type="password"
+							name="password"
+							autocomplete="current-password"
+							required
+						/>
+					</label>
+
+					<button type="submit">
+						Entrar no painel
+					</button>
+				</form>
+
+				<a
+					class="login__back"
+					href="/"
+				>
+					Voltar ao site
+				</a>
+			</section>
+		</main>
+	</body>
+</html>
+
+<style>
+	:global(*) {
+		box-sizing: border-box;
+	}
+
+	:global(html) {
+		font-family:
+			Inter,
+			system-ui,
+			sans-serif;
+		background: #02060d;
+		color: #f5f8ff;
+	}
+
+	:global(body) {
+		margin: 0;
+	}
+
+	.login {
+		display: grid;
+		min-height: 100vh;
+		place-items: center;
+		padding: 24px;
+		background:
+			radial-gradient(
+				circle at 50% 0%,
+				rgba(35, 135, 255, 0.18),
+				transparent 38%
+			),
+			#02060d;
+	}
+
+	.login__card {
+		width: min(100%, 430px);
+		padding: 42px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.25);
+		border-radius: 24px;
+		background:
+			linear-gradient(
+				145deg,
+				rgba(15, 31, 56, 0.97),
+				rgba(4, 11, 21, 0.98)
+			);
+		box-shadow:
+			0 30px 80px
+			rgba(0, 0, 0, 0.42);
+	}
+
+	.login__brand {
+		color: #ffffff;
+		letter-spacing: 0.26em;
+		font-size: 1rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.login__eyebrow {
+		margin: 38px 0 12px;
+		color: #65a8ff;
+		letter-spacing: 0.18em;
+		font-size: 0.65rem;
+		font-weight: 700;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: 2.25rem;
+		font-weight: 500;
+		letter-spacing: -0.045em;
+	}
+
+	.login__description {
+		margin: 14px 0 0;
+		color: #94a4ba;
+		line-height: 1.65;
+	}
+
+	.login__error {
+		margin: 22px 0 0;
+		padding: 13px 14px;
+		border: 1px solid
+			rgba(255, 105, 105, 0.28);
+		border-radius: 11px;
+		background:
+			rgba(160, 32, 45, 0.15);
+		color: #ffb5ba;
+		font-size: 0.8rem;
+	}
+
+	form {
+		display: grid;
+		gap: 18px;
+		margin-top: 28px;
+	}
+
+	label {
+		display: grid;
+		gap: 8px;
+	}
+
+	label span {
+		color: #9eafc4;
+		font-size: 0.72rem;
+		font-weight: 600;
+	}
+
+	input {
+		width: 100%;
+		min-height: 48px;
+		padding: 0 14px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.3);
+		border-radius: 11px;
+		outline: none;
+		background: rgba(2, 8, 16, 0.78);
+		color: #ffffff;
+		font: inherit;
+	}
+
+	input:focus {
+		border-color: #428eff;
+		box-shadow:
+			0 0 0 3px
+			rgba(48, 132, 255, 0.12);
+	}
+
+	button {
+		min-height: 50px;
+		border: 1px solid
+			rgba(80, 151, 255, 0.58);
+		border-radius: 11px;
+		cursor: pointer;
+		background:
+			linear-gradient(
+				135deg,
+				#245fc7,
+				#347dff
+			);
+		color: #ffffff;
+		font: inherit;
+		font-size: 0.78rem;
+		font-weight: 700;
+	}
+
+	.login__back {
+		display: block;
+		margin-top: 24px;
+		color: #7588a2;
+		font-size: 0.72rem;
+		text-align: center;
+		text-decoration: none;
+	}
+
+	@media (max-width: 520px) {
+		.login {
+			padding: 14px;
+		}
+
+		.login__card {
+			padding: 32px 24px;
+		}
+	}
+</style>
