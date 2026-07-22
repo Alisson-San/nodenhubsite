@@ -1,0 +1,186 @@
+---
+import NodenMarkStatic from "../NodenMarkStatic-conectores-visiveis.astro";
+import { siteConfig } from "../../config/site";
+
+interface Props {
+	href?: string;
+	size?: "sm" | "md" | "lg";
+	showTagline?: boolean;
+	idPrefix?: string;
+	class?: string;
+}
+
+const {
+	href = "/",
+	size = "md",
+	showTagline = false,
+	idPrefix = "site-logo",
+	class: className = "",
+} = Astro.props;
+---
+
+{
+	href ? (
+		<a
+			class:list={["site-logo", className]}
+			data-size={size}
+			href={href}
+			aria-label={`${siteConfig.legalName} — página inicial`}
+		>
+			<span class="site-logo__wordmark" aria-hidden="true">
+				<span>N</span>
+
+				<span class="site-logo__mark">
+					<NodenMarkStatic
+						idPrefix={idPrefix}
+						decorative={true}
+					/>
+				</span>
+
+				<span>DEN</span>
+			</span>
+
+			{
+				showTagline && (
+					<span class="site-logo__tagline">
+						Technology Hub
+					</span>
+				)
+			}
+		</a>
+	) : (
+		<div
+			class:list={["site-logo", className]}
+			data-size={size}
+			aria-label={siteConfig.legalName}
+		>
+			<span class="site-logo__wordmark" aria-hidden="true">
+				<span>N</span>
+
+				<span class="site-logo__mark">
+					<NodenMarkStatic
+						idPrefix={idPrefix}
+						decorative={true}
+					/>
+				</span>
+
+				<span>DEN</span>
+			</span>
+
+			{
+				showTagline && (
+					<span class="site-logo__tagline">
+						Technology Hub
+					</span>
+				)
+			}
+		</div>
+	)
+}
+
+<style>
+	.site-logo {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.3rem;
+		width: fit-content;
+		color: #f7f9ff;
+		text-decoration: none;
+	}
+
+	.site-logo__wordmark {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.16em;
+		font-family: "Inter", sans-serif;
+		font-weight: 600;
+		letter-spacing: 0.15em;
+		line-height: 1;
+	}
+
+	.site-logo__mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transform: translateY(0.03em);
+    }
+
+	.site-logo__mark :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.site-logo__tagline {
+		color: #7286a3;
+		font-family: "Inter", sans-serif;
+		font-weight: 500;
+		letter-spacing: 0.23em;
+		line-height: 1;
+		text-transform: uppercase;
+	}
+
+	.site-logo[data-size="sm"] .site-logo__wordmark {
+		font-size: 0.72rem;
+	}
+
+    .site-logo[data-size="sm"] .site-logo__mark {
+        width: 23px;
+        height: 23px;
+    }
+
+	.site-logo[data-size="sm"] .site-logo__tagline {
+		font-size: 0.36rem;
+	}
+
+	.site-logo[data-size="md"] .site-logo__wordmark {
+		font-size: 0.88rem;
+	}
+
+	.site-logo[data-size="md"] .site-logo__mark {
+        width: 31px;
+        height: 31px;
+    }
+
+	.site-logo[data-size="md"] .site-logo__tagline {
+		font-size: 0.43rem;
+	}
+
+	.site-logo[data-size="lg"] .site-logo__wordmark {
+		font-size: 1.15rem;
+	}
+
+	.site-logo[data-size="lg"] .site-logo__mark {
+        width: 43px;
+        height: 43px;
+    }
+
+	.site-logo[data-size="lg"] .site-logo__tagline {
+		font-size: 0.52rem;
+	}
+
+	.site-logo[href] {
+		transition:
+			opacity 180ms ease,
+			transform 180ms ease;
+	}
+
+	.site-logo[href]:hover {
+		opacity: 0.88;
+		transform: translateY(-1px);
+	}
+
+	.site-logo[href]:focus-visible {
+		border-radius: 8px;
+		outline: 2px solid rgba(70, 147, 255, 0.75);
+		outline-offset: 6px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.site-logo[href] {
+			transition: none;
+		}
+	}
+</style>
