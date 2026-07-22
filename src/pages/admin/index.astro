@@ -1,183 +1,94 @@
 ---
 export const prerender = false;
 
-const user = Astro.locals.user;
+import AdminLayout
+	from "../../layouts/AdminLayout.astro";
 ---
 
-<!doctype html>
-<html lang="pt-BR">
-	<head>
-		<meta charset="UTF-8" />
-		<meta
-			name="viewport"
-			content="width=device-width"
-		/>
+<AdminLayout
+	title="Visão geral"
+	description="Gerencie o conteúdo e as configurações públicas da Noden."
+>
+	<section class="grid">
+		<a
+			class="card"
+			href="/admin/pages"
+		>
+			<span>Conteúdo</span>
 
-		<meta
-			name="robots"
-			content="noindex, nofollow"
-		/>
+			<h2>Páginas de serviço</h2>
 
-		<title>
-			Painel administrativo — Noden
-		</title>
-	</head>
-
-	<body>
-		<header>
-			<a href="/">NODEN</a>
-
-			<form
-				method="post"
-				action="/api/admin/logout"
-			>
-				<button type="submit">
-					Sair
-				</button>
-			</form>
-		</header>
-
-		<main>
-			<p class="eyebrow">
-				PAINEL ADMINISTRATIVO
+			<p>
+				Editar textos e publicação das páginas
+				Home, Game e Data.
 			</p>
 
-			<h1>Visão geral</h1>
+			<strong>Abrir páginas →</strong>
+		</a>
 
-			<p class="welcome">
-				Conectado como
-				<strong>{user?.email}</strong>
+		<article class="card disabled">
+			<span>Catálogo</span>
+
+			<h2>Serviços e preços</h2>
+
+			<p>
+				Organizar serviços, valores, ordem
+				e destaques.
 			</p>
 
-			<section class="grid">
-				<article>
-					<span>Conteúdo</span>
-					<h2>Páginas de serviço</h2>
-					<p>
-						Editar Home, Game e Data.
-					</p>
-				</article>
+			<strong>Próxima etapa</strong>
+		</article>
 
-				<article>
-					<span>Catálogo</span>
-					<h2>Serviços e preços</h2>
-					<p>
-						Organizar serviços, valores
-						e destaques.
-					</p>
-				</article>
+		<article class="card disabled">
+			<span>Sistema</span>
 
-				<article>
-					<span>Sistema</span>
-					<h2>Configurações</h2>
-					<p>
-						Contatos, regiões atendidas
-						e redes sociais.
-					</p>
-				</article>
-			</section>
-		</main>
-	</body>
-</html>
+			<h2>Configurações</h2>
+
+			<p>
+				Contatos, regiões atendidas
+				e redes sociais.
+			</p>
+
+			<strong>Próxima etapa</strong>
+		</article>
+	</section>
+</AdminLayout>
 
 <style>
-	:global(*) {
-		box-sizing: border-box;
-	}
-
-	:global(html) {
-		font-family:
-			Inter,
-			system-ui,
-			sans-serif;
-		background: #03070d;
-		color: #ffffff;
-	}
-
-	:global(body) {
-		margin: 0;
-	}
-
-	header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		min-height: 72px;
-		padding: 0 max(24px, calc((100% - 1120px) / 2));
-		border-bottom: 1px solid
-			rgba(105, 145, 205, 0.18);
-		background: rgba(3, 8, 16, 0.92);
-	}
-
-	header a {
-		color: #ffffff;
-		letter-spacing: 0.24em;
-		font-weight: 700;
-		text-decoration: none;
-	}
-
-	header button {
-		padding: 9px 14px;
-		border: 1px solid
-			rgba(105, 145, 205, 0.3);
-		border-radius: 9px;
-		cursor: pointer;
-		background: rgba(42, 93, 168, 0.14);
-		color: #d9e7ff;
-	}
-
-	main {
-		width: min(100% - 40px, 1120px);
-		margin: 0 auto;
-		padding: 76px 0;
-	}
-
-	.eyebrow {
-		color: #5ca2ff;
-		letter-spacing: 0.2em;
-		font-size: 0.65rem;
-		font-weight: 700;
-	}
-
-	h1 {
-		margin: 14px 0 0;
-		font-size: clamp(2.5rem, 7vw, 5rem);
-		font-weight: 400;
-		letter-spacing: -0.06em;
-	}
-
-	.welcome {
-		margin: 18px 0 0;
-		color: #8799b1;
-	}
-
-	.welcome strong {
-		color: #c9d8ec;
-	}
-
 	.grid {
 		display: grid;
 		grid-template-columns:
 			repeat(3, minmax(0, 1fr));
 		gap: 18px;
-		margin-top: 54px;
 	}
 
-	article {
-		min-height: 220px;
+	.card {
+		display: flex;
+		min-height: 245px;
 		padding: 28px;
 		border: 1px solid
 			rgba(105, 145, 205, 0.2);
 		border-radius: 20px;
+		flex-direction: column;
 		background:
 			linear-gradient(
 				145deg,
 				rgba(15, 31, 56, 0.76),
 				rgba(4, 11, 21, 0.9)
 			);
+		text-decoration: none;
+		transition:
+			transform 180ms ease,
+			border-color 180ms ease;
 	}
 
-	article span {
+	a.card:hover {
+		border-color:
+			rgba(75, 145, 255, 0.52);
+		transform: translateY(-3px);
+	}
+
+	.card span {
 		color: #619fea;
 		letter-spacing: 0.14em;
 		font-size: 0.61rem;
@@ -185,18 +96,29 @@ const user = Astro.locals.user;
 		text-transform: uppercase;
 	}
 
-	article h2 {
-		margin: 36px 0 0;
+	.card h2 {
+		margin: 38px 0 0;
 		font-size: 1.45rem;
 		font-weight: 500;
 	}
 
-	article p {
+	.card p {
+		margin-bottom: 24px;
 		color: #899bb3;
 		line-height: 1.6;
 	}
 
-	@media (max-width: 800px) {
+	.card strong {
+		margin-top: auto;
+		color: #7cb3ff;
+		font-size: 0.72rem;
+	}
+
+	.disabled {
+		opacity: 0.58;
+	}
+
+	@media (max-width: 850px) {
 		.grid {
 			grid-template-columns: 1fr;
 		}

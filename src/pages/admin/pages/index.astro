@@ -1,0 +1,222 @@
+---
+export const prerender = false;
+
+import AdminLayout
+	from "../../../layouts/AdminLayout.astro";
+
+import {
+	createSupabaseRequestClient,
+} from "../../../lib/supabase/request";
+
+import {
+	divisionLabels,
+	serviceDivisions,
+} from "../../../lib/admin/divisions";
+
+const supabase =
+	createSupabaseRequestClient({
+		request: Astro.request,
+		cookies: Astro.cookies,
+	});
+
+const {
+	data,
+	error,
+} = await supabase
+	.from("service_pages")
+	.select(`
+		division,
+		hero_title,
+		seo_title,
+		is_published,
+		updated_at
+	`);
+
+if (error) {
+	console.error(
+		"[Noden Admin] Falha ao carregar páginas.",
+		error,
+	);
+}
+
+const pages = [...(data ?? [])]
+	.sort(
+		(a, b) =>
+			serviceDivisions.indexOf(
+				a.division,
+			) -
+			serviceDivisions.indexOf(
+				b.division,
+			),
+	);
+
+const formatDate =
+	new Intl.DateTimeFormat(
+		"pt-BR",
+		{
+			dateStyle: "short",
+			timeStyle: "short",
+		},
+	);
+---
+
+<AdminLayout
+	title="Páginas de serviço"
+	description="Edite o conteúdo público das divisões da Noden."
+>
+	{
+		error ? (
+			<p class="message error">
+				Não foi possível carregar as páginas.
+			</p>
+		) : (
+			<section class="pages">
+				{
+					pages.map((page) => (
+						<a
+							class="page-card"
+							href={`/admin/pages/${page.division}`}
+						>
+							<div class="page-card__top">
+								<span>
+									{divisionLabels[page.division]}
+								</span>
+
+								<strong
+									class:list={[
+										"status",
+										{
+											published:
+												page.is_published,
+										},
+									]}
+								>
+									{
+										page.is_published
+											? "Publicado"
+											: "Rascunho"
+									}
+								</strong>
+							</div>
+
+							<h2>{page.hero_title}</h2>
+
+							<p>{page.seo_title}</p>
+
+							<small>
+								Atualizado em{" "}
+								{
+									formatDate.format(
+										new Date(
+											page.updated_at,
+										),
+									)
+								}
+							</small>
+						</a>
+					))
+				}
+			</section>
+		)
+	}
+</AdminLayout>
+
+<style>
+	.pages {
+		display: grid;
+		grid-template-columns:
+			repeat(3, minmax(0, 1fr));
+		gap: 18px;
+	}
+
+	.page-card {
+		display: flex;
+		min-height: 270px;
+		padding: 26px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.2);
+		border-radius: 19px;
+		flex-direction: column;
+		background:
+			linear-gradient(
+				145deg,
+				rgba(15, 31, 56, 0.77),
+				rgba(4, 11, 21, 0.93)
+			);
+		text-decoration: none;
+		transition:
+			transform 180ms ease,
+			border-color 180ms ease;
+	}
+
+	.page-card:hover {
+		border-color:
+			rgba(67, 142, 255, 0.55);
+		transform: translateY(-3px);
+	}
+
+	.page-card__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	.page-card__top > span {
+		color: #70aaff;
+		letter-spacing: 0.13em;
+		font-size: 0.62rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.status {
+		padding: 5px 8px;
+		border: 1px solid
+			rgba(255, 180, 75, 0.25);
+		border-radius: 99px;
+		color: #ffc474;
+		font-size: 0.58rem;
+	}
+
+	.status.published {
+		border-color:
+			rgba(80, 220, 155, 0.25);
+		color: #75e2ae;
+	}
+
+	h2 {
+		margin: 44px 0 0;
+		font-size: 1.45rem;
+		font-weight: 500;
+	}
+
+	.page-card p {
+		color: #8799b1;
+		line-height: 1.55;
+	}
+
+	small {
+		margin-top: auto;
+		color: #64768e;
+		font-size: 0.65rem;
+	}
+
+	.message {
+		padding: 18px;
+		border-radius: 12px;
+	}
+
+	.error {
+		border: 1px solid
+			rgba(255, 100, 100, 0.25);
+		background: rgba(160, 30, 40, 0.13);
+		color: #ffb1b6;
+	}
+
+	@media (max-width: 850px) {
+		.pages {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

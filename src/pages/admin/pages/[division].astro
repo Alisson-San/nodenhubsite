@@ -1,0 +1,435 @@
+---
+export const prerender = false;
+
+import type {
+	Json,
+} from "../../../types/database.types";
+
+import AdminLayout
+	from "../../../layouts/AdminLayout.astro";
+
+import {
+	createSupabaseRequestClient,
+} from "../../../lib/supabase/request";
+
+import {
+	divisionLabels,
+	isServiceDivision,
+} from "../../../lib/admin/divisions";
+
+const requestedDivision =
+	Astro.params.division;
+
+if (
+	!isServiceDivision(
+		requestedDivision,
+	)
+) {
+	return Astro.redirect(
+		"/admin/pages?error=division",
+		303,
+	);
+}
+
+const division =
+	requestedDivision;
+
+const supabase =
+	createSupabaseRequestClient({
+		request: Astro.request,
+		cookies: Astro.cookies,
+	});
+
+const {
+	data: page,
+	error,
+} = await supabase
+	.from("service_pages")
+	.select("*")
+	.eq("division", division)
+	.single();
+
+if (
+	error ||
+	!page
+) {
+	console.error(
+		"[Noden Admin] Falha ao carregar página.",
+		error,
+	);
+
+	return Astro.redirect(
+		"/admin/pages?error=load",
+		303,
+	);
+}
+
+function jsonArrayToLines(
+	value: Json,
+): string {
+	if (!Array.isArray(value)) {
+		return "";
+	}
+
+	return value
+		.filter(
+			(item): item is string =>
+				typeof item === "string",
+		)
+		.join("\n");
+}
+
+const saved =
+	Astro.url.searchParams.get("saved") ===
+	"1";
+
+const errorCode =
+	Astro.url.searchParams.get("error");
+
+const errorMessages:
+	Record<string, string> = {
+	validation:
+		"Revise os campos obrigatórios.",
+
+	origin:
+		"A origem da solicitação não foi aceita.",
+
+	save:
+		"Não foi possível salvar as alterações.",
+};
+---
+
+<AdminLayout
+	title={divisionLabels[division]}
+	description="Edite as informações principais exibidas na página."
+>
+	<Fragment slot="actions">
+		<a
+			class="preview"
+			href={`/${division}`}
+			target="_blank"
+			rel="noreferrer"
+		>
+			Visualizar página ↗
+		</a>
+	</Fragment>
+
+	{
+		saved && (
+			<p
+				class="message success"
+				role="status"
+			>
+				Alterações salvas com sucesso.
+			</p>
+		)
+	}
+
+	{
+		errorCode && (
+			<p
+				class="message error"
+				role="alert"
+			>
+				{
+					errorMessages[errorCode] ??
+						"Não foi possível concluir a operação."
+				}
+			</p>
+		)
+	}
+
+	<form
+		method="post"
+		action={`/api/admin/pages/${division}`}
+	>
+		<section class="panel">
+			<header>
+				<div>
+					<span>Publicação</span>
+					<h2>Status da página</h2>
+				</div>
+
+				<label class="toggle">
+					<input
+						type="checkbox"
+						name="is_published"
+						value="true"
+						checked={page.is_published}
+					/>
+
+					<span>Publicada</span>
+				</label>
+			</header>
+		</section>
+
+		<section class="panel">
+			<header>
+				<div>
+					<span>SEO</span>
+					<h2>Mecanismos de busca</h2>
+				</div>
+			</header>
+
+			<div class="fields">
+				<label class="full">
+					<span>Título SEO</span>
+
+					<input
+						type="text"
+						name="seo_title"
+						value={page.seo_title}
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Descrição SEO</span>
+
+					<textarea
+						name="seo_description"
+						rows="4"
+						required
+					>{page.seo_description}</textarea>
+				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header>
+				<div>
+					<span>Hero</span>
+					<h2>Apresentação principal</h2>
+				</div>
+			</header>
+
+			<div class="fields">
+				<label>
+					<span>Texto superior</span>
+
+					<input
+						type="text"
+						name="hero_eyebrow"
+						value={page.hero_eyebrow}
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Título principal</span>
+
+					<input
+						type="text"
+						name="hero_title"
+						value={page.hero_title}
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Descrição</span>
+
+					<textarea
+						name="hero_description"
+						rows="5"
+						required
+					>{page.hero_description}</textarea>
+				</label>
+
+				<label class="full">
+					<span>
+						Destaques — um por linha
+					</span>
+
+					<textarea
+						name="hero_highlights"
+						rows="6"
+					>{jsonArrayToLines(
+						page.hero_highlights,
+					)}</textarea>
+				</label>
+			</div>
+		</section>
+
+		<footer class="form-footer">
+			<a href="/admin/pages">
+				Cancelar
+			</a>
+
+			<button type="submit">
+				Salvar alterações
+			</button>
+		</footer>
+	</form>
+</AdminLayout>
+
+<style>
+	.preview {
+		display: inline-flex;
+		padding: 11px 15px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.3);
+		border-radius: 10px;
+		background: rgba(41, 101, 190, 0.12);
+		color: #b9d4fa;
+		font-size: 0.72rem;
+		text-decoration: none;
+	}
+
+	.message {
+		margin: 0 0 20px;
+		padding: 15px 17px;
+		border-radius: 11px;
+		font-size: 0.78rem;
+	}
+
+	.success {
+		border: 1px solid
+			rgba(75, 220, 145, 0.25);
+		background: rgba(35, 150, 100, 0.12);
+		color: #8be2b6;
+	}
+
+	.error {
+		border: 1px solid
+			rgba(255, 100, 100, 0.25);
+		background: rgba(160, 30, 40, 0.13);
+		color: #ffb1b6;
+	}
+
+	form {
+		display: grid;
+		gap: 20px;
+	}
+
+	.panel {
+		padding: 28px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.2);
+		border-radius: 18px;
+		background: rgba(7, 17, 31, 0.82);
+	}
+
+	.panel > header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 24px;
+		margin-bottom: 26px;
+	}
+
+	.panel header span {
+		color: #619fea;
+		letter-spacing: 0.14em;
+		font-size: 0.61rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	h2 {
+		margin: 7px 0 0;
+		font-size: 1.25rem;
+		font-weight: 500;
+	}
+
+	.fields {
+		display: grid;
+		grid-template-columns:
+			repeat(2, minmax(0, 1fr));
+		gap: 18px;
+	}
+
+	label {
+		display: grid;
+		gap: 8px;
+	}
+
+	label > span {
+		color: #99abc1;
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+
+	.full {
+		grid-column: 1 / -1;
+	}
+
+	input[type="text"],
+	textarea {
+		width: 100%;
+		padding: 13px 14px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 10px;
+		outline: none;
+		background: rgba(2, 8, 16, 0.72);
+		color: #f7faff;
+		font: inherit;
+		line-height: 1.5;
+	}
+
+	input:focus,
+	textarea:focus {
+		border-color: #428eff;
+		box-shadow:
+			0 0 0 3px
+			rgba(48, 132, 255, 0.12);
+	}
+
+	.toggle {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+	}
+
+	.toggle input {
+		width: 18px;
+		height: 18px;
+		accent-color: #347dff;
+	}
+
+	.form-footer {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 14px;
+		padding-top: 8px;
+	}
+
+	.form-footer a {
+		padding: 12px 16px;
+		color: #8497af;
+		font-size: 0.75rem;
+		text-decoration: none;
+	}
+
+	.form-footer button {
+		padding: 13px 20px;
+		border: 1px solid
+			rgba(80, 151, 255, 0.58);
+		border-radius: 10px;
+		cursor: pointer;
+		background:
+			linear-gradient(
+				135deg,
+				#245fc7,
+				#347dff
+			);
+		color: white;
+		font-weight: 700;
+	}
+
+	@media (max-width: 700px) {
+		.fields {
+			grid-template-columns: 1fr;
+		}
+
+		.full {
+			grid-column: auto;
+		}
+
+		.panel {
+			padding: 22px 18px;
+		}
+	}
+</style>
