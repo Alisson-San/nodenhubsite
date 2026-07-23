@@ -5,12 +5,33 @@ import type {
 } from "../../types/database.types";
 
 import {
+	catalogItemKindOptions,
 	priceTypeOptions,
 } from "../../lib/admin/pricing";
 
+import {
+	getCatalogIconSymbol,
+} from "../../lib/admin/catalogTaxonomy";
+
+type PricingRow =
+	Tables<"pricing_items">;
+
+type CategoryRow =
+	Tables<"catalog_categories">;
+
+type TierRow =
+	Tables<"catalog_tiers">;
+
+type BadgeRow =
+	Tables<"catalog_badges">;
+
 interface Props {
 	action: string;
-	item?: Tables<"pricing_items">;
+	item?: PricingRow;
+	categories?: CategoryRow[];
+	tiers?: TierRow[];
+	badges?: BadgeRow[];
+	selectedBadgeIds?: string[];
 	defaultSortOrder?: number;
 	submitLabel: string;
 }
@@ -18,6 +39,10 @@ interface Props {
 const {
 	action,
 	item,
+	categories = [],
+	tiers = [],
+	badges = [],
+	selectedBadgeIds = [],
 	defaultSortOrder = 0,
 	submitLabel,
 } = Astro.props;
@@ -49,14 +74,24 @@ function formatPriceInput(
 		.replace(".", ",");
 }
 
-const currentType =
+const currentPriceType =
 	item?.price_type ?? "fixed";
+
+const currentItemKind =
+	item?.item_kind ?? "service";
+
+const currentCategoryId =
+	item?.category_id ?? "";
+
+const currentTierId =
+	item?.tier_id ?? "";
 ---
 
 <form
 	method="post"
 	action={action}
 	class="pricing-form"
+	data-pricing-form
 >
 	{
 		item && (
@@ -70,337 +105,325 @@ const currentType =
 
 	<div class="fields">
 		<label class="full">
-			<span>Nome do preço ou pacote</span>
-
+			<span>Nome do item</span>
 			<input
 				type="text"
 				name="name"
 				value={item?.name ?? ""}
 				placeholder="Formatação completa"
+				maxlength="140"
 				required
 			/>
 		</label>
 
 		<label class="full">
 			<span>Descrição</span>
-
 			<textarea
 				name="description"
 				rows="4"
+				maxlength="1200"
 				required
 			>{item?.description ?? ""}</textarea>
 		</label>
 
-		<label>
-			<span>Tipo de preço</span>
+		<section class="form-group full">
+			<header>
+				<span>Classificação</span>
+				<small>Usada nos filtros e na apresentação pública.</small>
+			</header>
 
-			<select name="price_type" required>
-				{
-					priceTypeOptions.map(
-						(option) => (
-							<option
-								value={option.value}
-								selected={
-									currentType ===
-										option.value
-								}
-							>
-								{option.label}
-							</option>
-						),
-					)
-				}
-			</select>
-		</label>
+			<div class="group-grid">
+				<label>
+					<span>Tipo do item</span>
+					<select name="item_kind" required>
+						{
+							catalogItemKindOptions.map(
+								(option) => (
+									<option
+										value={option.value}
+										selected={currentItemKind === option.value}
+									>
+										{option.label}
+									</option>
+								),
+							)
+						}
+					</select>
+				</label>
 
-		<label>
-			<span>Valor em reais</span>
+				<label>
+					<span>Categoria</span>
+					<select name="category_id">
+						<option value="">Sem categoria</option>
+						{
+							categories.map((category) => {
+								const selected = category.id === currentCategoryId;
+								return (
+									<option
+										value={category.id}
+										selected={selected}
+										disabled={!category.is_active && !selected}
+									>
+										{getCatalogIconSymbol(category.icon_key)}{" "}
+										{category.name}
+										{!category.is_active ? " — inativa" : ""}
+									</option>
+								);
+							})
+						}
+					</select>
+					<small>Apenas categorias desta divisão aparecem aqui.</small>
+				</label>
 
-			<input
-				type="text"
-				name="price"
-				inputmode="decimal"
-				value={formatPriceInput(
-					item?.price,
-				)}
-				placeholder="99,90"
-			/>
+				<label>
+					<span>Nível</span>
+					<select name="tier_id">
+						<option value="">Sem nível</option>
+						{
+							tiers.map((tier) => {
+								const selected = tier.id === currentTierId;
+								return (
+									<option
+										value={tier.id}
+										selected={selected}
+										disabled={!tier.is_active && !selected}
+									>
+										{tier.name}
+										{!tier.is_active ? " — inativo" : ""}
+									</option>
+								);
+							})
+						}
+					</select>
+				</label>
+			</div>
+		</section>
 
-			<small>
-				Obrigatório para preço fixo
-				e “a partir de”.
-			</small>
-		</label>
+		<section class="form-group full">
+			<header>
+				<span>Preço</span>
+				<small>O preço anterior aparece riscado quando for maior que o atual.</small>
+			</header>
 
-		<label>
-			<span>Prefixo opcional</span>
+			<div class="group-grid price-grid">
+				<label>
+					<span>Tipo de preço</span>
+					<select name="price_type" required data-price-type>
+						{
+							priceTypeOptions.map(
+								(option) => (
+									<option
+										value={option.value}
+										selected={currentPriceType === option.value}
+									>
+										{option.label}
+									</option>
+								),
+							)
+						}
+					</select>
+				</label>
 
-			<input
-				type="text"
-				name="price_prefix"
-				value={
-					item?.price_prefix ?? ""
-				}
-				placeholder="A partir de"
-			/>
-		</label>
+				<label>
+					<span>Preço atual</span>
+					<input
+						type="text"
+						name="price"
+						inputmode="decimal"
+						value={formatPriceInput(item?.price)}
+						placeholder="99,90"
+						data-current-price
+					/>
+					<small>Obrigatório para preço fixo e “a partir de”.</small>
+				</label>
 
-		<label>
-			<span>Texto substituto do preço</span>
+				<label>
+					<span>Preço anterior</span>
+					<input
+						type="text"
+						name="compare_at_price"
+						inputmode="decimal"
+						value={formatPriceInput(item?.compare_at_price)}
+						placeholder="129,90"
+						data-compare-price
+					/>
+					<small>Deixe vazio quando não houver promoção.</small>
+				</label>
 
-			<input
-				type="text"
-				name="price_label"
-				value={
-					item?.price_label ?? ""
-				}
-				placeholder="Sob consulta"
-			/>
-		</label>
+				<label>
+					<span>Prefixo opcional</span>
+					<input type="text" name="price_prefix" value={item?.price_prefix ?? ""} placeholder="A partir de" />
+				</label>
 
-		<label>
-			<span>Sufixo opcional</span>
+				<label>
+					<span>Texto substituto</span>
+					<input type="text" name="price_label" value={item?.price_label ?? ""} placeholder="Sob consulta" />
+				</label>
 
-			<input
-				type="text"
-				name="price_suffix"
-				value={
-					item?.price_suffix ?? ""
-				}
-				placeholder="/ mês"
-			/>
-		</label>
+				<label>
+					<span>Sufixo opcional</span>
+					<input type="text" name="price_suffix" value={item?.price_suffix ?? ""} placeholder="/ mês" />
+				</label>
+			</div>
+		</section>
 
-		<label>
-			<span>Selo opcional</span>
-
-			<input
-				type="text"
-				name="badge"
-				value={item?.badge ?? ""}
-				placeholder="Mais escolhido"
-			/>
-		</label>
+		<fieldset class="badges-field full">
+			<legend>Selos comerciais</legend>
+			<p>Selecione quantos forem necessários. No catálogo público, exibiremos no máximo três por card.</p>
+			{
+				badges.length === 0 ? (
+					<div class="empty-badges">
+						Nenhum selo cadastrado. Crie selos em{" "}
+						<a href="/admin/catalog/taxonomy#badges">Estrutura do catálogo</a>.
+					</div>
+				) : (
+					<div class="badge-options">
+						{
+							badges.map((badge) => {
+								const selected = selectedBadgeIds.includes(badge.id);
+								return (
+									<label
+										class:list={["badge-option", { inactive: !badge.is_active }]}
+										style={`--badge-text:${badge.text_color};--badge-background:${badge.background_color};--badge-border:${badge.border_color};`}
+									>
+										<input
+											type="checkbox"
+											name="badge_ids"
+											value={badge.id}
+											checked={selected}
+											disabled={!badge.is_active && !selected}
+										/>
+										<span class="badge-preview">
+											<i>{getCatalogIconSymbol(badge.icon_key)}</i>
+											<strong>{badge.name}</strong>
+										</span>
+										{!badge.is_active && <small>Inativo</small>}
+									</label>
+								);
+							})
+						}
+					</div>
+				)
+			}
+		</fieldset>
 
 		<label class="full">
-			<span>
-				Recursos inclusos — um por linha
-			</span>
-
-			<textarea
-				name="features"
-				rows="6"
-			>{jsonArrayToLines(
-				item?.features,
-			)}</textarea>
+			<span>Recursos inclusos — um por linha</span>
+			<textarea name="features" rows="6">{jsonArrayToLines(item?.features)}</textarea>
 		</label>
 
 		<label class="full">
 			<span>Observação opcional</span>
-
-			<textarea
-				name="note"
-				rows="3"
-			>{item?.note ?? ""}</textarea>
+			<textarea name="note" rows="3">{item?.note ?? ""}</textarea>
 		</label>
 
 		<label>
 			<span>Texto do botão</span>
-
-			<input
-				type="text"
-				name="cta_label"
-				value={
-					item?.cta_label ?? ""
-				}
-				placeholder="Solicitar orçamento"
-			/>
+			<input type="text" name="cta_label" value={item?.cta_label ?? ""} placeholder="Solicitar orçamento" />
 		</label>
 
 		<label>
 			<span>Mensagem do WhatsApp</span>
-
-			<input
-				type="text"
-				name="cta_message"
-				value={
-					item?.cta_message ?? ""
-				}
-				placeholder="Olá! Quero saber mais..."
-			/>
+			<input type="text" name="cta_message" value={item?.cta_message ?? ""} placeholder="Olá! Quero saber mais..." />
 		</label>
 
 		<label>
 			<span>Ordem</span>
-
-			<input
-				type="number"
-				name="sort_order"
-				min="0"
-				step="1"
-				value={
-					item?.sort_order ??
-						defaultSortOrder
-				}
-				required
-			/>
+			<input type="number" name="sort_order" min="0" step="1" value={item?.sort_order ?? defaultSortOrder} required />
 		</label>
 
 		<div class="checkbox-group">
 			<label class="checkbox">
-				<input
-					type="checkbox"
-					name="is_featured"
-					value="true"
-					checked={
-						item?.is_featured ??
-							false
-					}
-				/>
-
-				<span>Destacar este pacote</span>
+				<input type="checkbox" name="is_featured" value="true" checked={item?.is_featured ?? false} />
+				<span>Destacar este item</span>
 			</label>
-
 			<label class="checkbox">
-				<input
-					type="checkbox"
-					name="is_active"
-					value="true"
-					checked={
-						item?.is_active ??
-							true
-					}
-				/>
-
+				<input type="checkbox" name="is_active" value="true" checked={item?.is_active ?? true} />
 				<span>Exibir no site</span>
 			</label>
 		</div>
 	</div>
 
 	<footer class="form-footer">
-		<button type="submit">
-			{submitLabel}
-		</button>
+		<button type="submit">{submitLabel}</button>
 	</footer>
 </form>
 
+<script>
+	const parsePrice = (value: string): number | null => {
+		const cleaned = value.replace(/R\$/gi, "").replace(/\s/g, "");
+		if (!cleaned) return null;
+		const normalized = cleaned.includes(",")
+			? cleaned.replace(/\./g, "").replace(",", ".")
+			: cleaned;
+		const parsed = Number(normalized);
+		return Number.isFinite(parsed) ? parsed : null;
+	};
+
+	document.querySelectorAll<HTMLFormElement>("[data-pricing-form]").forEach((form) => {
+		const priceType = form.querySelector<HTMLSelectElement>("[data-price-type]");
+		const currentPrice = form.querySelector<HTMLInputElement>("[data-current-price]");
+		const comparePrice = form.querySelector<HTMLInputElement>("[data-compare-price]");
+
+		const updatePriceState = () => {
+			const requiresValue = priceType?.value === "fixed" || priceType?.value === "starting_at";
+			if (currentPrice) {
+				currentPrice.required = requiresValue;
+				currentPrice.disabled = !requiresValue;
+			}
+			if (comparePrice) comparePrice.disabled = !requiresValue;
+		};
+
+		priceType?.addEventListener("change", updatePriceState);
+		updatePriceState();
+
+		form.addEventListener("submit", (event) => {
+			if (!currentPrice || !comparePrice || comparePrice.disabled || !comparePrice.value.trim()) return;
+			const current = parsePrice(currentPrice.value);
+			const previous = parsePrice(comparePrice.value);
+			if (current === null || previous === null || previous <= current) {
+				event.preventDefault();
+				comparePrice.setCustomValidity("O preço anterior precisa ser maior que o preço atual.");
+				comparePrice.reportValidity();
+			}
+		});
+
+		comparePrice?.addEventListener("input", () => comparePrice.setCustomValidity(""));
+	});
+</script>
+
 <style>
-	.pricing-form {
-		margin: 0;
-	}
-
-	.fields {
-		display: grid;
-		grid-template-columns:
-			repeat(2, minmax(0, 1fr));
-		gap: 18px;
-	}
-
-	label {
-		display: grid;
-		gap: 8px;
-	}
-
-	label > span {
-		color: #99abc1;
-		font-size: 0.7rem;
-		font-weight: 600;
-	}
-
-	label small {
-		color: #657991;
-		font-size: 0.62rem;
-		line-height: 1.5;
-	}
-
-	.full {
-		grid-column: 1 / -1;
-	}
-
-	input[type="text"],
-	input[type="number"],
-	select,
-	textarea {
-		width: 100%;
-		padding: 13px 14px;
-		border: 1px solid
-			rgba(105, 145, 205, 0.28);
-		border-radius: 10px;
-		outline: none;
-		background: rgba(2, 8, 16, 0.72);
-		color: #f7faff;
-		font: inherit;
-		line-height: 1.5;
-	}
-
-	select option {
-		background: #07111f;
-		color: #f7faff;
-	}
-
-	input:focus,
-	select:focus,
-	textarea:focus {
-		border-color: #428eff;
-		box-shadow:
-			0 0 0 3px
-			rgba(48, 132, 255, 0.12);
-	}
-
-	.checkbox-group {
-		display: flex;
-		align-items: center;
-		align-self: end;
-		gap: 20px;
-		min-height: 48px;
-	}
-
-	.checkbox {
-		display: flex;
-		align-items: center;
-		gap: 9px;
-	}
-
-	.checkbox input {
-		width: 18px;
-		height: 18px;
-		accent-color: #347dff;
-	}
-
-	.form-footer {
-		display: flex;
-		justify-content: flex-end;
-		margin-top: 22px;
-	}
-
-	.form-footer button {
-		padding: 13px 20px;
-		border: 1px solid
-			rgba(80, 151, 255, 0.58);
-		border-radius: 10px;
-		cursor: pointer;
-		background:
-			linear-gradient(
-				135deg,
-				#245fc7,
-				#347dff
-			);
-		color: white;
-		font-weight: 700;
-	}
-
-	@media (max-width: 700px) {
-		.fields {
-			grid-template-columns: 1fr;
-		}
-
-		.full {
-			grid-column: auto;
-		}
-
-		.checkbox-group {
-			align-items: start;
-			flex-direction: column;
-		}
-	}
+	.pricing-form { margin: 0; }
+	.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+	label { display: grid; align-content: start; gap: 8px; }
+	label > span, .form-group header > span, .badges-field legend { color: #99abc1; font-size: 0.7rem; font-weight: 600; }
+	label small, .form-group header small, .badges-field > p { color: #657991; font-size: 0.62rem; line-height: 1.5; }
+	.full { grid-column: 1 / -1; }
+	.form-group { display: grid; gap: 15px; padding: 18px; border: 1px solid rgba(105,145,205,.18); border-radius: 13px; background: rgba(2,8,16,.26); }
+	.form-group header { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; }
+	.group-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+	input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 13px 14px; border: 1px solid rgba(105,145,205,.28); border-radius: 10px; outline: none; background: rgba(2,8,16,.72); color: #f7faff; font: inherit; line-height: 1.5; }
+	input:disabled, select:disabled { cursor: not-allowed; opacity: .48; }
+	select option { background: #07111f; color: #f7faff; }
+	input:focus, select:focus, textarea:focus { border-color: #428eff; box-shadow: 0 0 0 3px rgba(48,132,255,.12); }
+	.badges-field { min-width: 0; margin: 0; padding: 18px; border: 1px solid rgba(105,145,205,.18); border-radius: 13px; background: rgba(2,8,16,.26); }
+	.badges-field legend { padding: 0 8px; }
+	.badges-field > p { margin: 0 0 14px; }
+	.badge-options { display: flex; flex-wrap: wrap; gap: 10px; }
+	.badge-option { display: inline-flex; align-items: center; gap: 8px; padding: 7px 9px; border: 1px solid rgba(105,145,205,.18); border-radius: 11px; cursor: pointer; background: rgba(5,13,24,.55); }
+	.badge-option.inactive { opacity: .65; }
+	.badge-option input { width: 17px; height: 17px; margin: 0; accent-color: #347dff; }
+	.badge-preview { display: inline-flex; min-height: 29px; padding: 4px 8px; align-items: center; gap: 5px; border: 1px solid var(--badge-border); border-radius: 999px; background: var(--badge-background); color: var(--badge-text); }
+	.badge-preview i { font-style: normal; }
+	.badge-preview strong { font-size: .61rem; }
+	.badge-option > small { color: #ca9e6b; font-size: .57rem; }
+	.empty-badges { padding: 14px; border: 1px dashed rgba(105,145,205,.2); border-radius: 10px; color: #74869e; font-size: .68rem; line-height: 1.55; }
+	.empty-badges a { color: #80b3ff; }
+	.checkbox-group { display: flex; align-items: center; align-self: end; gap: 20px; min-height: 48px; }
+	.checkbox { display: flex; align-items: center; gap: 9px; }
+	.checkbox input { width: 18px; height: 18px; accent-color: #347dff; }
+	.form-footer { display: flex; justify-content: flex-end; margin-top: 22px; }
+	.form-footer button { padding: 13px 20px; border: 1px solid rgba(80,151,255,.58); border-radius: 10px; cursor: pointer; background: linear-gradient(135deg,#245fc7,#347dff); color: white; font-weight: 700; }
+	@media (max-width: 900px) { .group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+	@media (max-width: 700px) { .fields, .group-grid { grid-template-columns: 1fr; } .full { grid-column: auto; } .form-group header { align-items: start; flex-direction: column; gap: 4px; } .checkbox-group { align-items: start; flex-direction: column; } }
 </style>

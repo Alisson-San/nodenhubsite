@@ -1,576 +1,223 @@
 ---
 export const prerender = false;
 
-import CatalogItemControls
-	from "../../../../components/admin/CatalogItemControls.astro";
+import CatalogItemControls from "../../../../components/admin/CatalogItemControls.astro";
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+import PricingForm from "../../../../components/admin/PricingForm.astro";
+import { createSupabaseRequestClient } from "../../../../lib/supabase/request";
+import { divisionLabels, isServiceDivision } from "../../../../lib/admin/divisions";
+import { catalogItemKindLabels } from "../../../../lib/admin/pricing";
 
-import AdminLayout
-	from "../../../../layouts/AdminLayout.astro";
-
-import PricingForm
-	from "../../../../components/admin/PricingForm.astro";
-
-import {
-	createSupabaseRequestClient,
-} from "../../../../lib/supabase/request";
-
-import {
-	divisionLabels,
-	isServiceDivision,
-} from "../../../../lib/admin/divisions";
-
-const requestedDivision =
-	Astro.params.division;
-
-if (
-	!isServiceDivision(
-		requestedDivision,
-	)
-) {
-	return Astro.redirect(
-		"/admin/catalog?error=division",
-		303,
-	);
+const requestedDivision = Astro.params.division;
+if (!isServiceDivision(requestedDivision)) {
+	return Astro.redirect("/admin/catalog?error=division", 303);
 }
 
-const division =
-	requestedDivision;
-
-const supabase =
-	createSupabaseRequestClient({
-		request: Astro.request,
-		cookies: Astro.cookies,
-	});
-
-const {
-	data: page,
-	error: pageError,
-} = await supabase
+const division = requestedDivision;
+const supabase = createSupabaseRequestClient({ request: Astro.request, cookies: Astro.cookies });
+const { data: page, error: pageError } = await supabase
 	.from("service_pages")
-	.select(`
-		id,
-		division,
-		hero_title
-	`)
+	.select("id, division, hero_title")
 	.eq("division", division)
 	.single();
 
-if (
-	pageError ||
-	!page
-) {
-	console.error(
-		"[Noden Admin] Falha ao carregar divisão.",
-		pageError,
-	);
-
-	return Astro.redirect(
-		"/admin/catalog?error=load",
-		303,
-	);
+if (pageError || !page) {
+	console.error("[Noden Admin] Falha ao carregar divisão.", pageError);
+	return Astro.redirect("/admin/catalog?error=load", 303);
 }
 
-const {
-	data,
-	error: pricingError,
-} = await supabase
-	.from("pricing_items")
-	.select("*")
-	.eq(
-		"service_page_id",
-		page.id,
-	)
-	.order(
-		"sort_order",
-		{
-			ascending: true,
-		},
-	)
-	.order(
-		"created_at",
-		{
-			ascending: true,
-		},
-	);
+const [pricingResult, categoriesResult, tiersResult, badgesResult] = await Promise.all([
+	supabase.from("pricing_items").select("*").eq("service_page_id", page.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+	supabase.from("catalog_categories").select("*").eq("service_page_id", page.id).order("sort_order", { ascending: true }),
+	supabase.from("catalog_tiers").select("*").order("sort_order", { ascending: true }),
+	supabase.from("catalog_badges").select("*").order("sort_order", { ascending: true }),
+]);
 
-if (pricingError) {
-	console.error(
-		"[Noden Admin] Falha ao carregar preços.",
-		pricingError,
-	);
+const pricingItems = pricingResult.data ?? [];
+const categories = categoriesResult.data ?? [];
+const tiers = tiersResult.data ?? [];
+const badges = badgesResult.data ?? [];
+
+let badgeLinks: Array<{ pricing_item_id: string; badge_id: string; sort_order: number }> = [];
+let badgeLinksError: typeof pricingResult.error = null;
+if (pricingItems.length > 0) {
+	const result = await supabase
+		.from("pricing_item_badges")
+		.select("pricing_item_id, badge_id, sort_order")
+		.in("pricing_item_id", pricingItems.map((item) => item.id))
+		.order("sort_order", { ascending: true });
+	badgeLinks = result.data ?? [];
+	badgeLinksError = result.error;
 }
 
-const pricingItems =
-	data ?? [];
+const loadError = pricingResult.error ?? categoriesResult.error ?? tiersResult.error ?? badgesResult.error ?? badgeLinksError;
+if (loadError) console.error("[Noden Admin] Falha ao carregar catálogo de preços.", loadError);
 
-const nextSortOrder =
-	pricingItems.length === 0
-		? 0
-		: Math.max(
-				...pricingItems.map(
-					(item) =>
-						item.sort_order,
-				),
-			) + 10;
+const badgesByPricingItem = new Map<string, string[]>();
+for (const link of badgeLinks) {
+	const current = badgesByPricingItem.get(link.pricing_item_id) ?? [];
+	current.push(link.badge_id);
+	badgesByPricingItem.set(link.pricing_item_id, current);
+}
 
-const currencyFormatter =
-	new Intl.NumberFormat(
-		"pt-BR",
-		{
-			style: "currency",
-			currency: "BRL",
-		},
-	);
+const categoriesById = new Map(categories.map((category) => [category.id, category] as const));
+const tiersById = new Map(tiers.map((tier) => [tier.id, tier] as const));
+const nextSortOrder = pricingItems.length === 0 ? 0 : Math.max(...pricingItems.map((item) => item.sort_order)) + 10;
+const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-function displayPrice(
-	item: (typeof pricingItems)[number],
-): string {
+function displayPrice(item: (typeof pricingItems)[number]): string {
 	if (item.price !== null) {
-		const formatted =
-			currencyFormatter.format(
-				item.price,
-			);
-
-		const prefix =
-			item.price_prefix ??
-			(
-				item.price_type ===
-					"starting_at"
-					? "A partir de"
-					: null
-			);
-
-		return prefix
-			? `${prefix} ${formatted}`
-			: formatted;
+		const formatted = currencyFormatter.format(item.price);
+		const prefix = item.price_prefix ?? (item.price_type === "starting_at" ? "A partir de" : null);
+		return prefix ? `${prefix} ${formatted}` : formatted;
 	}
-
-	if (item.price_label) {
-		return item.price_label;
-	}
-
-	return item.price_type ===
-		"free"
-		? "Sem custo"
-		: "Sob consulta";
+	if (item.price_label) return item.price_label;
+	return item.price_type === "free" ? "Sem custo" : "Sob consulta";
 }
 
-const saved =
-	Astro.url.searchParams.get("saved");
-
-const errorCode =
-	Astro.url.searchParams.get("error");
-
-const savedMessages:
-	Record<string, string> = {
-	created:
-		"Preço criado com sucesso.",
-
-	updated:
-		"Preço atualizado com sucesso.",
-
-	moved:
-		"Ordem dos preços atualizada.",
-
-	deleted:
-		"Preço excluído permanentemente.",
+const saved = Astro.url.searchParams.get("saved");
+const errorCode = Astro.url.searchParams.get("error");
+const savedMessages: Record<string, string> = {
+	created: "Item criado com sucesso.",
+	updated: "Item atualizado com sucesso.",
+	moved: "Ordem dos itens atualizada.",
+	deleted: "Item excluído permanentemente.",
 };
-
-const errorMessages:
-	Record<string, string> = {
-	validation:
-		"Revise os campos e o tipo de preço.",
-
-	origin:
-		"A origem da solicitação não foi aceita.",
-
-	"not-found":
-		"O preço informado não foi encontrado.",
-
-	confirmation:
-		"O nome digitado não corresponde ao preço.",
-
-	action:
-		"Não foi possível executar a ação solicitada.",
-
-	save:
-		"Não foi possível salvar o preço.",
+const errorMessages: Record<string, string> = {
+	validation: "Revise a classificação, os preços e os demais campos.",
+	promotion: "O preço anterior precisa ser maior que o preço atual.",
+	origin: "A origem da solicitação não foi aceita.",
+	"not-found": "O item informado não foi encontrado.",
+	confirmation: "O nome digitado não corresponde ao item.",
+	action: "Não foi possível executar a ação solicitada.",
+	save: "Não foi possível salvar o item.",
 };
 ---
 
 <AdminLayout
-	title={`${divisionLabels[division]} — Preços`}
-	description="Gerencie valores, pacotes, destaques e chamadas para orçamento."
+	title={`${divisionLabels[division]} — Catálogo comercial`}
+	description="Gerencie serviços, pacotes, produtos, preços, categorias, níveis e selos."
 >
 	<Fragment slot="actions">
-		<a
-			class="preview"
-			href={`/${division}#precos`}
-			target="_blank"
-			rel="noreferrer"
-		>
-			Visualizar preços ↗
-		</a>
+		<a class="preview" href={`/${division}#precos`} target="_blank" rel="noreferrer">Visualizar catálogo ↗</a>
 	</Fragment>
 
-	<nav
-		class="catalog-tabs"
-		aria-label="Áreas do catálogo"
-	>
-		<a href={`/admin/catalog/${division}`}>
-			Serviços
-		</a>
-
-		<a
-			class="active"
-			href={`/admin/catalog/${division}/prices`}
-		>
-			Preços
-		</a>
+	<nav class="catalog-tabs" aria-label="Áreas do catálogo">
+		<a href={`/admin/catalog/${division}`}>Serviços</a>
+		<a class="active" href={`/admin/catalog/${division}/prices`}>Itens e preços</a>
+		<a href="/admin/catalog/taxonomy">Estrutura</a>
 	</nav>
 
-	{
-		saved && savedMessages[saved] && (
-			<p
-				class="message success"
-				role="status"
-			>
-				{savedMessages[saved]}
-			</p>
-		)
-	}
-
-	{
-		errorCode && (
-			<p
-				class="message error"
-				role="alert"
-			>
-				{
-					errorMessages[errorCode] ??
-						"Não foi possível concluir a operação."
-				}
-			</p>
-		)
-	}
+	{saved && savedMessages[saved] && <p class="message success" role="status">{savedMessages[saved]}</p>}
+	{errorCode && <p class="message error" role="alert">{errorMessages[errorCode] ?? "Não foi possível concluir a operação."}</p>}
+	{loadError && <p class="message error" role="alert">Parte das opções do catálogo não pôde ser carregada.</p>}
 
 	<section class="editor new-price">
 		<header class="editor__header">
-			<div>
-				<span>Novo preço</span>
-				<h2>Adicionar valor ou pacote</h2>
-			</div>
+			<div><span>Novo item</span><h2>Adicionar serviço, pacote ou produto</h2></div>
 		</header>
-
 		<PricingForm
 			action={`/api/admin/catalog/${division}/prices`}
+			categories={categories}
+			tiers={tiers}
+			badges={badges}
 			defaultSortOrder={nextSortOrder}
-			submitLabel="Criar preço"
+			submitLabel="Criar item"
 		/>
 	</section>
 
-	<section
-		id="pricing"
-		class="pricing-list"
-	>
-		<header class="section-heading">
-			<div>
-				<p>Preços cadastrados</p>
-
-				<h2>
-					{pricingItems.length} itens
-				</h2>
-			</div>
-		</header>
-
+	<section id="pricing" class="pricing-list">
+		<header class="section-heading"><div><p>Itens cadastrados</p><h2>{pricingItems.length} itens</h2></div></header>
 		{
 			pricingItems.length === 0 ? (
-				<p class="empty">
-					Nenhum preço cadastrado
-					nesta divisão.
-				</p>
+				<p class="empty">Nenhum item cadastrado nesta divisão.</p>
 			) : (
-				pricingItems.map((item, index) => (
-					<details
-						class:list={[
-							"price-card",
-							{
-								inactive:
-									!item.is_active,
-								featured:
-									item.is_featured,
-							},
-						]}
-					>
-						<summary>
-							<div>
-								<strong>{item.name}</strong>
+				pricingItems.map((item, index) => {
+					const category = item.category_id ? categoriesById.get(item.category_id) : undefined;
+					const tier = item.tier_id ? tiersById.get(item.tier_id) : undefined;
+					const selectedBadgeIds = badgesByPricingItem.get(item.id) ?? [];
+					return (
+						<details class:list={["price-card", { inactive: !item.is_active, featured: item.is_featured }] }>
+							<summary>
+								<div class="summary-copy">
+									<strong>{item.name}</strong>
+									<small>
+										{catalogItemKindLabels[item.item_kind]}{" · "}{displayPrice(item)}
+										{item.compare_at_price !== null && <>{" · "}Promoção de {currencyFormatter.format(item.compare_at_price)}</>}
+									</small>
+									<div class="taxonomy-summary">
+										{category && <span>{category.name}</span>}
+										{tier && <span>{tier.name}</span>}
+										{selectedBadgeIds.length > 0 && <span>{selectedBadgeIds.length} {selectedBadgeIds.length === 1 ? "selo" : "selos"}</span>}
+										<span>Ordem {item.sort_order}</span>
+									</div>
+								</div>
+								<div class="summary-status">
+									{item.is_featured && <span class="featured-label">Destaque</span>}
+									<span class:list={["status", { active: item.is_active }]}>{item.is_active ? "Ativo" : "Inativo"}</span>
+								</div>
+							</summary>
 
-								<small>
-									{displayPrice(item)}
-									{" · "}
-									Ordem {item.sort_order}
-								</small>
-							</div>
-
-							<div class="summary-status">
-								{
-									item.is_featured && (
-										<span class="featured-label">
-											Destaque
-										</span>
-									)
-								}
-
-								<span
-									class:list={[
-										"status",
-										{
-											active:
-												item.is_active,
-										},
-									]}
-								>
-									{
-										item.is_active
-											? "Ativo"
-											: "Inativo"
-									}
-								</span>
-							</div>
-						</summary>
-
-                        <CatalogItemControls
-                            action={`/api/admin/catalog/${division}/item-actions`}
-                            itemType="pricing"
-                            itemId={item.id}
-                            itemLabel={item.name}
-                            canMoveUp={index > 0}
-                            canMoveDown={
-                                index <
-                                pricingItems.length - 1
-                            }
-                        />
-
-						<div class="price-card__form">
-							<PricingForm
-								action={`/api/admin/catalog/${division}/prices`}
-								item={item}
-								submitLabel="Salvar preço"
+							<CatalogItemControls
+								action={`/api/admin/catalog/${division}/item-actions`}
+								itemType="pricing"
+								itemId={item.id}
+								itemLabel={item.name}
+								canMoveUp={index > 0}
+								canMoveDown={index < pricingItems.length - 1}
 							/>
-						</div>
-					</details>
-				))
+
+							<div class="price-card__form">
+								<PricingForm
+									action={`/api/admin/catalog/${division}/prices`}
+									item={item}
+									categories={categories}
+									tiers={tiers}
+									badges={badges}
+									selectedBadgeIds={selectedBadgeIds}
+									submitLabel="Salvar item"
+								/>
+							</div>
+						</details>
+					);
+				})
 			)
 		}
 	</section>
 </AdminLayout>
 
 <style>
-	.preview {
-		display: inline-flex;
-		padding: 11px 15px;
-		border: 1px solid
-			rgba(105, 145, 205, 0.3);
-		border-radius: 10px;
-		background: rgba(41, 101, 190, 0.12);
-		color: #b9d4fa;
-		font-size: 0.72rem;
-		text-decoration: none;
-	}
-
-	.catalog-tabs {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		margin-bottom: 26px;
-		padding: 5px;
-		border: 1px solid
-			rgba(105, 145, 205, 0.18);
-		border-radius: 12px;
-		background: rgba(5, 13, 25, 0.78);
-	}
-
-	.catalog-tabs a {
-		padding: 10px 14px;
-		border-radius: 8px;
-		color: #71849d;
-		font-size: 0.72rem;
-		text-decoration: none;
-	}
-
-	.catalog-tabs .active {
-		background: rgba(46, 113, 211, 0.18);
-		color: #d6e6ff;
-	}
-
-	.message {
-		margin: 0 0 20px;
-		padding: 15px 17px;
-		border-radius: 11px;
-		font-size: 0.78rem;
-	}
-
-	.success {
-		border: 1px solid
-			rgba(75, 220, 145, 0.25);
-		background: rgba(35, 150, 100, 0.12);
-		color: #8be2b6;
-	}
-
-	.error {
-		border: 1px solid
-			rgba(255, 100, 100, 0.25);
-		background: rgba(160, 30, 40, 0.13);
-		color: #ffb1b6;
-	}
-
-	.editor,
-	.price-card {
-		border: 1px solid
-			rgba(105, 145, 205, 0.2);
-		border-radius: 18px;
-		background: rgba(7, 17, 31, 0.82);
-	}
-
-	.editor {
-		padding: 28px;
-	}
-
-	.new-price {
-		margin-bottom: 46px;
-	}
-
-	.editor__header {
-		margin-bottom: 26px;
-	}
-
-	.editor__header span,
-	.section-heading p {
-		margin: 0;
-		color: #619fea;
-		letter-spacing: 0.14em;
-		font-size: 0.61rem;
-		font-weight: 700;
-		text-transform: uppercase;
-	}
-
-	.editor__header h2,
-	.section-heading h2 {
-		margin: 7px 0 0;
-		font-size: 1.25rem;
-		font-weight: 500;
-	}
-
-	.pricing-list {
-		display: grid;
-		gap: 14px;
-	}
-
-	.section-heading {
-		margin-bottom: 8px;
-	}
-
-	.price-card {
-		overflow: hidden;
-	}
-
-	.price-card.inactive {
-		opacity: 0.7;
-	}
-
-	.price-card.featured {
-		border-color:
-			rgba(82, 148, 255, 0.42);
-	}
-
-	.price-card summary {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 20px;
-		padding: 21px 24px;
-		cursor: pointer;
-		list-style: none;
-	}
-
-	.price-card summary::-webkit-details-marker {
-		display: none;
-	}
-
-	.price-card summary > div:first-child {
-		display: grid;
-		gap: 5px;
-	}
-
-	.price-card summary strong {
-		font-size: 0.95rem;
-	}
-
-	.price-card summary small {
-		color: #71849d;
-		font-size: 0.65rem;
-	}
-
-	.summary-status {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-
-	.status,
-	.featured-label {
-		padding: 5px 8px;
-		border-radius: 99px;
-		font-size: 0.58rem;
-	}
-
-	.status {
-		border: 1px solid
-			rgba(255, 180, 75, 0.25);
-		color: #ffc474;
-	}
-
-	.status.active {
-		border-color:
-			rgba(80, 220, 155, 0.25);
-		color: #75e2ae;
-	}
-
-	.featured-label {
-		border: 1px solid
-			rgba(87, 145, 255, 0.3);
-		color: #91bcff;
-	}
-
-	.price-card__form {
-		padding: 24px;
-		border-top: 1px solid
-			rgba(105, 145, 205, 0.16);
-	}
-
-	.empty {
-		padding: 28px;
-		border: 1px dashed
-			rgba(105, 145, 205, 0.25);
-		border-radius: 14px;
-		color: #8193aa;
-		text-align: center;
-	}
-
-	@media (max-width: 700px) {
-		.editor {
-			padding: 22px 18px;
-		}
-
-		.catalog-tabs {
-			align-items: stretch;
-			flex-direction: column;
-		}
-
-		.price-card summary {
-			align-items: start;
-			flex-direction: column;
-		}
-	}
+	.preview { display:inline-flex; padding:11px 15px; border:1px solid rgba(105,145,205,.3); border-radius:10px; background:rgba(41,101,190,.12); color:#b9d4fa; font-size:.72rem; text-decoration:none; }
+	.catalog-tabs { display:flex; align-items:center; gap:8px; margin-bottom:26px; padding:5px; border:1px solid rgba(105,145,205,.18); border-radius:12px; background:rgba(5,13,25,.78); }
+	.catalog-tabs a { padding:10px 14px; border-radius:8px; color:#71849d; font-size:.72rem; text-decoration:none; }
+	.catalog-tabs .active { background:rgba(46,113,211,.18); color:#d6e6ff; }
+	.message { margin:0 0 20px; padding:15px 17px; border-radius:11px; font-size:.78rem; }
+	.success { border:1px solid rgba(75,220,145,.25); background:rgba(35,150,100,.12); color:#8be2b6; }
+	.error { border:1px solid rgba(255,100,100,.25); background:rgba(160,30,40,.13); color:#ffb1b6; }
+	.editor, .price-card { border:1px solid rgba(105,145,205,.2); border-radius:18px; background:rgba(7,17,31,.82); }
+	.editor { padding:28px; }
+	.new-price { margin-bottom:46px; }
+	.editor__header { margin-bottom:26px; }
+	.editor__header span, .section-heading p { margin:0; color:#619fea; letter-spacing:.14em; font-size:.61rem; font-weight:700; text-transform:uppercase; }
+	.editor__header h2, .section-heading h2 { margin:7px 0 0; font-size:1.25rem; font-weight:500; }
+	.pricing-list { display:grid; gap:14px; }
+	.section-heading { margin-bottom:8px; }
+	.price-card { overflow:hidden; }
+	.price-card.inactive { opacity:.7; }
+	.price-card.featured { border-color:rgba(82,148,255,.42); }
+	.price-card summary { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:21px 24px; cursor:pointer; list-style:none; }
+	.price-card summary::-webkit-details-marker { display:none; }
+	.summary-copy { display:grid; min-width:0; gap:5px; }
+	.summary-copy > strong { font-size:.95rem; }
+	.summary-copy > small { color:#71849d; font-size:.65rem; }
+	.taxonomy-summary { display:flex; flex-wrap:wrap; gap:6px; margin-top:3px; }
+	.taxonomy-summary span { padding:4px 7px; border:1px solid rgba(105,145,205,.2); border-radius:999px; color:#8499b4; font-size:.56rem; }
+	.summary-status { display:flex; align-items:center; gap:8px; }
+	.status, .featured-label { padding:5px 8px; border-radius:99px; font-size:.58rem; }
+	.status { border:1px solid rgba(255,180,75,.25); color:#ffc474; }
+	.status.active { border-color:rgba(80,220,155,.25); color:#75e2ae; }
+	.featured-label { border:1px solid rgba(87,145,255,.3); color:#91bcff; }
+	.price-card__form { padding:24px; border-top:1px solid rgba(105,145,205,.16); }
+	.empty { padding:28px; border:1px dashed rgba(105,145,205,.25); border-radius:14px; color:#8193aa; text-align:center; }
+	@media (max-width:700px) { .editor { padding:22px 18px; } .catalog-tabs { align-items:stretch; flex-direction:column; } .price-card summary { align-items:start; flex-direction:column; } .summary-status { flex-wrap:wrap; } .price-card__form { padding:20px 17px; } }
 </style>
