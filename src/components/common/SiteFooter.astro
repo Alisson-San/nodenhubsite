@@ -1,9 +1,14 @@
 ---
 import SiteLogo from "./SiteLogo.astro";
+
 import {
 	getWhatsAppUrl,
-	siteConfig,
+	siteConfig as fallbackSiteConfig,
 } from "../../config/site";
+
+import type {
+	RuntimeSiteConfig,
+} from "../../types/site";
 
 interface FooterLink {
 	label: string;
@@ -15,6 +20,7 @@ interface Props {
 	navigation?: FooterLink[];
 	logoIdPrefix?: string;
 	class?: string;
+	site?: RuntimeSiteConfig;
 }
 
 const defaultNavigation: FooterLink[] = [
@@ -44,31 +50,39 @@ const {
 	navigation = defaultNavigation,
 	logoIdPrefix = "site-footer-logo",
 	class: className = "",
+	site = fallbackSiteConfig,
 } = Astro.props;
 
-const socialLinks: FooterLink[] = [
-	{
-		label: "Instagram",
-		href: siteConfig.socials.instagram,
-		external: true,
-	},
-	{
-		label: "Facebook",
-		href: siteConfig.socials.facebook,
-		external: true,
-	},
-	{
-		label: "Telegram",
-		href: siteConfig.socials.telegram,
-		external: true,
-	},
-].filter((item) => Boolean(item.href));
+const socialLinks: FooterLink[] =
+	site.socialLinks
+		.filter(
+			(item) =>
+				item.isActive &&
+				item.platform !== "whatsapp" &&
+				item.platform !== "website",
+		)
+		.sort(
+			(a, b) =>
+				a.sortOrder - b.sortOrder,
+		)
+		.map(
+			(item) => ({
+				label: item.label,
+				href: item.url,
+				external: true,
+			}),
+		);
 
 const currentYear = new Date().getFullYear();
 
-const phoneHref = `tel:${siteConfig.phone.replace(/[^\d+]/g, "")}`;
+const phoneHref = `tel:${site.phone.replace(/[^\d+]/g, "")}`;
 
-const serviceAreaText = siteConfig.serviceAreas.join(", ");
+const serviceAreaText = site.serviceAreas.join(", ");
+
+const whatsappUrl = getWhatsAppUrl(
+	undefined,
+	site,
+);
 ---
 
 <footer class:list={["site-footer", className]}>
@@ -81,14 +95,11 @@ const serviceAreaText = siteConfig.serviceAreas.join(", ");
 					idPrefix={logoIdPrefix}
 				/>
 
-				<p>
-					Tecnologia próxima, soluções claras e atendimento
-					pensado para pessoas e negócios.
-				</p>
+				<p>{site.description}</p>
 
 				<a
 					class="site-footer__primary-action"
-					href={getWhatsAppUrl()}
+					href={whatsappUrl}
 					target="_blank"
 					rel="noopener noreferrer"
 				>
@@ -146,11 +157,19 @@ const serviceAreaText = siteConfig.serviceAreas.join(", ");
 
 				<div class="site-footer__links">
 					<a href={phoneHref}>
-						{siteConfig.phone}
+						{site.phone}
 					</a>
 
+					{
+						site.email && (
+							<a href={`mailto:${site.email}`}>
+								{site.email}
+							</a>
+						)
+					}
+
 					<a
-						href={getWhatsAppUrl()}
+						href={whatsappUrl}
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -176,20 +195,24 @@ const serviceAreaText = siteConfig.serviceAreas.join(", ");
 					Atendimento
 				</span>
 
-				<p>
-					{serviceAreaText}
-				</p>
+				{
+					site.address && (
+						<p>{site.address}</p>
+					)
+				}
+
+				<p>{serviceAreaText}</p>
 
 				<span class="site-footer__status">
 					<span aria-hidden="true"></span>
-					Atendimento mediante agendamento
+					{site.serviceHours}
 				</span>
 			</div>
 		</div>
 
 		<div class="site-footer__bottom">
 			<p>
-				© {currentYear} {siteConfig.legalName}.
+				© {currentYear} {site.legalName}.
 			</p>
 
 			<p>
@@ -308,6 +331,10 @@ const serviceAreaText = siteConfig.serviceAreas.join(", ");
 		color: #ffffff;
 	}
 
+	.site-footer__area {
+		gap: 10px;
+	}
+
 	.site-footer__area p {
 		margin: 0;
 		color: #9aa8bb;
@@ -317,7 +344,7 @@ const serviceAreaText = siteConfig.serviceAreas.join(", ");
 
 	.site-footer__status {
 		display: inline-flex;
-		margin-top: 18px;
+		margin-top: 8px;
 		align-items: center;
 		gap: 8px;
 		color: #8293aa;

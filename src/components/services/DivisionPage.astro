@@ -11,6 +11,10 @@ import {
 	getWhatsAppUrl,
 } from "../../config/site";
 
+import {
+	loadSiteConfig,
+} from "../../lib/site/siteRepository";
+
 import type {
 	ServicePageConfig,
 } from "../../types/services";
@@ -22,9 +26,13 @@ interface Props {
 const {
 	page,
 } = Astro.props;
+
+const site =
+	await loadSiteConfig();
 ---
 
 <ServiceLayout
+	site={site}
 	title={page.seo.title}
 	description={page.seo.description}
 	canonical={page.seo.canonical}
@@ -41,6 +49,7 @@ const {
 		primaryLabel={page.hero.primaryLabel}
 		primaryHref={getWhatsAppUrl(
 			page.hero.primaryMessage,
+			site,
 		)}
 		secondaryLabel={page.hero.secondaryLabel}
 		secondaryHref={
@@ -72,6 +81,7 @@ const {
 		buttonLabel={page.cta.buttonLabel}
 		buttonHref={getWhatsAppUrl(
 			page.cta.message,
+			site,
 		)}
 		secondaryLabel={page.cta.secondaryLabel}
 		secondaryHref={page.cta.secondaryHref}

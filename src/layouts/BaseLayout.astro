@@ -1,7 +1,14 @@
 ---
-import { siteConfig } from "../config/site";
+import {
+	siteConfig as fallbackSiteConfig,
+} from "../config/site";
+
+import type {
+	RuntimeSiteConfig,
+} from "../types/site";
 
 interface Props {
+	site?: RuntimeSiteConfig;
 	title?: string;
 	description?: string;
 	canonical?: string;
@@ -9,19 +16,20 @@ interface Props {
 }
 
 const {
-	title = `${siteConfig.name} — Technology Hub`,
-	description = siteConfig.description,
+	site = fallbackSiteConfig,
+	title = `${site.name} — Technology Hub`,
+	description = site.description,
 	canonical,
 	themeColor = "#02050a",
 } = Astro.props;
 
 const canonicalUrl = canonical
-	? new URL(canonical, siteConfig.url)
-	: new URL(Astro.url.pathname, siteConfig.url);
+	? new URL(canonical, site.url)
+	: new URL(Astro.url.pathname, site.url);
 ---
 
 <!doctype html>
-<html lang={siteConfig.locale}>
+<html lang={site.locale}>
 	<head>
 		<meta charset="utf-8" />
 		<meta

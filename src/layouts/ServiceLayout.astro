@@ -3,7 +3,16 @@ import BaseLayout from "./BaseLayout.astro";
 import SiteHeader from "../components/common/SiteHeader.astro";
 import SiteFooter from "../components/common/SiteFooter.astro";
 
+import {
+	siteConfig as fallbackSiteConfig,
+} from "../config/site";
+
+import type {
+	RuntimeSiteConfig,
+} from "../types/site";
+
 interface Props {
+	site?: RuntimeSiteConfig;
 	title: string;
 	description: string;
 	canonical: string;
@@ -14,6 +23,7 @@ interface Props {
 }
 
 const {
+	site = fallbackSiteConfig,
 	title,
 	description,
 	canonical,
@@ -28,6 +38,7 @@ const footerLogoId = `service-${division}-footer-logo`;
 ---
 
 <BaseLayout
+	site={site}
 	title={title}
 	description={description}
 	canonical={canonical}
@@ -60,6 +71,7 @@ const footerLogoId = `service-${division}-footer-logo`;
 		style={`--service-accent: ${accent}; --service-accent-secondary: ${accentSecondary};`}
 	>
 		<SiteHeader
+			site={site}
 			logoIdPrefix={headerLogoId}
 			currentPath={Astro.url.pathname}
 		/>
@@ -68,7 +80,10 @@ const footerLogoId = `service-${division}-footer-logo`;
 			<slot />
 		</main>
 
-		<SiteFooter logoIdPrefix={footerLogoId} />
+		<SiteFooter
+			site={site}
+			logoIdPrefix={footerLogoId}
+		/>
 	</div>
 </BaseLayout>
 

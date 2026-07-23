@@ -1,0 +1,586 @@
+---
+export const prerender = false;
+
+import AdminLayout
+	from "../../../layouts/AdminLayout.astro";
+
+import SocialLinkForm
+	from "../../../components/admin/SocialLinkForm.astro";
+
+import {
+	createSupabaseRequestClient,
+} from "../../../lib/supabase/request";
+
+import {
+	buildSiteConfig,
+	siteSettingKeys,
+} from "../../../lib/site/siteRepository";
+
+const supabase =
+	createSupabaseRequestClient({
+		request: Astro.request,
+		cookies: Astro.cookies,
+	});
+
+const [
+	settingsResult,
+	socialResult,
+] = await Promise.all([
+	supabase
+		.from("site_settings")
+		.select("key, value")
+		.in(
+			"key",
+			[
+				...siteSettingKeys,
+			],
+		),
+
+	supabase
+		.from("social_links")
+		.select("*")
+		.order(
+			"sort_order",
+			{
+				ascending: true,
+			},
+		),
+]);
+
+if (settingsResult.error) {
+	console.error(
+		"[Noden Admin] Falha ao carregar configurações.",
+		settingsResult.error,
+	);
+}
+
+if (socialResult.error) {
+	console.error(
+		"[Noden Admin] Falha ao carregar redes sociais.",
+		socialResult.error,
+	);
+}
+
+const socialLinks =
+	socialResult.data ?? [];
+
+const config =
+	buildSiteConfig(
+		settingsResult.data ?? [],
+		socialLinks,
+	);
+
+const nextSortOrder =
+	socialLinks.length === 0
+		? 0
+		: Math.max(
+				...socialLinks.map(
+					(item) =>
+						item.sort_order,
+				),
+			) + 10;
+
+const saved =
+	Astro.url.searchParams.get(
+		"saved",
+	);
+
+const errorCode =
+	Astro.url.searchParams.get(
+		"error",
+	);
+
+const savedMessages:
+	Record<string, string> = {
+	site:
+		"Configurações gerais salvas.",
+
+	"social-created":
+		"Rede social criada.",
+
+	"social-updated":
+		"Rede social atualizada.",
+};
+
+const errorMessages:
+	Record<string, string> = {
+	validation:
+		"Revise os campos informados.",
+
+	origin:
+		"A origem da solicitação não foi aceita.",
+
+	duplicate:
+		"Já existe uma rede com esse identificador.",
+
+	"not-found":
+		"A rede social não foi encontrada.",
+
+	save:
+		"Não foi possível salvar as alterações.",
+};
+---
+
+<AdminLayout
+	title="Configurações"
+	description="Gerencie identidade, contatos, atendimento e redes sociais da Noden."
+>
+	{
+		saved &&
+		savedMessages[saved] && (
+			<p
+				class="message success"
+				role="status"
+			>
+				{savedMessages[saved]}
+			</p>
+		)
+	}
+
+	{
+		errorCode && (
+			<p
+				class="message error"
+				role="alert"
+			>
+				{
+					errorMessages[
+						errorCode
+					] ??
+						"Não foi possível concluir a operação."
+				}
+			</p>
+		)
+	}
+
+	<form
+		class="settings-form"
+		method="post"
+		action="/api/admin/settings/site"
+	>
+		<section class="panel">
+			<header>
+				<span>Identidade</span>
+				<h2>Informações institucionais</h2>
+			</header>
+
+			<div class="fields">
+				<label>
+					<span>Nome curto</span>
+
+					<input
+						type="text"
+						name="name"
+						value={config.name}
+						required
+					/>
+				</label>
+
+				<label>
+					<span>Razão ou nome completo</span>
+
+					<input
+						type="text"
+						name="legal_name"
+						value={config.legalName}
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Descrição institucional</span>
+
+					<textarea
+						name="description"
+						rows="4"
+						required
+					>{config.description}</textarea>
+				</label>
+
+				<label>
+					<span>URL principal</span>
+
+					<input
+						type="url"
+						name="site_url"
+						value={config.url}
+						required
+					/>
+				</label>
+
+				<label>
+					<span>Idioma</span>
+
+					<input
+						type="text"
+						name="locale"
+						value={config.locale}
+						placeholder="pt-BR"
+						required
+					/>
+				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header>
+				<span>Contato</span>
+				<h2>Atendimento e WhatsApp</h2>
+			</header>
+
+			<div class="fields">
+				<label>
+					<span>Telefone exibido</span>
+
+					<input
+						type="text"
+						name="phone"
+						value={config.phone}
+						required
+					/>
+				</label>
+
+				<label>
+					<span>E-mail comercial</span>
+
+					<input
+						type="email"
+						name="email"
+						value={config.email}
+					/>
+				</label>
+
+				<label>
+					<span>Número do WhatsApp</span>
+
+					<input
+						type="text"
+						name="whatsapp_phone"
+						value={
+							config.whatsapp.phone
+						}
+						inputmode="numeric"
+						required
+					/>
+				</label>
+
+				<label>
+					<span>Horário de atendimento</span>
+
+					<input
+						type="text"
+						name="service_hours"
+						value={
+							config.serviceHours
+						}
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Endereço ou localização</span>
+
+					<input
+						type="text"
+						name="address"
+						value={config.address}
+					/>
+				</label>
+
+				<label class="full">
+					<span>Mensagem padrão do WhatsApp</span>
+
+					<textarea
+						name="whatsapp_message"
+						rows="3"
+						required
+					>{config.whatsapp.defaultMessage}</textarea>
+				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header>
+				<span>Atendimento</span>
+				<h2>Cidades e regiões</h2>
+			</header>
+
+			<label>
+				<span>
+					Uma cidade ou região por linha
+				</span>
+
+				<textarea
+					name="service_areas"
+					rows="7"
+					required
+				>{config.serviceAreas.join(
+					"\n",
+				)}</textarea>
+			</label>
+		</section>
+
+		<footer class="main-footer">
+			<button type="submit">
+				Salvar configurações gerais
+			</button>
+		</footer>
+	</form>
+
+	<section class="social-section">
+		<header class="section-heading">
+			<p>Redes sociais</p>
+			<h2>Links públicos</h2>
+		</header>
+
+		<details class="social-card new">
+			<summary>
+				Adicionar nova rede
+			</summary>
+
+			<div class="social-content">
+				<SocialLinkForm
+					action="/api/admin/settings/social"
+					defaultSortOrder={nextSortOrder}
+					submitLabel="Criar rede"
+				/>
+			</div>
+		</details>
+
+		{
+			socialLinks.map(
+				(item) => (
+					<details
+						class:list={[
+							"social-card",
+							{
+								inactive:
+									!item.is_active,
+							},
+						]}
+					>
+						<summary>
+							<div>
+								<strong>
+									{item.label}
+								</strong>
+
+								<small>
+									{item.platform}
+									{" · "}
+									Ordem {
+										item.sort_order
+									}
+								</small>
+							</div>
+
+							<span>
+								{
+									item.is_active
+										? "Ativa"
+										: "Inativa"
+								}
+							</span>
+						</summary>
+
+						<div class="social-content">
+							<SocialLinkForm
+								action="/api/admin/settings/social"
+								item={item}
+								submitLabel="Salvar rede"
+							/>
+						</div>
+					</details>
+				),
+			)
+		}
+	</section>
+</AdminLayout>
+
+<style>
+	.message {
+		margin: 0 0 20px;
+		padding: 15px 17px;
+		border-radius: 11px;
+		font-size: 0.78rem;
+	}
+
+	.success {
+		border: 1px solid
+			rgba(75, 220, 145, 0.25);
+		background: rgba(35, 150, 100, 0.12);
+		color: #8be2b6;
+	}
+
+	.error {
+		border: 1px solid
+			rgba(255, 100, 100, 0.25);
+		background: rgba(160, 30, 40, 0.13);
+		color: #ffb1b6;
+	}
+
+	.settings-form {
+		display: grid;
+		gap: 20px;
+	}
+
+	.panel,
+	.social-card {
+		border: 1px solid
+			rgba(105, 145, 205, 0.2);
+		border-radius: 18px;
+		background: rgba(7, 17, 31, 0.82);
+	}
+
+	.panel {
+		padding: 28px;
+	}
+
+	.panel header {
+		margin-bottom: 25px;
+	}
+
+	.panel header span,
+	.section-heading p {
+		margin: 0;
+		color: #619fea;
+		letter-spacing: 0.14em;
+		font-size: 0.61rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	h2 {
+		margin: 7px 0 0;
+		font-size: 1.25rem;
+		font-weight: 500;
+	}
+
+	.fields {
+		display: grid;
+		grid-template-columns:
+			repeat(2, minmax(0, 1fr));
+		gap: 18px;
+	}
+
+	label {
+		display: grid;
+		gap: 8px;
+	}
+
+	label > span {
+		color: #99abc1;
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+
+	.full {
+		grid-column: 1 / -1;
+	}
+
+	input,
+	textarea {
+		width: 100%;
+		padding: 13px 14px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 10px;
+		outline: none;
+		background: rgba(2, 8, 16, 0.72);
+		color: white;
+		font: inherit;
+		line-height: 1.5;
+	}
+
+	input:focus,
+	textarea:focus {
+		border-color: #428eff;
+		box-shadow:
+			0 0 0 3px
+			rgba(48, 132, 255, 0.12);
+	}
+
+	.main-footer {
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.main-footer button {
+		padding: 13px 20px;
+		border: 1px solid
+			rgba(80, 151, 255, 0.58);
+		border-radius: 10px;
+		cursor: pointer;
+		background:
+			linear-gradient(
+				135deg,
+				#245fc7,
+				#347dff
+			);
+		color: white;
+		font-weight: 700;
+	}
+
+	.social-section {
+		display: grid;
+		gap: 14px;
+		margin-top: 54px;
+	}
+
+	.section-heading {
+		margin-bottom: 8px;
+	}
+
+	.social-card {
+		overflow: hidden;
+	}
+
+	.social-card.inactive {
+		opacity: 0.7;
+	}
+
+	.social-card summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 18px;
+		padding: 20px 24px;
+		cursor: pointer;
+		list-style: none;
+	}
+
+	.social-card summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.social-card summary div {
+		display: grid;
+		gap: 5px;
+	}
+
+	.social-card summary small,
+	.social-card summary > span {
+		color: #71849d;
+		font-size: 0.65rem;
+	}
+
+	.social-content {
+		padding: 24px;
+		border-top: 1px solid
+			rgba(105, 145, 205, 0.16);
+	}
+
+	@media (max-width: 700px) {
+		.fields {
+			grid-template-columns: 1fr;
+		}
+
+		.full {
+			grid-column: auto;
+		}
+
+		.panel {
+			padding: 22px 18px;
+		}
+	}
+</style>

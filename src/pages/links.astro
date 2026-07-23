@@ -1,21 +1,41 @@
 ---
+export const prerender = false;
+
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SiteLogo from "../components/common/SiteLogo.astro";
 import LinkCard from "../components/links/LinkCard.astro";
 
 import {
-	linkItems,
+	buildLinkItems,
 } from "../data/links";
 
 import {
-	siteConfig,
-} from "../config/site";
+	loadSiteConfig,
+} from "../lib/site/siteRepository";
+
+const site =
+	await loadSiteConfig();
+
+const linkItems =
+	buildLinkItems(site);
 
 const currentYear = new Date().getFullYear();
-const serviceAreaText = siteConfig.serviceAreas.join(" • ");
+const serviceAreaText = site.serviceAreas.join(" • ");
+
+const instagramHandle =
+	site.socialLinks.find(
+		(item) =>
+			item.isActive &&
+			item.platform === "instagram",
+	)?.username ?? "@noden.hub";
+
+const siteLabel = site.url
+	.replace(/^https?:\/\//, "")
+	.replace(/\/$/, "");
 ---
 
 <BaseLayout
+	site={site}
 	title="Links — Noden Technology Hub"
 	description="Acesse os principais canais de contato, redes sociais e informações da Noden Technology Hub."
 	canonical="/links"
@@ -64,7 +84,7 @@ const serviceAreaText = siteConfig.serviceAreas.join(" • ");
 				</div>
 
 				<span class="links-profile__handle">
-					@noden.hub
+					{instagramHandle}
 				</span>
 
 				<h1>
@@ -107,11 +127,11 @@ const serviceAreaText = siteConfig.serviceAreas.join(" • ");
 
 			<footer class="links-footer">
 				<p>
-					© {currentYear} {siteConfig.legalName}
+					© {currentYear} {site.legalName}
 				</p>
 
-				<a href="/">
-					nodenhub.com.br
+				<a href={site.url}>
+					{siteLabel}
 				</a>
 			</footer>
 		</main>
