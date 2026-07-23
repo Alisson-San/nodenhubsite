@@ -1,7 +1,10 @@
 import {
 	getWhatsAppUrl,
-	siteConfig,
 } from "../config/site";
+
+import type {
+	RuntimeSiteConfig,
+} from "../types/site";
 
 export type LinkIcon =
 	| "whatsapp"
@@ -18,36 +21,65 @@ export interface LinkItem {
 	featured?: boolean;
 }
 
-const phoneHref = `tel:${siteConfig.phone.replace(/[^\d+]/g, "")}`;
+export function buildLinkItems(
+	site: RuntimeSiteConfig,
+): LinkItem[] {
+	const phoneHref =
+		`tel:${site.phone.replace(
+			/[^\d+]/g,
+			"",
+		)}`;
 
-export const linkItems: LinkItem[] = [
-	{
-		title: "Falar pelo WhatsApp",
-		description: "Orçamentos, dúvidas e agendamentos",
-		href: getWhatsAppUrl(
-			"Olá! Vim pela página de links da Noden.",
-		),
-		icon: "whatsapp",
-		external: true,
-		featured: true,
-	},
-	{
-		title: "Conhecer a Noden",
-		description: "Acesse nosso site institucional",
-		href: "/",
-		icon: "website",
-	},
-	{
-		title: "Instagram",
-		description: "@noden.hub",
-		href: siteConfig.socials.instagram,
-		icon: "instagram",
-		external: true,
-	},
-	{
+	const instagram =
+		site.socialLinks.find(
+			(item) =>
+				item.isActive &&
+				item.platform ===
+					"instagram",
+		);
+
+	const items: LinkItem[] = [
+		{
+			title: "Falar pelo WhatsApp",
+			description:
+				"Orçamentos, dúvidas e agendamentos",
+
+			href: getWhatsAppUrl(
+				"Olá! Vim pela página de links da Noden.",
+				site,
+			),
+
+			icon: "whatsapp",
+			external: true,
+			featured: true,
+		},
+		{
+			title: "Conhecer a Noden",
+			description:
+				"Acesse nosso site institucional",
+			href: "/",
+			icon: "website",
+		},
+	];
+
+	if (instagram) {
+		items.push({
+			title: instagram.label,
+			description:
+				instagram.username ??
+				instagram.label,
+			href: instagram.url,
+			icon: "instagram",
+			external: true,
+		});
+	}
+
+	items.push({
 		title: "Ligar para a Noden",
-		description: siteConfig.phone,
+		description: site.phone,
 		href: phoneHref,
 		icon: "phone",
-	},
-];
+	});
+
+	return items;
+}

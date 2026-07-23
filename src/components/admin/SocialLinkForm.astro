@@ -1,0 +1,209 @@
+---
+import type {
+	Tables,
+} from "../../types/database.types";
+
+interface Props {
+	action: string;
+	item?: Tables<"social_links">;
+	defaultSortOrder?: number;
+	submitLabel: string;
+}
+
+const {
+	action,
+	item,
+	defaultSortOrder = 0,
+	submitLabel,
+} = Astro.props;
+---
+
+<form
+	method="post"
+	action={action}
+>
+	{
+		item && (
+			<input
+				type="hidden"
+				name="social_id"
+				value={item.id}
+			/>
+		)
+	}
+
+	<div class="fields">
+		<label>
+			<span>Identificador</span>
+
+			<input
+				type="text"
+				name="platform"
+				value={item?.platform ?? ""}
+				placeholder="linkedin"
+				pattern="[a-z0-9_.-]+"
+				required
+			/>
+		</label>
+
+		<label>
+			<span>Nome exibido</span>
+
+			<input
+				type="text"
+				name="label"
+				value={item?.label ?? ""}
+				placeholder="LinkedIn"
+				required
+			/>
+		</label>
+
+		<label class="full">
+			<span>URL</span>
+
+			<input
+				type="url"
+				name="url"
+				value={item?.url ?? ""}
+				placeholder="https://..."
+				required
+			/>
+		</label>
+
+		<label>
+			<span>Usuário ou texto</span>
+
+			<input
+				type="text"
+				name="username"
+				value={item?.username ?? ""}
+				placeholder="@noden.hub"
+			/>
+		</label>
+
+		<label>
+			<span>Ordem</span>
+
+			<input
+				type="number"
+				name="sort_order"
+				min="0"
+				step="1"
+				value={
+					item?.sort_order ??
+					defaultSortOrder
+				}
+				required
+			/>
+		</label>
+
+		<label class="checkbox full">
+			<input
+				type="checkbox"
+				name="is_active"
+				value="true"
+				checked={
+					item?.is_active ??
+					true
+				}
+			/>
+
+			<span>
+				Exibir esta rede no site
+			</span>
+		</label>
+	</div>
+
+	<footer>
+		<button type="submit">
+			{submitLabel}
+		</button>
+	</footer>
+</form>
+
+<style>
+	.fields {
+		display: grid;
+		grid-template-columns:
+			repeat(2, minmax(0, 1fr));
+		gap: 16px;
+	}
+
+	label {
+		display: grid;
+		gap: 8px;
+	}
+
+	label > span {
+		color: #9bacc1;
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+
+	.full {
+		grid-column: 1 / -1;
+	}
+
+	input {
+		width: 100%;
+		padding: 12px 13px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 9px;
+		outline: none;
+		background: rgba(2, 8, 16, 0.72);
+		color: white;
+		font: inherit;
+	}
+
+	input:focus {
+		border-color: #428eff;
+		box-shadow:
+			0 0 0 3px
+			rgba(48, 132, 255, 0.12);
+	}
+
+	.checkbox {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+	}
+
+	.checkbox input {
+		width: 18px;
+		height: 18px;
+		accent-color: #347dff;
+	}
+
+	footer {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 20px;
+	}
+
+	button {
+		padding: 12px 18px;
+		border: 1px solid
+			rgba(80, 151, 255, 0.58);
+		border-radius: 9px;
+		cursor: pointer;
+		background:
+			linear-gradient(
+				135deg,
+				#245fc7,
+				#347dff
+			);
+		color: white;
+		font-weight: 700;
+	}
+
+	@media (max-width: 650px) {
+		.fields {
+			grid-template-columns: 1fr;
+		}
+
+		.full {
+			grid-column: auto;
+		}
+	}
+</style>

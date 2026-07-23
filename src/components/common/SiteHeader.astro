@@ -1,6 +1,14 @@
 ---
 import SiteLogo from "./SiteLogo.astro";
-import { getWhatsAppUrl } from "../../config/site";
+
+import {
+	getWhatsAppUrl,
+	siteConfig as fallbackSiteConfig,
+} from "../../config/site";
+
+import type {
+	RuntimeSiteConfig,
+} from "../../types/site";
 
 interface NavigationItem {
 	label: string;
@@ -9,6 +17,7 @@ interface NavigationItem {
 }
 
 interface Props {
+	site?: RuntimeSiteConfig;
 	navigation?: NavigationItem[];
 	sticky?: boolean;
 	logoHref?: string;
@@ -39,15 +48,23 @@ const defaultNavigation: NavigationItem[] = [
 ];
 
 const {
+	site = fallbackSiteConfig,
 	navigation = defaultNavigation,
 	sticky = true,
 	logoHref = "/",
 	logoIdPrefix = "site-header-logo",
 	ctaLabel = "Falar com a Noden",
-	ctaHref = getWhatsAppUrl(),
+	ctaHref,
 	currentPath = Astro.url.pathname,
 	class: className = "",
 } = Astro.props;
+
+const resolvedCtaHref =
+	ctaHref ??
+	getWhatsAppUrl(
+		undefined,
+		site,
+	);
 
 const normalizePath = (path: string) => {
 	if (path === "/") {
@@ -81,8 +98,8 @@ const isActive = (href: string) => {
 };
 
 const ctaExternal =
-	ctaHref.startsWith("http://") ||
-	ctaHref.startsWith("https://");
+	resolvedCtaHref.startsWith("http://") ||
+	resolvedCtaHref.startsWith("https://");
 ---
 
 <header
@@ -127,7 +144,7 @@ const ctaExternal =
 
 		<a
 			class="site-header__cta site-header__desktop-cta"
-			href={ctaHref}
+			href={resolvedCtaHref}
 			target={ctaExternal ? "_blank" : undefined}
 			rel={ctaExternal ? "noopener noreferrer" : undefined}
 		>
@@ -208,7 +225,7 @@ const ctaExternal =
 
 				<a
 					class="site-header__cta site-header__mobile-cta"
-					href={ctaHref}
+					href={resolvedCtaHref}
 					target={ctaExternal ? "_blank" : undefined}
 					rel={ctaExternal ? "noopener noreferrer" : undefined}
 				>
