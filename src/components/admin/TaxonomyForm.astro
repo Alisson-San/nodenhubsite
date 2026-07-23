@@ -1,0 +1,783 @@
+---
+import type {
+	Tables,
+} from "../../types/database.types";
+
+import {
+	catalogIconOptions,
+	getCatalogIconSymbol,
+} from "../../lib/admin/catalogTaxonomy";
+
+import type {
+	TaxonomyEntityType,
+} from "../../lib/admin/catalogTaxonomy";
+
+type CategoryRow =
+	Tables<"catalog_categories">;
+
+type TierRow =
+	Tables<"catalog_tiers">;
+
+type BadgeRow =
+	Tables<"catalog_badges">;
+
+interface ServicePageOption {
+	id: string;
+	division: "home" | "game" | "data";
+	label: string;
+}
+
+interface Props {
+	entityType: TaxonomyEntityType;
+	item?:
+		| CategoryRow
+		| TierRow
+		| BadgeRow;
+	servicePages?: ServicePageOption[];
+	defaultSortOrder?: number;
+	submitLabel: string;
+}
+
+const {
+	entityType,
+	item,
+	servicePages = [],
+	defaultSortOrder = 0,
+	submitLabel,
+} = Astro.props;
+
+const category =
+	entityType === "category"
+		? item as CategoryRow | undefined
+		: undefined;
+
+const tier =
+	entityType === "tier"
+		? item as TierRow | undefined
+		: undefined;
+
+const badge =
+	entityType === "badge"
+		? item as BadgeRow | undefined
+		: undefined;
+
+const name =
+	item?.name ?? "";
+
+const slug =
+	item?.slug ?? "";
+
+const description =
+	category?.description ??
+	tier?.description ??
+	"";
+
+const iconKey =
+	category?.icon_key ??
+	badge?.icon_key ??
+	"";
+
+const primaryColor =
+	category?.color ??
+	tier?.color ??
+	"#2387ff";
+
+const textColor =
+	badge?.text_color ??
+	"#ffffff";
+
+const backgroundColor =
+	badge?.background_color ??
+	"#17375f";
+
+const borderColor =
+	badge?.border_color ??
+	"#2f78c8";
+
+const sortOrder =
+	item?.sort_order ??
+	defaultSortOrder;
+
+const isActive =
+	item?.is_active ??
+	true;
+
+const previewSymbol =
+	getCatalogIconSymbol(
+		iconKey,
+	);
+
+const action =
+	"/api/admin/catalog/taxonomy/save";
+---
+
+<form
+	class="taxonomy-form"
+	method="post"
+	action={action}
+	data-taxonomy-form
+	data-entity-type={entityType}
+>
+	<input
+		type="hidden"
+		name="entity_type"
+		value={entityType}
+	/>
+
+	{
+		item && (
+			<input
+				type="hidden"
+				name="item_id"
+				value={item.id}
+			/>
+		)
+	}
+
+	<div class="fields">
+		<label>
+			<span>Nome</span>
+
+			<input
+				type="text"
+				name="name"
+				value={name}
+				maxlength="80"
+				placeholder={
+					entityType === "category"
+						? "Limpeza"
+						: entityType === "tier"
+							? "Essencial"
+							: "Mais popular"
+				}
+				required
+			/>
+		</label>
+
+		<label>
+			<span>Identificador</span>
+
+			<input
+				type="text"
+				name="slug"
+				value={slug}
+				maxlength="80"
+				pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+				placeholder="mais-popular"
+				autocomplete="off"
+				required
+				data-slug-input
+			/>
+		</label>
+
+		{
+			entityType === "category" && (
+				<label>
+					<span>Divisão</span>
+
+					{
+						category ? (
+							<>
+								<select disabled>
+									{
+										servicePages.map(
+											(page) => (
+												<option
+													value={page.id}
+													selected={
+														page.id ===
+														category.service_page_id
+													}
+												>
+													{page.label}
+												</option>
+											),
+										)
+									}
+								</select>
+
+								<input
+									type="hidden"
+									name="service_page_id"
+									value={
+										category.service_page_id
+									}
+								/>
+							</>
+						) : (
+							<select
+								name="service_page_id"
+								required
+							>
+								<option value="">
+									Selecione
+								</option>
+
+								{
+									servicePages.map(
+										(page) => (
+											<option
+												value={page.id}
+											>
+												{page.label}
+											</option>
+										),
+									)
+								}
+							</select>
+						)
+					}
+				</label>
+			)
+		}
+
+		{
+			(entityType === "category" ||
+				entityType === "badge") && (
+				<label>
+					<span>Ícone</span>
+
+					<select
+						name="icon_key"
+						data-icon-input
+					>
+						<option
+							value=""
+							data-symbol="🏷️"
+						>
+							Sem ícone específico
+						</option>
+
+						{
+							catalogIconOptions.map(
+								(option) => (
+									<option
+										value={option.value}
+										data-symbol={
+											option.symbol
+										}
+										selected={
+											option.value ===
+											iconKey
+										}
+									>
+										{option.symbol}{" "}
+										{option.label}
+									</option>
+								),
+							)
+						}
+					</select>
+				</label>
+			)
+		}
+
+		{
+			(entityType === "category" ||
+				entityType === "tier") && (
+				<label>
+					<span>Cor</span>
+
+					<div class="color-field">
+						<input
+							type="color"
+							name="color"
+							value={primaryColor}
+							aria-label="Selecionar cor"
+							data-primary-color
+						/>
+
+						<output>
+							{primaryColor}
+						</output>
+					</div>
+				</label>
+			)
+		}
+
+		{
+			entityType === "badge" && (
+				<>
+					<label>
+						<span>Cor do texto</span>
+
+						<div class="color-field">
+							<input
+								type="color"
+								name="text_color"
+								value={textColor}
+								aria-label="Cor do texto"
+								data-text-color
+							/>
+
+							<output>
+								{textColor}
+							</output>
+						</div>
+					</label>
+
+					<label>
+						<span>Cor de fundo</span>
+
+						<div class="color-field">
+							<input
+								type="color"
+								name="background_color"
+								value={backgroundColor}
+								aria-label="Cor de fundo"
+								data-background-color
+							/>
+
+							<output>
+								{backgroundColor}
+							</output>
+						</div>
+					</label>
+
+					<label>
+						<span>Cor da borda</span>
+
+						<div class="color-field">
+							<input
+								type="color"
+								name="border_color"
+								value={borderColor}
+								aria-label="Cor da borda"
+								data-border-color
+							/>
+
+							<output>
+								{borderColor}
+							</output>
+						</div>
+					</label>
+				</>
+			)
+		}
+
+		{
+			(entityType === "category" ||
+				entityType === "tier") && (
+				<label class="full">
+					<span>Descrição opcional</span>
+
+					<textarea
+						name="description"
+						rows="3"
+						maxlength="500"
+						placeholder={
+							entityType === "category"
+								? "Agrupa serviços relacionados."
+								: "Indica a modalidade ou profundidade da solução."
+						}
+					>{description}</textarea>
+				</label>
+			)
+		}
+
+		<label>
+			<span>Ordem</span>
+
+			<input
+				type="number"
+				name="sort_order"
+				min="0"
+				step="1"
+				value={sortOrder}
+				required
+			/>
+		</label>
+
+		<label class="checkbox">
+			<input
+				type="checkbox"
+				name="is_active"
+				value="true"
+				checked={isActive}
+			/>
+
+			<span>
+				Disponível no catálogo
+			</span>
+		</label>
+	</div>
+
+	<section
+		class:list={[
+			"preview",
+			`preview--${entityType}`,
+		]}
+		aria-label="Prévia visual"
+	>
+		<span>Prévia</span>
+
+		<div
+			class="preview__surface"
+			style={
+				entityType === "badge"
+					? `--preview-text:${textColor};--preview-background:${backgroundColor};--preview-border:${borderColor};`
+					: `--preview-primary:${primaryColor};`
+			}
+			data-preview-surface
+		>
+			{
+				entityType !== "tier" && (
+					<span data-preview-icon>
+						{previewSymbol}
+					</span>
+				)
+			}
+
+			<strong data-preview-name>
+				{name || "Novo registro"}
+			</strong>
+		</div>
+	</section>
+
+	<footer>
+		<button type="submit">
+			{submitLabel}
+		</button>
+	</footer>
+</form>
+
+<script>
+	const slugify = (
+		value: string,
+	): string =>
+		value
+			.normalize("NFD")
+			.replace(
+				/[\u0300-\u036f]/g,
+				"",
+			)
+			.toLocaleLowerCase("pt-BR")
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-+|-+$/g, "");
+
+	document
+		.querySelectorAll<HTMLFormElement>(
+			"[data-taxonomy-form]",
+		)
+		.forEach((form) => {
+			const nameInput =
+				form.querySelector<HTMLInputElement>(
+					'input[name="name"]',
+				);
+
+			const slugInput =
+				form.querySelector<HTMLInputElement>(
+					"[data-slug-input]",
+				);
+
+			const iconInput =
+				form.querySelector<HTMLSelectElement>(
+					"[data-icon-input]",
+				);
+
+			const previewName =
+				form.querySelector<HTMLElement>(
+					"[data-preview-name]",
+				);
+
+			const previewIcon =
+				form.querySelector<HTMLElement>(
+					"[data-preview-icon]",
+				);
+
+			const previewSurface =
+				form.querySelector<HTMLElement>(
+					"[data-preview-surface]",
+				);
+
+			let slugWasEdited =
+				Boolean(slugInput?.value);
+
+			slugInput?.addEventListener(
+				"input",
+				() => {
+					slugWasEdited = true;
+				},
+			);
+
+			nameInput?.addEventListener(
+				"input",
+				() => {
+					if (previewName) {
+						previewName.textContent =
+							nameInput.value ||
+							"Novo registro";
+					}
+
+					if (
+						slugInput &&
+						!slugWasEdited
+					) {
+						slugInput.value =
+							slugify(
+								nameInput.value,
+							);
+					}
+				},
+			);
+
+			iconInput?.addEventListener(
+				"change",
+				() => {
+					if (!previewIcon) {
+						return;
+					}
+
+					const option =
+						iconInput
+							.selectedOptions[0];
+
+					previewIcon.textContent =
+						option?.dataset.symbol ??
+						"🏷️";
+				},
+			);
+
+			const connectColor = (
+				selector: string,
+				property: string,
+			) => {
+				const input =
+					form.querySelector<HTMLInputElement>(
+						selector,
+					);
+
+				const output =
+					input?.parentElement
+						?.querySelector<HTMLOutputElement>(
+							"output",
+						);
+
+				input?.addEventListener(
+					"input",
+					() => {
+						if (output) {
+							output.value =
+								input.value;
+						}
+
+						previewSurface
+							?.style.setProperty(
+								property,
+								input.value,
+							);
+					},
+				);
+			};
+
+			connectColor(
+				"[data-primary-color]",
+				"--preview-primary",
+			);
+
+			connectColor(
+				"[data-text-color]",
+				"--preview-text",
+			);
+
+			connectColor(
+				"[data-background-color]",
+				"--preview-background",
+			);
+
+			connectColor(
+				"[data-border-color]",
+				"--preview-border",
+			);
+		});
+</script>
+
+<style>
+	.taxonomy-form {
+		padding: 24px;
+	}
+
+	.fields {
+		display: grid;
+		grid-template-columns:
+			repeat(2, minmax(0, 1fr));
+		gap: 17px;
+	}
+
+	label {
+		display: grid;
+		align-content: start;
+		gap: 8px;
+	}
+
+	label > span,
+	.preview > span {
+		color: #99abc1;
+		font-size: 0.69rem;
+		font-weight: 600;
+	}
+
+	.full {
+		grid-column: 1 / -1;
+	}
+
+	input,
+	select,
+	textarea {
+		width: 100%;
+		padding: 12px 13px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 9px;
+		outline: none;
+		background: rgba(2, 8, 16, 0.72);
+		color: white;
+		font: inherit;
+		line-height: 1.45;
+	}
+
+	input:focus,
+	select:focus,
+	textarea:focus {
+		border-color: #428eff;
+		box-shadow:
+			0 0 0 3px
+			rgba(48, 132, 255, 0.12);
+	}
+
+	select:disabled {
+		opacity: 0.72;
+	}
+
+	.checkbox {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		min-height: 45px;
+		padding-top: 23px;
+	}
+
+	.checkbox input {
+		width: 18px;
+		height: 18px;
+	}
+
+	.color-field {
+		display: grid;
+		grid-template-columns: 58px 1fr;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.color-field input {
+		height: 45px;
+		padding: 4px;
+		cursor: pointer;
+	}
+
+	.color-field output {
+		padding: 12px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.2);
+		border-radius: 9px;
+		background: rgba(255, 255, 255, 0.025);
+		color: #aab9cb;
+		font-family: monospace;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+	}
+
+	.preview {
+		display: grid;
+		gap: 10px;
+		margin-top: 22px;
+		padding: 16px;
+		border: 1px dashed
+			rgba(105, 145, 205, 0.22);
+		border-radius: 12px;
+		background: rgba(3, 10, 20, 0.35);
+	}
+
+	.preview__surface {
+		display: inline-flex;
+		width: fit-content;
+		max-width: 100%;
+		min-height: 32px;
+		padding: 6px 10px;
+		align-items: center;
+		gap: 7px;
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--preview-primary, #2387ff)
+					48%,
+				transparent
+			);
+		border-radius: 999px;
+		background:
+			color-mix(
+				in srgb,
+				var(--preview-primary, #2387ff)
+					15%,
+				transparent
+			);
+		color:
+			color-mix(
+				in srgb,
+				var(--preview-primary, #2387ff)
+					42%,
+				white
+			);
+		font-size: 0.7rem;
+		overflow-wrap: anywhere;
+	}
+
+	.preview--badge .preview__surface {
+		border-color:
+			var(--preview-border);
+		background:
+			var(--preview-background);
+		color:
+			var(--preview-text);
+	}
+
+	.preview__surface strong {
+		font-size: inherit;
+	}
+
+	footer {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 22px;
+	}
+
+	footer button {
+		padding: 12px 18px;
+		border: 1px solid
+			rgba(80, 151, 255, 0.58);
+		border-radius: 9px;
+		cursor: pointer;
+		background:
+			linear-gradient(
+				135deg,
+				#245fc7,
+				#347dff
+			);
+		color: white;
+		font-weight: 700;
+	}
+
+	@media (max-width: 700px) {
+		.fields {
+			grid-template-columns: 1fr;
+		}
+
+		.full {
+			grid-column: auto;
+		}
+
+		.checkbox {
+			padding-top: 0;
+		}
+	}
+</style>

@@ -3,8 +3,7 @@ import type {
 } from "astro";
 
 import type {
-	TablesInsert,
-	TablesUpdate,
+	Database,
 } from "../../../../../types/database.types";
 
 import {
@@ -16,6 +15,7 @@ import {
 } from "../../../../../lib/admin/divisions";
 
 import {
+	isCatalogItemKind,
 	isPriceType,
 	priceRequiresValue,
 } from "../../../../../lib/admin/pricing";
@@ -25,247 +25,194 @@ export const prerender = false;
 const uuidPattern =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function hasValidOrigin(
-	request: Request,
-): boolean {
-	const origin =
-		request.headers.get("Origin");
+type GeneratedSavePricingArgs =
+	Database["public"]["Functions"]["save_pricing_catalog_item"]["Args"];
 
-	if (!origin) {
-		return false;
-	}
+type SavePricingArgs =
+	Omit<
+		GeneratedSavePricingArgs,
+		| "p_pricing_id"
+		| "p_price"
+		| "p_compare_at_price"
+		| "p_price_prefix"
+		| "p_price_label"
+		| "p_price_suffix"
+		| "p_category_id"
+		| "p_tier_id"
+		| "p_note"
+		| "p_cta_label"
+		| "p_cta_message"
+	> & {
+		p_pricing_id:
+			string | null;
 
+		p_price:
+			number | null;
+
+		p_compare_at_price:
+			number | null;
+
+		p_price_prefix:
+			string | null;
+
+		p_price_label:
+			string | null;
+
+		p_price_suffix:
+			string | null;
+
+		p_category_id:
+			string | null;
+
+		p_tier_id:
+			string | null;
+
+		p_note:
+			string | null;
+
+		p_cta_label:
+			string | null;
+
+		p_cta_message:
+			string | null;
+	};
+
+function hasValidOrigin(request: Request): boolean {
+	const origin = request.headers.get("Origin");
+	if (!origin) return false;
 	try {
-		return (
-			new URL(origin).origin ===
-			new URL(request.url).origin
-		);
+		return new URL(origin).origin === new URL(request.url).origin;
 	} catch {
 		return false;
 	}
 }
 
-function readText(
-	formData: FormData,
-	name: string,
-): string {
-	return String(
-		formData.get(name) ?? "",
-	).trim();
+function readText(formData: FormData, name: string): string {
+	return String(formData.get(name) ?? "").trim();
 }
 
-function optionalText(
-	value: string,
-): string | null {
-	return value.length > 0
-		? value
-		: null;
+function optionalText(value: string): string | null {
+	return value.length > 0 ? value : null;
 }
 
-function parseLines(
-	value: string,
-): string[] {
-	return value
-		.split(/\r?\n/)
-		.map((entry) =>
-			entry.trim(),
-		)
-		.filter(Boolean);
+function parseLines(value: string): string[] {
+	return value.split(/\r?\n/).map((entry) => entry.trim()).filter(Boolean);
 }
 
-function parseSortOrder(
-	value: string,
-): number | null {
-	const parsed =
-		Number.parseInt(
-			value,
-			10,
-		);
+function parseSortOrder(value: string): number | null {
+	const parsed = Number.parseInt(value, 10);
+	return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function parsePrice(value: string): number | null {
+	const cleaned = value.replace(/R\$/gi, "").replace(/\s/g, "");
+	if (!cleaned) return null;
+	const normalized = cleaned.includes(",")
+		? cleaned.replace(/\./g, "").replace(",", ".")
+		: cleaned;
+	const parsed = Number(normalized);
+	if (!Number.isFinite(parsed) || parsed < 0) return null;
+	return Math.round(parsed * 100) / 100;
+}
+
+function optionalUuid(value: string): string | null | undefined {
+	if (!value) return null;
+	return uuidPattern.test(value) ? value : undefined;
+}
+
+export const POST: APIRoute = async (context) => {
+	const division = context.params.division;
+	if (!isServiceDivision(division)) {
+		return new Response("Divisão inválida.", { status: 404 });
+	}
+
+	if (!context.locals.user || !context.locals.isAdmin) {
+		return new Response("Acesso negado.", { status: 403 });
+	}
+
+	const redirectWith = (query: string) =>
+		context.redirect(`/admin/catalog/${division}/prices?${query}#pricing`, 303);
+
+	if (!hasValidOrigin(context.request)) return redirectWith("error=origin");
+
+	const formData = await context.request.formData();
+	const pricingId = readText(formData, "pricing_id");
+	const name = readText(formData, "name");
+	const description = readText(formData, "description");
+	const rawPriceType = readText(formData, "price_type");
+	const rawItemKind = readText(formData, "item_kind");
+	const sortOrder = parseSortOrder(readText(formData, "sort_order"));
+	const categoryId = optionalUuid(readText(formData, "category_id"));
+	const tierId = optionalUuid(readText(formData, "tier_id"));
+	const badgeIds = [...new Set(formData.getAll("badge_ids").map((value) => String(value).trim()))];
 
 	if (
-		!Number.isInteger(parsed) ||
-		parsed < 0
+		!name || name.length > 140 ||
+		!description || description.length > 1200 ||
+		!isPriceType(rawPriceType) ||
+		!isCatalogItemKind(rawItemKind) ||
+		sortOrder === null ||
+		categoryId === undefined ||
+		tierId === undefined ||
+		badgeIds.some((id) => !uuidPattern.test(id)) ||
+		(pricingId && !uuidPattern.test(pricingId))
 	) {
-		return null;
+		return redirectWith("error=validation");
 	}
 
-	return parsed;
-}
-
-function parsePrice(
-	value: string,
-): number | null {
-	const cleaned = value
-		.replace(/R\$/gi, "")
-		.replace(/\s/g, "");
-
-	if (!cleaned) {
-		return null;
+	const priceType = rawPriceType;
+	const rawPrice = readText(formData, "price");
+	const parsedPrice = parsePrice(rawPrice);
+	if (priceRequiresValue(priceType) && (!rawPrice || parsedPrice === null)) {
+		return redirectWith("error=validation");
 	}
 
-	const normalized =
-		cleaned.includes(",")
-			? cleaned
-					.replace(/\./g, "")
-					.replace(",", ".")
-			: cleaned;
-
-	const parsed =
-		Number(normalized);
-
-	if (
-		!Number.isFinite(parsed) ||
-		parsed < 0
-	) {
-		return null;
+	const rawComparePrice = readText(formData, "compare_at_price");
+	const compareAtPrice = parsePrice(rawComparePrice);
+	if (rawComparePrice && (compareAtPrice === null || parsedPrice === null || compareAtPrice <= parsedPrice)) {
+		return redirectWith("error=promotion");
 	}
 
-	return Math.round(
-		parsed * 100,
-	) / 100;
-}
+	try {
+		const supabase = createSupabaseRequestClient({ request: context.request, cookies: context.cookies });
+		const { data: page, error: pageError } = await supabase
+			.from("service_pages")
+			.select("id")
+			.eq("division", division)
+			.single();
 
-export const POST: APIRoute =
-	async (context) => {
-		const division =
-			context.params.division;
+		if (pageError || !page) throw pageError ?? new Error("Página não encontrada.");
 
-		if (
-			!isServiceDivision(
-				division,
-			)
-		) {
-			return new Response(
-				"Divisão inválida.",
-				{
-					status: 404,
-				},
-			);
-		}
+		const rpcArgs = {
+			p_pricing_id:
+				pricingId ||
+				null,
 
-		if (
-			!context.locals.user ||
-			!context.locals.isAdmin
-		) {
-			return new Response(
-				"Acesso negado.",
-				{
-					status: 403,
-				},
-			);
-		}
+			p_service_page_id:
+				page.id,
 
-		if (
-			!hasValidOrigin(
-				context.request,
-			)
-		) {
-			return context.redirect(
-				`/admin/catalog/${division}/prices?error=origin`,
-				303,
-			);
-		}
+			p_name:
+				name,
 
-		const formData =
-			await context.request
-				.formData();
+			p_description:
+				description,
 
-		const pricingId =
-			readText(
-				formData,
-				"pricing_id",
-			);
-
-		const name =
-			readText(
-				formData,
-				"name",
-			);
-
-		const description =
-			readText(
-				formData,
-				"description",
-			);
-
-		const rawPriceType =
-			readText(
-				formData,
-				"price_type",
-			);
-
-		const sortOrder =
-			parseSortOrder(
-				readText(
-					formData,
-					"sort_order",
-				),
-			);
-
-		if (
-			!name ||
-			!description ||
-			!isPriceType(
-				rawPriceType,
-			) ||
-			sortOrder === null
-		) {
-			return context.redirect(
-				`/admin/catalog/${division}/prices?error=validation`,
-				303,
-			);
-		}
-
-		const priceType =
-			rawPriceType;
-
-		const parsedPrice =
-			parsePrice(
-				readText(
-					formData,
-					"price",
-				),
-			);
-
-		if (
-			priceRequiresValue(
-				priceType,
-			) &&
-			parsedPrice === null
-		) {
-			return context.redirect(
-				`/admin/catalog/${division}/prices?error=validation`,
-				303,
-			);
-		}
-
-		if (
-			pricingId &&
-			!uuidPattern.test(
-				pricingId,
-			)
-		) {
-			return context.redirect(
-				`/admin/catalog/${division}/prices?error=not-found`,
-				303,
-			);
-		}
-
-		const commonPayload = {
-			name,
-			description,
-
-			price_type:
+			p_price_type:
 				priceType,
 
-			price:
+			p_price:
 				priceRequiresValue(
 					priceType,
 				)
 					? parsedPrice
 					: null,
 
-			price_prefix:
+			p_compare_at_price:
+				rawComparePrice
+					? compareAtPrice
+					: null,
+
+			p_price_prefix:
 				optionalText(
 					readText(
 						formData,
@@ -273,7 +220,7 @@ export const POST: APIRoute =
 					),
 				),
 
-			price_label:
+			p_price_label:
 				optionalText(
 					readText(
 						formData,
@@ -281,7 +228,7 @@ export const POST: APIRoute =
 					),
 				),
 
-			price_suffix:
+			p_price_suffix:
 				optionalText(
 					readText(
 						formData,
@@ -289,7 +236,7 @@ export const POST: APIRoute =
 					),
 				),
 
-			features:
+			p_features:
 				parseLines(
 					readText(
 						formData,
@@ -297,15 +244,16 @@ export const POST: APIRoute =
 					),
 				),
 
-			badge:
-				optionalText(
-					readText(
-						formData,
-						"badge",
-					),
-				),
+			p_category_id:
+				categoryId,
 
-			note:
+			p_tier_id:
+				tierId,
+
+			p_item_kind:
+				rawItemKind,
+
+			p_note:
 				optionalText(
 					readText(
 						formData,
@@ -313,7 +261,20 @@ export const POST: APIRoute =
 					),
 				),
 
-			cta_label:
+			p_is_featured:
+				formData.get(
+					"is_featured",
+				) === "true",
+
+			p_is_active:
+				formData.get(
+					"is_active",
+				) === "true",
+
+			p_sort_order:
+				sortOrder,
+
+			p_cta_label:
 				optionalText(
 					readText(
 						formData,
@@ -321,7 +282,7 @@ export const POST: APIRoute =
 					),
 				),
 
-			cta_message:
+			p_cta_message:
 				optionalText(
 					readText(
 						formData,
@@ -329,126 +290,33 @@ export const POST: APIRoute =
 					),
 				),
 
-			is_featured:
-				formData.get(
-					"is_featured",
-				) === "true",
+			p_badge_ids:
+				badgeIds,
 
-			is_active:
-				formData.get(
-					"is_active",
-				) === "true",
-
-			sort_order:
-				sortOrder,
-
-			updated_by:
+			p_updated_by:
 				context.locals.user.id,
-		};
+		} satisfies SavePricingArgs;
 
-		try {
-			const supabase =
-				createSupabaseRequestClient({
-					request:
-						context.request,
+		const {
+			data: savedId,
+			error,
+		} = await supabase.rpc(
+			"save_pricing_catalog_item",
 
-					cookies:
-						context.cookies,
-				});
+			rpcArgs as unknown as
+				GeneratedSavePricingArgs,
+		);
 
-			const {
-				data: page,
-				error: pageError,
-			} = await supabase
-				.from("service_pages")
-				.select("id")
-				.eq(
-					"division",
-					division,
-				)
-				.single();
-
-			if (
-				pageError ||
-				!page
-			) {
-				throw pageError ??
-					new Error(
-						"Página não encontrada.",
-					);
-			}
-
-			if (pricingId) {
-				const payload:
-					TablesUpdate<"pricing_items"> = {
-					...commonPayload,
-				};
-
-				const {
-					data: updated,
-					error,
-				} = await supabase
-					.from("pricing_items")
-					.update(payload)
-					.eq(
-						"id",
-						pricingId,
-					)
-					.eq(
-						"service_page_id",
-						page.id,
-					)
-					.select("id")
-					.maybeSingle();
-
-				if (error) {
-					throw error;
-				}
-
-				if (!updated) {
-					return context.redirect(
-						`/admin/catalog/${division}/prices?error=not-found`,
-						303,
-					);
-				}
-
-				return context.redirect(
-					`/admin/catalog/${division}/prices?saved=updated#pricing`,
-					303,
-				);
-			}
-
-			const payload:
-				TablesInsert<"pricing_items"> = {
-				...commonPayload,
-
-				service_page_id:
-					page.id,
-			};
-
-			const {
-				error,
-			} = await supabase
-				.from("pricing_items")
-				.insert(payload);
-
-			if (error) {
-				throw error;
-			}
-
-			return context.redirect(
-				`/admin/catalog/${division}/prices?saved=created#pricing`,
-				303,
-			);
-		} catch (error) {
-			console.error(
-				"[Noden Admin] Falha ao salvar preço.",
-				error,
-			);
-
-			return context.redirect(
-				`/admin/catalog/${division}/prices?error=save`,
-				303,
-			);
+		if (error) {
+			if (error.code === "P0002") return redirectWith("error=not-found");
+			if (error.code === "22023" || error.code === "23503") return redirectWith("error=validation");
+			throw error;
 		}
-	};
+
+		if (!savedId) throw new Error("Item não salvo.");
+		return redirectWith(pricingId ? "saved=updated" : "saved=created");
+	} catch (error) {
+		console.error("[Noden Admin] Falha ao salvar item do catálogo.", error);
+		return redirectWith("error=save");
+	}
+};

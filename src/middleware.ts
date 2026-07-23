@@ -6,6 +6,11 @@ import {
 	createSupabaseRequestClient,
 } from "./lib/supabase/request";
 
+import {
+	createDevAdminUser,
+	isDevAdminBypassEnabled,
+} from "./lib/admin/devAdminBypass";
+
 const publicAdminPaths = new Set([
 	"/admin/login",
 	"/api/admin/login",
@@ -58,6 +63,8 @@ export const onRequest =
 		) => {
 			context.locals.user = null;
 			context.locals.isAdmin = false;
+			context.locals.isDevAdminBypass =
+				false;
 
 			const pathname =
 				context.url.pathname;
@@ -78,6 +85,45 @@ export const onRequest =
 
 					return response;
 				};
+
+			if (
+				isDevAdminBypassEnabled(
+					context.request,
+				)
+			) {
+				const user =
+					createDevAdminUser();
+
+				context.locals.user =
+					user;
+
+				context.locals.isAdmin =
+					true;
+
+				context.locals
+					.isDevAdminBypass =
+					true;
+
+				if (
+					pathname ===
+					"/admin/login"
+				) {
+					return context.redirect(
+						"/admin",
+						303,
+					);
+				}
+
+				const response =
+					await continueWithoutCache();
+
+				response.headers.set(
+					"X-Noden-Admin-Mode",
+					"development-bypass",
+				);
+
+				return response;
+			}
 
 			const supabase =
 				createSupabaseRequestClient({

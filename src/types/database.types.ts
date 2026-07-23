@@ -626,6 +626,18 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      move_catalog_badge: {
+        Args: { p_direction: number; p_item_id: string }
+        Returns: boolean
+      }
+      move_catalog_category: {
+        Args: { p_direction: number; p_item_id: string }
+        Returns: boolean
+      }
+      move_catalog_tier: {
+        Args: { p_direction: number; p_item_id: string }
+        Returns: boolean
+      }
       move_pricing_item: {
         Args: { p_direction: number; p_item_id: string }
         Returns: boolean
@@ -633,6 +645,33 @@ export type Database = {
       move_service_item: {
         Args: { p_direction: number; p_item_id: string }
         Returns: boolean
+      }
+      save_pricing_catalog_item: {
+        Args: {
+          p_badge_ids: string[]
+          p_category_id: string
+          p_compare_at_price: number
+          p_cta_label: string
+          p_cta_message: string
+          p_description: string
+          p_features: Json
+          p_is_active: boolean
+          p_is_featured: boolean
+          p_item_kind: Database["public"]["Enums"]["catalog_item_kind"]
+          p_name: string
+          p_note: string
+          p_price: number
+          p_price_label: string
+          p_price_prefix: string
+          p_price_suffix: string
+          p_price_type: Database["public"]["Enums"]["price_type"]
+          p_pricing_id: string
+          p_service_page_id: string
+          p_sort_order: number
+          p_tier_id: string
+          p_updated_by: string
+        }
+        Returns: string
       }
     }
     Enums: {

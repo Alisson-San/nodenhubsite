@@ -51,8 +51,34 @@ const pages = [...(data ?? [])]
 
 <AdminLayout
 	title="Catálogo"
-	description="Gerencie os serviços e valores exibidos em cada divisão."
+	description="Gerencie os serviços, valores e a estrutura comercial de cada divisão."
 >
+	<a
+		slot="actions"
+		class="taxonomy-link"
+		href="/admin/catalog/taxonomy"
+	>
+		Categorias, níveis e selos →
+	</a>
+
+	<section class="taxonomy-callout">
+		<div>
+			<span>CATÁLOGO 2.0</span>
+
+			<h2>Estrutura reutilizável</h2>
+
+			<p>
+				Organize os itens por categoria,
+				diferencie níveis e cadastre selos
+				com cores e ícones próprios.
+			</p>
+		</div>
+
+		<a href="/admin/catalog/taxonomy">
+			Abrir estrutura do catálogo
+		</a>
+	</section>
+
 	{
 		error ? (
 			<p
@@ -110,6 +136,61 @@ const pages = [...(data ?? [])]
 </AdminLayout>
 
 <style>
+	.taxonomy-link,
+	.taxonomy-callout > a {
+		display: inline-flex;
+		min-height: 42px;
+		padding: 0 15px;
+		align-items: center;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 10px;
+		background: rgba(42, 93, 168, 0.13);
+		color: #d9e7ff;
+		font-size: 0.72rem;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.taxonomy-callout {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 28px;
+		margin-bottom: 24px;
+		padding: 25px 27px;
+		border: 1px solid
+			rgba(85, 144, 235, 0.23);
+		border-radius: 18px;
+		background:
+			linear-gradient(
+				135deg,
+				rgba(30, 83, 166, 0.15),
+				rgba(7, 17, 31, 0.84)
+			);
+	}
+
+	.taxonomy-callout span {
+		color: #65a4ff;
+		letter-spacing: 0.15em;
+		font-size: 0.6rem;
+		font-weight: 700;
+	}
+
+	.taxonomy-callout h2 {
+		margin: 7px 0 0;
+		font-size: 1.25rem;
+		font-weight: 500;
+	}
+
+	.taxonomy-callout p {
+		max-width: 620px;
+		margin: 8px 0 0;
+		color: #8497b0;
+		font-size: 0.76rem;
+		line-height: 1.55;
+	}
+
 	.catalog-grid {
 		display: grid;
 		grid-template-columns:
@@ -173,7 +254,7 @@ const pages = [...(data ?? [])]
 		color: #75e2ae;
 	}
 
-	h2 {
+	.catalog-card h2 {
 		margin: 46px 0 0;
 		font-size: 1.45rem;
 		font-weight: 500;
@@ -204,6 +285,15 @@ const pages = [...(data ?? [])]
 	}
 
 	@media (max-width: 850px) {
+		.taxonomy-callout {
+			align-items: stretch;
+			flex-direction: column;
+		}
+
+		.taxonomy-callout > a {
+			justify-content: center;
+		}
+
 		.catalog-grid {
 			grid-template-columns: 1fr;
 		}

@@ -5,6 +5,9 @@ import type {
 export type PriceType =
 	Enums<"price_type">;
 
+export type CatalogItemKind =
+	Enums<"catalog_item_kind">;
+
 export const priceTypeOptions: Array<{
 	value: PriceType;
 	label: string;
@@ -36,10 +39,62 @@ export const priceTypeOptions: Array<{
 	},
 ];
 
+export const catalogItemKindOptions:
+	Array<{
+		value: CatalogItemKind;
+		label: string;
+		description: string;
+	}> = [
+		{
+			value: "service",
+			label: "Serviço",
+			description:
+				"Atendimento ou execução técnica.",
+		},
+		{
+			value: "package",
+			label: "Pacote",
+			description:
+				"Conjunto de serviços vendido como solução.",
+		},
+		{
+			value: "product",
+			label: "Produto",
+			description:
+				"Item físico ou digital comercializado.",
+		},
+		{
+			value: "consulting",
+			label: "Consultoria",
+			description:
+				"Diagnóstico, orientação ou projeto especializado.",
+		},
+	];
+
+export const catalogItemKindLabels:
+	Record<
+		CatalogItemKind,
+		string
+	> = {
+		service: "Serviço",
+		package: "Pacote",
+		product: "Produto",
+		consulting: "Consultoria",
+	};
+
 export function isPriceType(
 	value: string,
 ): value is PriceType {
 	return priceTypeOptions.some(
+		(option) =>
+			option.value === value,
+	);
+}
+
+export function isCatalogItemKind(
+	value: string,
+): value is CatalogItemKind {
+	return catalogItemKindOptions.some(
 		(option) =>
 			option.value === value,
 	);

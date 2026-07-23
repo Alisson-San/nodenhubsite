@@ -1,0 +1,1175 @@
+---
+export const prerender = false;
+
+import AdminLayout
+	from "../../../layouts/AdminLayout.astro";
+
+import TaxonomyForm
+	from "../../../components/admin/TaxonomyForm.astro";
+
+import TaxonomyItemControls
+	from "../../../components/admin/TaxonomyItemControls.astro";
+
+import {
+	createSupabaseRequestClient,
+} from "../../../lib/supabase/request";
+
+import {
+	divisionLabels,
+	serviceDivisions,
+} from "../../../lib/admin/divisions";
+
+import {
+	getCatalogIconSymbol,
+} from "../../../lib/admin/catalogTaxonomy";
+
+const supabase =
+	createSupabaseRequestClient({
+		request: Astro.request,
+		cookies: Astro.cookies,
+	});
+
+const [
+	pagesResult,
+	categoriesResult,
+	tiersResult,
+	badgesResult,
+	pricingUsageResult,
+	badgeUsageResult,
+] = await Promise.all([
+	supabase
+		.from("service_pages")
+		.select(`
+			id,
+			division,
+			hero_title
+		`),
+
+	supabase
+		.from("catalog_categories")
+		.select("*")
+		.order(
+			"sort_order",
+			{
+				ascending: true,
+			},
+		)
+		.order(
+			"created_at",
+			{
+				ascending: true,
+			},
+		),
+
+	supabase
+		.from("catalog_tiers")
+		.select("*")
+		.order(
+			"sort_order",
+			{
+				ascending: true,
+			},
+		)
+		.order(
+			"created_at",
+			{
+				ascending: true,
+			},
+		),
+
+	supabase
+		.from("catalog_badges")
+		.select("*")
+		.order(
+			"sort_order",
+			{
+				ascending: true,
+			},
+		)
+		.order(
+			"created_at",
+			{
+				ascending: true,
+			},
+		),
+
+	supabase
+		.from("pricing_items")
+		.select(`
+			category_id,
+			tier_id
+		`),
+
+	supabase
+		.from("pricing_item_badges")
+		.select("badge_id"),
+]);
+
+const loadError =
+	pagesResult.error ??
+	categoriesResult.error ??
+	tiersResult.error ??
+	badgesResult.error ??
+	pricingUsageResult.error ??
+	badgeUsageResult.error;
+
+if (loadError) {
+	console.error(
+		"[Noden Admin] Falha ao carregar taxonomia.",
+		loadError,
+	);
+}
+
+const servicePages =
+	[
+		...(pagesResult.data ?? []),
+	]
+		.sort(
+			(a, b) =>
+				serviceDivisions.indexOf(
+					a.division,
+				) -
+				serviceDivisions.indexOf(
+					b.division,
+				),
+		)
+		.map(
+			(page) => ({
+				...page,
+
+				label:
+					divisionLabels[
+						page.division
+					],
+			}),
+		);
+
+const categories =
+	categoriesResult.data ?? [];
+
+const tiers =
+	tiersResult.data ?? [];
+
+const badges =
+	badgesResult.data ?? [];
+
+const categoryUsage =
+	new Map<string, number>();
+
+const tierUsage =
+	new Map<string, number>();
+
+for (
+	const item of
+		pricingUsageResult.data ?? []
+) {
+	if (item.category_id) {
+		categoryUsage.set(
+			item.category_id,
+			(
+				categoryUsage.get(
+					item.category_id,
+				) ?? 0
+			) + 1,
+		);
+	}
+
+	if (item.tier_id) {
+		tierUsage.set(
+			item.tier_id,
+			(
+				tierUsage.get(
+					item.tier_id,
+				) ?? 0
+			) + 1,
+		);
+	}
+}
+
+const badgeUsage =
+	new Map<string, number>();
+
+for (
+	const item of
+		badgeUsageResult.data ?? []
+) {
+	badgeUsage.set(
+		item.badge_id,
+		(
+			badgeUsage.get(
+				item.badge_id,
+			) ?? 0
+		) + 1,
+	);
+}
+
+function nextOrder(
+	items:
+		Array<{
+			sort_order: number;
+		}>,
+): number {
+	return items.length === 0
+		? 0
+		: Math.max(
+				...items.map(
+					(item) =>
+						item.sort_order,
+				),
+			) + 10;
+}
+
+const nextCategoryOrder =
+	nextOrder(categories);
+
+const nextTierOrder =
+	nextOrder(tiers);
+
+const nextBadgeOrder =
+	nextOrder(badges);
+
+const saved =
+	Astro.url.searchParams.get(
+		"saved",
+	);
+
+const errorCode =
+	Astro.url.searchParams.get(
+		"error",
+	);
+
+const savedMessages:
+	Record<string, string> = {
+	"category-created":
+		"Categoria criada com sucesso.",
+
+	"category-updated":
+		"Categoria atualizada com sucesso.",
+
+	"category-moved":
+		"Ordem das categorias atualizada.",
+
+	"category-deleted":
+		"Categoria excluída permanentemente.",
+
+	"tier-created":
+		"Nível criado com sucesso.",
+
+	"tier-updated":
+		"Nível atualizado com sucesso.",
+
+	"tier-moved":
+		"Ordem dos níveis atualizada.",
+
+	"tier-deleted":
+		"Nível excluído permanentemente.",
+
+	"badge-created":
+		"Selo criado com sucesso.",
+
+	"badge-updated":
+		"Selo atualizado com sucesso.",
+
+	"badge-moved":
+		"Ordem dos selos atualizada.",
+
+	"badge-deleted":
+		"Selo excluído permanentemente.",
+};
+
+const errorMessages:
+	Record<string, string> = {
+	validation:
+		"Revise os campos informados.",
+
+	origin:
+		"A origem da solicitação não foi aceita.",
+
+	duplicate:
+		"Já existe um registro com esse nome ou identificador.",
+
+	"not-found":
+		"O registro informado não foi encontrado.",
+
+	confirmation:
+		"O nome digitado não corresponde ao registro.",
+
+	action:
+		"Não foi possível executar a ação solicitada.",
+
+	save:
+		"Não foi possível salvar as alterações.",
+};
+---
+
+<AdminLayout
+	title="Estrutura do catálogo"
+	description="Cadastre categorias por divisão, níveis de serviço e selos comerciais reutilizáveis."
+>
+	<a
+		slot="actions"
+		class="back-link"
+		href="/admin/catalog"
+	>
+		← Voltar ao catálogo
+	</a>
+
+	{
+		saved &&
+		savedMessages[saved] && (
+			<p
+				class="message success"
+				role="status"
+			>
+				{savedMessages[saved]}
+			</p>
+		)
+	}
+
+	{
+		errorCode && (
+			<p
+				class="message error"
+				role="alert"
+			>
+				{
+					errorMessages[
+						errorCode
+					] ??
+						"Não foi possível concluir a operação."
+				}
+			</p>
+		)
+	}
+
+	{
+		loadError && (
+			<p
+				class="message error"
+				role="alert"
+			>
+				Parte da estrutura do catálogo não pôde ser carregada.
+			</p>
+		)
+	}
+
+	<nav
+		class="section-nav"
+		aria-label="Seções da taxonomia"
+	>
+		<a href="#categories">
+			Categorias
+			<span>{categories.length}</span>
+		</a>
+
+		<a href="#tiers">
+			Níveis
+			<span>{tiers.length}</span>
+		</a>
+
+		<a href="#badges">
+			Selos
+			<span>{badges.length}</span>
+		</a>
+	</nav>
+
+	<section
+		id="categories"
+		class="taxonomy-section"
+	>
+		<header class="section-heading">
+			<div>
+				<p>Categorias</p>
+
+				<h2>
+					Organização por divisão
+				</h2>
+			</div>
+
+			<span>
+				As categorias da Home, Game e Data são independentes.
+			</span>
+		</header>
+
+		<details class="taxonomy-card new">
+			<summary>
+				<span>＋</span>
+
+				<div>
+					<strong>
+						Adicionar categoria
+					</strong>
+
+					<small>
+						Ex.: Limpeza, Formatação ou Manutenção
+					</small>
+				</div>
+			</summary>
+
+			<TaxonomyForm
+				entityType="category"
+				servicePages={servicePages}
+				defaultSortOrder={nextCategoryOrder}
+				submitLabel="Criar categoria"
+			/>
+		</details>
+
+		{
+			servicePages.map((page) => {
+				const pageCategories =
+					categories.filter(
+						(category) =>
+							category.service_page_id ===
+							page.id,
+					);
+
+				return (
+					<section class="division-group">
+						<header>
+							<div>
+								<span>
+									{page.label}
+								</span>
+
+								<h3>
+									{page.hero_title}
+								</h3>
+							</div>
+
+							<strong>
+								{pageCategories.length}{" "}
+								{
+									pageCategories.length === 1
+										? "categoria"
+										: "categorias"
+								}
+							</strong>
+						</header>
+
+						{
+							pageCategories.length === 0 ? (
+								<p class="empty">
+									Nenhuma categoria cadastrada nesta divisão.
+								</p>
+							) : (
+								pageCategories.map(
+									(category, index) => (
+										<details
+											class:list={[
+												"taxonomy-card",
+												{
+													inactive:
+														!category.is_active,
+												},
+											]}
+										>
+											<summary>
+												<div
+													class="summary-icon"
+													style={`--item-color:${category.color};`}
+												>
+													{
+														getCatalogIconSymbol(
+															category.icon_key,
+														)
+													}
+												</div>
+
+												<div class="summary-copy">
+													<strong>
+														{category.name}
+													</strong>
+
+													<small>
+														{category.slug}
+														{" · "}
+														Ordem {
+															category.sort_order
+														}
+														{" · "}
+														{
+															categoryUsage.get(
+																category.id,
+															) ?? 0
+														} itens
+													</small>
+												</div>
+
+												<span
+													class:list={[
+														"status",
+														{
+															active:
+																category.is_active,
+														},
+													]}
+												>
+													{
+														category.is_active
+															? "Ativa"
+															: "Inativa"
+													}
+												</span>
+											</summary>
+
+											<TaxonomyItemControls
+												entityType="category"
+												itemId={category.id}
+												itemLabel={category.name}
+												canMoveUp={index > 0}
+												canMoveDown={
+													index <
+													pageCategories.length - 1
+												}
+												usageCount={
+													categoryUsage.get(
+														category.id,
+													) ?? 0
+												}
+											/>
+
+											<TaxonomyForm
+												entityType="category"
+												item={category}
+												servicePages={servicePages}
+												submitLabel="Salvar categoria"
+											/>
+										</details>
+									),
+								)
+							)
+						}
+					</section>
+				);
+			})
+		}
+	</section>
+
+	<section
+		id="tiers"
+		class="taxonomy-section"
+	>
+		<header class="section-heading">
+			<div>
+				<p>Níveis</p>
+
+				<h2>
+					Modalidades reutilizáveis
+				</h2>
+			</div>
+
+			<span>
+				Ex.: Essencial, Completo, Avançado e Premium.
+			</span>
+		</header>
+
+		<details class="taxonomy-card new">
+			<summary>
+				<span>＋</span>
+
+				<div>
+					<strong>
+						Adicionar nível
+					</strong>
+
+					<small>
+						O nível fica separado dos selos promocionais
+					</small>
+				</div>
+			</summary>
+
+			<TaxonomyForm
+				entityType="tier"
+				defaultSortOrder={nextTierOrder}
+				submitLabel="Criar nível"
+			/>
+		</details>
+
+		{
+			tiers.length === 0 ? (
+				<p class="empty">
+					Nenhum nível cadastrado.
+				</p>
+			) : (
+				tiers.map((tier, index) => (
+					<details
+						class:list={[
+							"taxonomy-card",
+							{
+								inactive:
+									!tier.is_active,
+							},
+						]}
+					>
+						<summary>
+							<div
+								class="summary-icon tier"
+								style={`--item-color:${tier.color};`}
+							>
+								N
+							</div>
+
+							<div class="summary-copy">
+								<strong>
+									{tier.name}
+								</strong>
+
+								<small>
+									{tier.slug}
+									{" · "}
+									Ordem {tier.sort_order}
+									{" · "}
+									{
+										tierUsage.get(
+											tier.id,
+										) ?? 0
+									} itens
+								</small>
+							</div>
+
+							<span
+								class:list={[
+									"status",
+									{
+										active:
+											tier.is_active,
+									},
+								]}
+							>
+								{
+									tier.is_active
+										? "Ativo"
+										: "Inativo"
+								}
+							</span>
+						</summary>
+
+						<TaxonomyItemControls
+							entityType="tier"
+							itemId={tier.id}
+							itemLabel={tier.name}
+							canMoveUp={index > 0}
+							canMoveDown={
+								index <
+								tiers.length - 1
+							}
+							usageCount={
+								tierUsage.get(
+									tier.id,
+								) ?? 0
+							}
+						/>
+
+						<TaxonomyForm
+							entityType="tier"
+							item={tier}
+							submitLabel="Salvar nível"
+						/>
+					</details>
+				))
+			)
+		}
+	</section>
+
+	<section
+		id="badges"
+		class="taxonomy-section"
+	>
+		<header class="section-heading">
+			<div>
+				<p>Selos</p>
+
+				<h2>
+					Destaques comerciais
+				</h2>
+			</div>
+
+			<span>
+				Cada item poderá receber vários selos com cores próprias.
+			</span>
+		</header>
+
+		<details class="taxonomy-card new">
+			<summary>
+				<span>＋</span>
+
+				<div>
+					<strong>
+						Adicionar selo
+					</strong>
+
+					<small>
+						Ex.: Promoção, Mais popular ou Novidade
+					</small>
+				</div>
+			</summary>
+
+			<TaxonomyForm
+				entityType="badge"
+				defaultSortOrder={nextBadgeOrder}
+				submitLabel="Criar selo"
+			/>
+		</details>
+
+		{
+			badges.length === 0 ? (
+				<p class="empty">
+					Nenhum selo cadastrado.
+				</p>
+			) : (
+				badges.map((badge, index) => (
+					<details
+						class:list={[
+							"taxonomy-card",
+							{
+								inactive:
+									!badge.is_active,
+							},
+						]}
+					>
+						<summary>
+							<div
+								class="badge-preview"
+								style={`
+									--badge-text:${badge.text_color};
+									--badge-background:${badge.background_color};
+									--badge-border:${badge.border_color};
+								`}
+							>
+								<span>
+									{
+										getCatalogIconSymbol(
+											badge.icon_key,
+										)
+									}
+								</span>
+
+								<strong>
+									{badge.name}
+								</strong>
+							</div>
+
+							<div class="summary-copy">
+								<strong>
+									{badge.name}
+								</strong>
+
+								<small>
+									{badge.slug}
+									{" · "}
+									Ordem {badge.sort_order}
+									{" · "}
+									{
+										badgeUsage.get(
+											badge.id,
+										) ?? 0
+									} associações
+								</small>
+							</div>
+
+							<span
+								class:list={[
+									"status",
+									{
+										active:
+											badge.is_active,
+									},
+								]}
+							>
+								{
+									badge.is_active
+										? "Ativo"
+										: "Inativo"
+								}
+							</span>
+						</summary>
+
+						<TaxonomyItemControls
+							entityType="badge"
+							itemId={badge.id}
+							itemLabel={badge.name}
+							canMoveUp={index > 0}
+							canMoveDown={
+								index <
+								badges.length - 1
+							}
+							usageCount={
+								badgeUsage.get(
+									badge.id,
+								) ?? 0
+							}
+						/>
+
+						<TaxonomyForm
+							entityType="badge"
+							item={badge}
+							submitLabel="Salvar selo"
+						/>
+					</details>
+				))
+			)
+		}
+	</section>
+</AdminLayout>
+
+<style>
+	.back-link {
+		display: inline-flex;
+		min-height: 42px;
+		padding: 0 15px;
+		align-items: center;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 10px;
+		background: rgba(42, 93, 168, 0.13);
+		color: #d9e7ff;
+		font-size: 0.72rem;
+		text-decoration: none;
+	}
+
+	.message {
+		margin: 0 0 20px;
+		padding: 15px 17px;
+		border-radius: 11px;
+		font-size: 0.78rem;
+	}
+
+	.success {
+		border: 1px solid
+			rgba(75, 220, 145, 0.25);
+		background: rgba(35, 150, 100, 0.12);
+		color: #8be2b6;
+	}
+
+	.error {
+		border: 1px solid
+			rgba(255, 100, 100, 0.25);
+		background: rgba(160, 30, 40, 0.13);
+		color: #ffb1b6;
+	}
+
+	.section-nav {
+		position: sticky;
+		z-index: 10;
+		top: 84px;
+		display: flex;
+		gap: 8px;
+		margin-bottom: 44px;
+		padding: 9px;
+		overflow-x: auto;
+		border: 1px solid
+			rgba(105, 145, 205, 0.16);
+		border-radius: 14px;
+		background: rgba(5, 12, 23, 0.91);
+		backdrop-filter: blur(15px);
+	}
+
+	.section-nav a {
+		display: inline-flex;
+		min-height: 38px;
+		padding: 0 13px;
+		align-items: center;
+		gap: 8px;
+		border-radius: 9px;
+		color: #9cafc7;
+		font-size: 0.72rem;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.section-nav a:hover {
+		background: rgba(48, 119, 220, 0.14);
+		color: white;
+	}
+
+	.section-nav span {
+		display: inline-grid;
+		min-width: 22px;
+		height: 22px;
+		padding: 0 6px;
+		place-items: center;
+		border-radius: 99px;
+		background: rgba(87, 145, 230, 0.15);
+		color: #8ebcff;
+		font-size: 0.62rem;
+	}
+
+	.taxonomy-section {
+		display: grid;
+		gap: 14px;
+		scroll-margin-top: 160px;
+	}
+
+	.taxonomy-section +
+	.taxonomy-section {
+		margin-top: 76px;
+	}
+
+	.section-heading {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		gap: 24px;
+		margin-bottom: 8px;
+	}
+
+	.section-heading p {
+		margin: 0;
+		color: #619fea;
+		letter-spacing: 0.14em;
+		font-size: 0.61rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.section-heading h2 {
+		margin: 7px 0 0;
+		font-size: 1.45rem;
+		font-weight: 500;
+	}
+
+	.section-heading > span {
+		max-width: 440px;
+		color: #75879f;
+		font-size: 0.73rem;
+		line-height: 1.55;
+		text-align: right;
+	}
+
+	.division-group {
+		display: grid;
+		gap: 12px;
+		margin-top: 22px;
+		padding: 19px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.13);
+		border-radius: 18px;
+		background: rgba(5, 13, 24, 0.42);
+	}
+
+	.division-group > header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 20px;
+		padding: 2px 4px 10px;
+	}
+
+	.division-group > header span {
+		color: #64a5ff;
+		letter-spacing: 0.12em;
+		font-size: 0.59rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.division-group h3 {
+		margin: 5px 0 0;
+		font-size: 1rem;
+		font-weight: 500;
+	}
+
+	.division-group > header > strong {
+		color: #7488a2;
+		font-size: 0.66rem;
+		font-weight: 600;
+	}
+
+	.taxonomy-card {
+		overflow: visible;
+		border: 1px solid
+			rgba(105, 145, 205, 0.2);
+		border-radius: 16px;
+		background: rgba(7, 17, 31, 0.82);
+	}
+
+	.taxonomy-card.inactive {
+		opacity: 0.68;
+	}
+
+	.taxonomy-card > summary {
+		display: grid;
+		grid-template-columns:
+			auto minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 15px;
+		padding: 18px 22px;
+		cursor: pointer;
+		list-style: none;
+	}
+
+	.taxonomy-card > summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.taxonomy-card.new > summary {
+		grid-template-columns:
+			auto minmax(0, 1fr);
+	}
+
+	.taxonomy-card.new > summary > span {
+		display: grid;
+		width: 36px;
+		height: 36px;
+		place-items: center;
+		border: 1px solid
+			rgba(70, 148, 255, 0.33);
+		border-radius: 11px;
+		background: rgba(42, 103, 205, 0.15);
+		color: #81b4ff;
+		font-size: 1rem;
+	}
+
+	.taxonomy-card.new summary div {
+		display: grid;
+		gap: 4px;
+	}
+
+	.taxonomy-card.new small {
+		color: #70839c;
+		font-size: 0.66rem;
+	}
+
+	.summary-icon {
+		display: grid;
+		width: 40px;
+		height: 40px;
+		place-items: center;
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--item-color)
+					42%,
+				transparent
+			);
+		border-radius: 12px;
+		background:
+			color-mix(
+				in srgb,
+				var(--item-color)
+					14%,
+				transparent
+			);
+	}
+
+	.summary-icon.tier {
+		color:
+			color-mix(
+				in srgb,
+				var(--item-color)
+					45%,
+				white
+			);
+		font-size: 0.7rem;
+		font-weight: 800;
+	}
+
+	.summary-copy {
+		display: grid;
+		min-width: 0;
+		gap: 5px;
+	}
+
+	.summary-copy strong {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.summary-copy small {
+		overflow: hidden;
+		color: #71849d;
+		font-size: 0.64rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.status {
+		padding: 5px 8px;
+		border: 1px solid
+			rgba(255, 180, 75, 0.25);
+		border-radius: 99px;
+		color: #ffc474;
+		font-size: 0.58rem;
+	}
+
+	.status.active {
+		border-color:
+			rgba(80, 220, 155, 0.25);
+		color: #75e2ae;
+	}
+
+	.badge-preview {
+		display: inline-flex;
+		max-width: 180px;
+		min-height: 32px;
+		padding: 5px 9px;
+		align-items: center;
+		gap: 6px;
+		overflow: hidden;
+		border: 1px solid
+			var(--badge-border);
+		border-radius: 999px;
+		background:
+			var(--badge-background);
+		color:
+			var(--badge-text);
+		white-space: nowrap;
+	}
+
+	.badge-preview strong {
+		overflow: hidden;
+		font-size: 0.63rem;
+		text-overflow: ellipsis;
+	}
+
+	.empty {
+		margin: 0;
+		padding: 20px;
+		border: 1px dashed
+			rgba(105, 145, 205, 0.18);
+		border-radius: 13px;
+		color: #71839a;
+		font-size: 0.73rem;
+		text-align: center;
+	}
+
+	@media (max-width: 760px) {
+		.section-nav {
+			top: 126px;
+		}
+
+		.section-heading {
+			align-items: start;
+			flex-direction: column;
+		}
+
+		.section-heading > span {
+			text-align: left;
+		}
+
+		.division-group {
+			padding: 13px;
+		}
+
+		.division-group > header {
+			align-items: start;
+			flex-direction: column;
+		}
+
+		.taxonomy-card > summary {
+			grid-template-columns:
+				auto minmax(0, 1fr);
+			padding: 17px;
+		}
+
+		.taxonomy-card > summary > .status {
+			grid-column: 2;
+			width: fit-content;
+		}
+
+		.badge-preview {
+			max-width: 120px;
+		}
+	}
+</style>
