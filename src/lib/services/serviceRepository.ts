@@ -10,6 +10,9 @@ import type {
 } from "../../types/database.types";
 
 import type {
+	CatalogBadge,
+	CatalogCategory,
+	CatalogTier,
 	PricingItem,
 	ServiceDivision,
 	ServiceItem,
@@ -28,6 +31,18 @@ type ServiceRow =
 
 type PricingRow =
 	Tables<"pricing_items">;
+
+type CategoryRow =
+	Tables<"catalog_categories">;
+
+type TierRow =
+	Tables<"catalog_tiers">;
+
+type BadgeRow =
+	Tables<"catalog_badges">;
+
+type PricingBadgeRow =
+	Tables<"pricing_item_badges">;
 
 export type ServicePageSource =
 	| "supabase"
@@ -48,7 +63,10 @@ const fallbackPages: Record<
 };
 
 function optionalString(
-	value: string | null,
+	value:
+		| string
+		| null
+		| undefined,
 ): string | undefined {
 	return value ?? undefined;
 }
@@ -66,18 +84,122 @@ function toStringArray(
 	);
 }
 
+function slugify(
+	value: string,
+): string {
+	const normalized = value
+		.normalize("NFD")
+		.replace(
+			/[\u0300-\u036f]/g,
+			"",
+		)
+		.toLocaleLowerCase("pt-BR")
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+
+	return normalized || "nivel";
+}
+
 function mapService(
 	row: ServiceRow,
 ): ServiceItem {
 	return {
 		title: row.title,
 		description: row.description,
-		features: toStringArray(
-			row.features,
-		),
-		badge: optionalString(
-			row.badge,
-		),
+
+		features:
+			toStringArray(
+				row.features,
+			),
+
+		badge:
+			optionalString(
+				row.badge,
+			),
+	};
+}
+
+function mapCategory(
+	row: CategoryRow,
+): CatalogCategory {
+	return {
+		id: row.id,
+		name: row.name,
+		slug: row.slug,
+
+		description:
+			optionalString(
+				row.description,
+			),
+
+		iconKey:
+			optionalString(
+				row.icon_key,
+			),
+
+		color: row.color,
+	};
+}
+
+function mapTier(
+	row: TierRow,
+): CatalogTier {
+	return {
+		id: row.id,
+		name: row.name,
+		slug: row.slug,
+
+		description:
+			optionalString(
+				row.description,
+			),
+
+		color: row.color,
+	};
+}
+
+function mapBadge(
+	row: BadgeRow,
+): CatalogBadge {
+	return {
+		id: row.id,
+		name: row.name,
+		slug: row.slug,
+
+		iconKey:
+			optionalString(
+				row.icon_key,
+			),
+
+		textColor:
+			row.text_color,
+
+		backgroundColor:
+			row.background_color,
+
+		borderColor:
+			row.border_color,
+	};
+}
+
+function legacyTierFromBadge(
+	badge:
+		| string
+		| null,
+): CatalogTier | undefined {
+	if (!badge) {
+		return undefined;
+	}
+
+	return {
+		id:
+			`legacy:${slugify(
+				badge,
+			)}`,
+
+		name: badge,
+		slug: slugify(badge),
+		color: "#4f8cff",
 	};
 }
 
@@ -122,20 +244,141 @@ function resolvePriceLabel(
 	return undefined;
 }
 
+function groupBadgesByPricingItem(
+	links: PricingBadgeRow[],
+	badgesById:
+		Map<string, CatalogBadge>,
+): Map<
+	string,
+	CatalogBadge[]
+> {
+	const grouped =
+		new Map<
+			string,
+			Array<{
+				badge:
+					CatalogBadge;
+				sortOrder:
+					number;
+				createdAt:
+					string;
+			}>
+		>();
+
+	for (const link of links) {
+		const badge =
+			badgesById.get(
+				link.badge_id,
+			);
+
+		if (!badge) {
+			continue;
+		}
+
+		const current =
+			grouped.get(
+				link.pricing_item_id,
+			) ?? [];
+
+		current.push({
+			badge,
+
+			sortOrder:
+				link.sort_order,
+
+			createdAt:
+				link.created_at,
+		});
+
+		grouped.set(
+			link.pricing_item_id,
+			current,
+		);
+	}
+
+	return new Map(
+		[...grouped.entries()].map(
+			([
+				pricingItemId,
+				items,
+			]) => [
+				pricingItemId,
+
+				items
+					.sort(
+						(a, b) =>
+							a.sortOrder -
+								b.sortOrder ||
+							a.createdAt.localeCompare(
+								b.createdAt,
+							),
+					)
+					.map(
+						(item) =>
+							item.badge,
+					),
+			],
+		),
+	);
+}
+
 function mapPricing(
 	row: PricingRow,
+
+	categoriesById:
+		Map<
+			string,
+			CatalogCategory
+		>,
+
+	tiersById:
+		Map<
+			string,
+			CatalogTier
+		>,
+
+	badgesByPricingItem:
+		Map<
+			string,
+			CatalogBadge[]
+		>,
 ): PricingItem {
+	const tier =
+		(
+			row.tier_id
+				? tiersById.get(
+						row.tier_id,
+					)
+				: undefined
+		) ??
+		legacyTierFromBadge(
+			row.badge,
+		);
+
 	return {
+		id: row.id,
+
 		name: row.name,
-		description: row.description,
+		description:
+			row.description,
+
+		itemKind:
+			row.item_kind,
 
 		price: row.price,
 
+		compareAtPrice:
+			row.compare_at_price,
+
 		pricePrefix:
-			resolvePricePrefix(row),
+			resolvePricePrefix(
+				row,
+			),
 
 		priceLabel:
-			resolvePriceLabel(row),
+			resolvePriceLabel(
+				row,
+			),
 
 		priceSuffix:
 			optionalString(
@@ -146,6 +389,20 @@ function mapPricing(
 			toStringArray(
 				row.features,
 			),
+
+		category:
+			row.category_id
+				? categoriesById.get(
+						row.category_id,
+					)
+				: undefined,
+
+		tier,
+
+		badges:
+			badgesByPricingItem.get(
+				row.id,
+			) ?? [],
 
 		featured:
 			row.is_featured,
@@ -176,6 +433,24 @@ function mapServicePage(
 	row: ServicePageRow,
 	services: ServiceRow[],
 	pricing: PricingRow[],
+
+	categoriesById:
+		Map<
+			string,
+			CatalogCategory
+		>,
+
+	tiersById:
+		Map<
+			string,
+			CatalogTier
+		>,
+
+	badgesByPricingItem:
+		Map<
+			string,
+			CatalogBadge[]
+		>,
 ): ServicePageConfig {
 	return {
 		division: row.division,
@@ -271,7 +546,13 @@ function mapServicePage(
 
 		pricing:
 			pricing.map(
-				mapPricing,
+				(item) =>
+					mapPricing(
+						item,
+						categoriesById,
+						tiersById,
+						badgesByPricingItem,
+					),
 			),
 
 		cta: {
@@ -359,6 +640,9 @@ export async function loadServicePage(
 		const [
 			servicesResult,
 			pricingResult,
+			categoriesResult,
+			tiersResult,
+			badgesResult,
 		] = await Promise.all([
 			supabase
 				.from("services")
@@ -395,6 +679,58 @@ export async function loadServicePage(
 						ascending: true,
 					},
 				),
+
+			supabase
+				.from(
+					"catalog_categories",
+				)
+				.select("*")
+				.eq(
+					"service_page_id",
+					pageResult.data.id,
+				)
+				.eq(
+					"is_active",
+					true,
+				)
+				.order(
+					"sort_order",
+					{
+						ascending: true,
+					},
+				),
+
+			supabase
+				.from(
+					"catalog_tiers",
+				)
+				.select("*")
+				.eq(
+					"is_active",
+					true,
+				)
+				.order(
+					"sort_order",
+					{
+						ascending: true,
+					},
+				),
+
+			supabase
+				.from(
+					"catalog_badges",
+				)
+				.select("*")
+				.eq(
+					"is_active",
+					true,
+				)
+				.order(
+					"sort_order",
+					{
+						ascending: true,
+					},
+				),
 		]);
 
 		if (servicesResult.error) {
@@ -409,11 +745,142 @@ export async function loadServicePage(
 			);
 		}
 
+		if (categoriesResult.error) {
+			throw new Error(
+				`Falha ao consultar as categorias de ${division}: ${categoriesResult.error.message}`,
+			);
+		}
+
+		if (tiersResult.error) {
+			throw new Error(
+				`Falha ao consultar os níveis do catálogo: ${tiersResult.error.message}`,
+			);
+		}
+
+		if (badgesResult.error) {
+			throw new Error(
+				`Falha ao consultar os selos do catálogo: ${badgesResult.error.message}`,
+			);
+		}
+
+		const pricingRows =
+			pricingResult.data ?? [];
+
+		let badgeLinks:
+			PricingBadgeRow[] = [];
+
+		if (
+			pricingRows.length > 0
+		) {
+			const badgeLinksResult =
+				await supabase
+					.from(
+						"pricing_item_badges",
+					)
+					.select("*")
+					.in(
+						"pricing_item_id",
+						pricingRows.map(
+							(item) =>
+								item.id,
+						),
+					)
+					.order(
+						"sort_order",
+						{
+							ascending:
+								true,
+						},
+					);
+
+			if (
+				badgeLinksResult.error
+			) {
+				throw new Error(
+					`Falha ao consultar os selos dos valores de ${division}: ${badgeLinksResult.error.message}`,
+				);
+			}
+
+			badgeLinks =
+				badgeLinksResult.data ??
+				[];
+		}
+
+		const categoriesById =
+			new Map(
+				(
+					categoriesResult.data ??
+					[]
+				).map(
+					(row) => {
+						const category =
+							mapCategory(
+								row,
+							);
+
+						return [
+							row.id,
+							category,
+						] as const;
+					},
+				),
+			);
+
+		const tiersById =
+			new Map(
+				(
+					tiersResult.data ??
+					[]
+				).map(
+					(row) => {
+						const tier =
+							mapTier(
+								row,
+							);
+
+						return [
+							row.id,
+							tier,
+						] as const;
+					},
+				),
+			);
+
+		const badgesById =
+			new Map(
+				(
+					badgesResult.data ??
+					[]
+				).map(
+					(row) => {
+						const badge =
+							mapBadge(
+								row,
+							);
+
+						return [
+							row.id,
+							badge,
+						] as const;
+					},
+				),
+			);
+
+		const badgesByPricingItem =
+			groupBadgesByPricingItem(
+				badgeLinks,
+				badgesById,
+			);
+
 		return {
 			page: mapServicePage(
 				pageResult.data,
-				servicesResult.data ?? [],
-				pricingResult.data ?? [],
+				servicesResult.data ??
+					[],
+				pricingRows,
+				categoriesById,
+				tiersById,
+				badgesByPricingItem,
 			),
 
 			source: "supabase",
