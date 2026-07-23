@@ -72,6 +72,143 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_badges: {
+        Row: {
+          background_color: string
+          border_color: string
+          created_at: string
+          icon_key: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+          text_color: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          background_color?: string
+          border_color?: string
+          created_at?: string
+          icon_key?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          text_color?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          background_color?: string
+          border_color?: string
+          created_at?: string
+          icon_key?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          text_color?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      catalog_categories: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          icon_key: string | null
+          id: string
+          is_active: boolean
+          name: string
+          service_page_id: string
+          slug: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon_key?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          service_page_id: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon_key?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          service_page_id?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_categories_service_page_id_fkey"
+            columns: ["service_page_id"]
+            isOneToOne: false
+            referencedRelation: "service_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      catalog_tiers: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       faq_items: {
         Row: {
           answer: string
@@ -108,9 +245,56 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_item_badges: {
+        Row: {
+          badge_id: string
+          created_at: string
+          id: string
+          pricing_item_id: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          badge_id: string
+          created_at?: string
+          id?: string
+          pricing_item_id: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          badge_id?: string
+          created_at?: string
+          id?: string
+          pricing_item_id?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_item_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_item_badges_pricing_item_id_fkey"
+            columns: ["pricing_item_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_items: {
         Row: {
           badge: string | null
+          category_id: string | null
+          compare_at_price: number | null
           created_at: string
           cta_label: string | null
           cta_message: string | null
@@ -119,6 +303,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_featured: boolean
+          item_kind: Database["public"]["Enums"]["catalog_item_kind"]
           name: string
           note: string | null
           price: number | null
@@ -128,11 +313,14 @@ export type Database = {
           price_type: Database["public"]["Enums"]["price_type"]
           service_page_id: string
           sort_order: number
+          tier_id: string | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           badge?: string | null
+          category_id?: string | null
+          compare_at_price?: number | null
           created_at?: string
           cta_label?: string | null
           cta_message?: string | null
@@ -141,6 +329,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_featured?: boolean
+          item_kind?: Database["public"]["Enums"]["catalog_item_kind"]
           name: string
           note?: string | null
           price?: number | null
@@ -150,11 +339,14 @@ export type Database = {
           price_type: Database["public"]["Enums"]["price_type"]
           service_page_id: string
           sort_order?: number
+          tier_id?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           badge?: string | null
+          category_id?: string | null
+          compare_at_price?: number | null
           created_at?: string
           cta_label?: string | null
           cta_message?: string | null
@@ -163,6 +355,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_featured?: boolean
+          item_kind?: Database["public"]["Enums"]["catalog_item_kind"]
           name?: string
           note?: string | null
           price?: number | null
@@ -172,15 +365,30 @@ export type Database = {
           price_type?: Database["public"]["Enums"]["price_type"]
           service_page_id?: string
           sort_order?: number
+          tier_id?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Relationships: [
           {
+            foreignKeyName: "pricing_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_categories"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pricing_items_service_page_id_fkey"
             columns: ["service_page_id"]
             isOneToOne: false
             referencedRelation: "service_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_items_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_tiers"
             referencedColumns: ["id"]
           },
         ]
@@ -429,6 +637,7 @@ export type Database = {
     }
     Enums: {
       audit_action: "insert" | "update" | "delete"
+      catalog_item_kind: "service" | "package" | "product" | "consulting"
       price_type: "fixed" | "starting_at" | "consultation" | "free"
       service_division: "home" | "game" | "data"
     }
@@ -562,6 +771,7 @@ export const Constants = {
   public: {
     Enums: {
       audit_action: ["insert", "update", "delete"],
+      catalog_item_kind: ["service", "package", "product", "consulting"],
       price_type: ["fixed", "starting_at", "consultation", "free"],
       service_division: ["home", "game", "data"],
     },
