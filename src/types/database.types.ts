@@ -626,6 +626,18 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      move_catalog_badge: {
+        Args: { p_direction: number; p_item_id: string }
+        Returns: boolean
+      }
+      move_catalog_category: {
+        Args: { p_direction: number; p_item_id: string }
+        Returns: boolean
+      }
+      move_catalog_tier: {
+        Args: { p_direction: number; p_item_id: string }
+        Returns: boolean
+      }
       move_pricing_item: {
         Args: { p_direction: number; p_item_id: string }
         Returns: boolean
