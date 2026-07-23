@@ -1,0 +1,268 @@
+---
+interface Props {
+	name: string;
+	label: string;
+	value: string;
+	pickerLabel?: string;
+	help?: string;
+	role?: string;
+	required?: boolean;
+	full?: boolean;
+}
+
+const {
+	name,
+	label,
+	value,
+	pickerLabel = `Selecionar ${label.toLocaleLowerCase("pt-BR")}`,
+	help,
+	role,
+	required = true,
+	full = false,
+} = Astro.props;
+
+const normalizedValue =
+	/^#[0-9a-f]{6}$/i.test(value)
+		? value.toUpperCase()
+		: "#2387FF";
+---
+
+<label
+	class:list={[
+		"admin-color-field",
+		{
+			full,
+		},
+	]}
+	data-color-field
+>
+	<span>{label}</span>
+
+	<div class="admin-color-field__controls">
+		<input
+			class="admin-color-field__hex"
+			type="text"
+			name={name}
+			value={normalizedValue}
+			maxlength="7"
+			pattern="^#[0-9a-fA-F]{6}$"
+			placeholder="#2387FF"
+			autocomplete="off"
+			spellcheck="false"
+			required={required}
+			data-color-text
+			data-color-role={role}
+			aria-label={`${label} em hexadecimal`}
+		/>
+
+		<input
+			class="admin-color-field__picker"
+			type="color"
+			value={normalizedValue}
+			aria-label={pickerLabel}
+			data-color-picker
+		/>
+	</div>
+
+	{
+		help && (
+			<small>{help}</small>
+		)
+	}
+</label>
+
+<script>
+	const colorPattern =
+		/^#[0-9a-f]{6}$/i;
+
+	document
+		.querySelectorAll<HTMLElement>(
+			"[data-color-field]",
+		)
+		.forEach((field) => {
+			if (
+				field.dataset
+					.colorInitialized ===
+				"true"
+			) {
+				return;
+			}
+
+			field.dataset
+				.colorInitialized =
+					"true";
+
+			const text =
+				field.querySelector<HTMLInputElement>(
+					"[data-color-text]",
+				);
+
+			const picker =
+				field.querySelector<HTMLInputElement>(
+					"[data-color-picker]",
+				);
+
+			if (
+				!text ||
+				!picker
+			) {
+				return;
+			}
+
+			const syncFromText =
+				() => {
+					const value =
+						text.value.trim();
+
+					const isValid =
+						colorPattern.test(
+							value,
+						);
+
+					text.setCustomValidity(
+						isValid
+							? ""
+							: "Informe uma cor hexadecimal no formato #RRGGBB.",
+					);
+
+					if (!isValid) {
+						return;
+					}
+
+					picker.value =
+						value;
+				};
+
+			text.addEventListener(
+				"input",
+				syncFromText,
+			);
+
+			text.addEventListener(
+				"blur",
+				() => {
+					if (
+						colorPattern.test(
+							text.value.trim(),
+						)
+					) {
+						text.value =
+							text.value
+								.trim()
+								.toUpperCase();
+
+						text.dispatchEvent(
+							new Event(
+								"input",
+								{
+									bubbles:
+										true,
+								},
+							),
+						);
+					}
+				},
+			);
+
+			picker.addEventListener(
+				"input",
+				() => {
+					text.value =
+						picker.value
+							.toUpperCase();
+
+					text.dispatchEvent(
+						new Event(
+							"input",
+							{
+								bubbles:
+									true,
+							},
+						),
+					);
+				},
+			);
+
+			syncFromText();
+		});
+</script>
+
+<style>
+	.admin-color-field {
+		display: grid;
+		align-content: start;
+		gap: 8px;
+	}
+
+	.admin-color-field.full {
+		grid-column: 1 / -1;
+	}
+
+	.admin-color-field > span {
+		color: #99abc1;
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+
+	.admin-color-field__controls {
+		display: grid;
+		grid-template-columns:
+			minmax(0, 1fr)
+			54px;
+		gap: 9px;
+	}
+
+	.admin-color-field__hex,
+	.admin-color-field__picker {
+		width: 100%;
+		min-height: 45px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 10px;
+		outline: none;
+		background: rgba(2, 8, 16, 0.72);
+		color: #f7faff;
+		font: inherit;
+	}
+
+	.admin-color-field__hex {
+		padding: 12px 13px;
+		font-family:
+			ui-monospace,
+			SFMono-Regular,
+			Consolas,
+			monospace;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+	}
+
+	.admin-color-field__picker {
+		padding: 4px;
+		cursor: pointer;
+	}
+
+	.admin-color-field__hex:focus,
+	.admin-color-field__picker:focus-visible {
+		border-color: #428eff;
+		box-shadow:
+			0 0 0 3px
+			rgba(48, 132, 255, 0.12);
+	}
+
+	.admin-color-field__hex:invalid:not(:focus) {
+		border-color:
+			rgba(255, 110, 120, 0.55);
+	}
+
+	.admin-color-field small {
+		color: #687b93;
+		font-size: 0.61rem;
+		line-height: 1.5;
+	}
+
+	@media (max-width: 700px) {
+		.admin-color-field.full {
+			grid-column: auto;
+		}
+	}
+</style>

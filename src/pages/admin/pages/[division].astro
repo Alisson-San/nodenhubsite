@@ -8,6 +8,9 @@ import type {
 import AdminLayout
 	from "../../../layouts/AdminLayout.astro";
 
+import AdminColorField
+	from "../../../components/admin/AdminColorField.astro";
+
 import {
 	createSupabaseRequestClient,
 } from "../../../lib/supabase/request";
@@ -89,10 +92,13 @@ const errorCode =
 const errorMessages:
 	Record<string, string> = {
 	validation:
-		"Revise os campos obrigatórios.",
+		"Revise os campos obrigatórios, cores e links informados.",
 
 	origin:
 		"A origem da solicitação não foi aceita.",
+
+	duplicate:
+		"O caminho canônico já está sendo usado por outra página.",
 
 	save:
 		"Não foi possível salvar as alterações.",
@@ -101,7 +107,7 @@ const errorMessages:
 
 <AdminLayout
 	title={divisionLabels[division]}
-	description="Edite as informações principais exibidas na página."
+	description="Edite todo o conteúdo, tema e chamadas exibidos na página pública."
 >
 	<Fragment slot="actions">
 		<a
@@ -148,6 +154,9 @@ const errorMessages:
 				<div>
 					<span>Publicação</span>
 					<h2>Status da página</h2>
+					<p>
+						Controle a disponibilidade pública sem apagar o conteúdo.
+					</p>
 				</div>
 
 				<label class="toggle">
@@ -166,8 +175,11 @@ const errorMessages:
 		<section class="panel">
 			<header>
 				<div>
-					<span>SEO</span>
+					<span>SEO e endereço</span>
 					<h2>Mecanismos de busca</h2>
+					<p>
+						Informações utilizadas no título do navegador, resultados de busca e URL canônica.
+					</p>
 				</div>
 			</header>
 
@@ -179,8 +191,13 @@ const errorMessages:
 						type="text"
 						name="seo_title"
 						value={page.seo_title}
+						maxlength="100"
 						required
 					/>
+
+					<small>
+						Procure manter o serviço, a localidade e a marca em uma frase natural.
+					</small>
 				</label>
 
 				<label class="full">
@@ -189,9 +206,62 @@ const errorMessages:
 					<textarea
 						name="seo_description"
 						rows="4"
+						maxlength="320"
 						required
 					>{page.seo_description}</textarea>
+
+					<small>
+						Resumo curto da página para buscadores e compartilhamentos.
+					</small>
 				</label>
+
+				<label class="full">
+					<span>Caminho canônico</span>
+
+					<input
+						type="text"
+						name="canonical_path"
+						value={page.canonical_path}
+						pattern="^\/(?:[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*\/?)*$"
+						placeholder="/home"
+						autocomplete="off"
+						required
+					/>
+
+					<small>
+						Use somente um caminho interno iniciado por barra, como /home. Alterar esse campo muda a referência canônica, não a rota física do Astro.
+					</small>
+				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header>
+				<div>
+					<span>Tema</span>
+					<h2>Cores da divisão</h2>
+					<p>
+						As duas cores alimentam gradientes, detalhes, botões e destaques da página.
+					</p>
+				</div>
+			</header>
+
+			<div class="fields">
+				<AdminColorField
+					name="accent_color"
+					label="Cor principal"
+					value={page.accent_color}
+					role="page-primary"
+					help="Digite o hexadecimal ou use o seletor visual."
+				/>
+
+				<AdminColorField
+					name="accent_secondary_color"
+					label="Cor secundária"
+					value={page.accent_secondary_color}
+					role="page-secondary"
+					help="Utilizada em gradientes e elementos complementares."
+				/>
 			</div>
 		</section>
 
@@ -200,6 +270,9 @@ const errorMessages:
 				<div>
 					<span>Hero</span>
 					<h2>Apresentação principal</h2>
+					<p>
+						Primeira mensagem vista pelo cliente ao entrar na divisão.
+					</p>
 				</div>
 			</header>
 
@@ -211,6 +284,7 @@ const errorMessages:
 						type="text"
 						name="hero_eyebrow"
 						value={page.hero_eyebrow}
+						maxlength="100"
 						required
 					/>
 				</label>
@@ -222,6 +296,7 @@ const errorMessages:
 						type="text"
 						name="hero_title"
 						value={page.hero_title}
+						maxlength="180"
 						required
 					/>
 				</label>
@@ -232,6 +307,7 @@ const errorMessages:
 					<textarea
 						name="hero_description"
 						rows="5"
+						maxlength="800"
 						required
 					>{page.hero_description}</textarea>
 				</label>
@@ -244,9 +320,290 @@ const errorMessages:
 					<textarea
 						name="hero_highlights"
 						rows="6"
+						maxlength="800"
 					>{jsonArrayToLines(
 						page.hero_highlights,
 					)}</textarea>
+				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header>
+				<div>
+					<span>Ações do Hero</span>
+					<h2>Botões e WhatsApp</h2>
+					<p>
+						O botão principal abre o WhatsApp. O secundário pode apontar para uma seção, página interna ou URL externa.
+					</p>
+				</div>
+			</header>
+
+			<div class="fields">
+				<label>
+					<span>Texto do botão principal</span>
+
+					<input
+						type="text"
+						name="hero_primary_label"
+						value={page.hero_primary_label ?? ""}
+						maxlength="80"
+						placeholder="Falar com a Noden"
+					/>
+				</label>
+
+				<label class="full">
+					<span>Mensagem do WhatsApp</span>
+
+					<textarea
+						name="hero_primary_message"
+						rows="4"
+						maxlength="1200"
+						required
+					>{page.hero_primary_message}</textarea>
+
+					<small>
+						Essa mensagem será preenchida automaticamente ao abrir o WhatsApp.
+					</small>
+				</label>
+
+				<label>
+					<span>Texto do botão secundário</span>
+
+					<input
+						type="text"
+						name="hero_secondary_label"
+						value={page.hero_secondary_label ?? ""}
+						maxlength="80"
+						placeholder="Ver serviços e preços"
+					/>
+				</label>
+
+				<label>
+					<span>Destino do botão secundário</span>
+
+					<input
+						type="text"
+						name="hero_secondary_href"
+						value={page.hero_secondary_href ?? ""}
+						maxlength="500"
+						placeholder="#precos"
+					/>
+
+					<small>
+						Exemplos: #precos, /links ou https://exemplo.com.
+					</small>
+				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header>
+				<div>
+					<span>Serviços</span>
+					<h2>Introdução dos cards institucionais</h2>
+					<p>
+						Os cards são gerenciados no Catálogo; estes campos controlam o cabeçalho da seção.
+					</p>
+				</div>
+			</header>
+
+			<div class="fields">
+				<label>
+					<span>Texto superior opcional</span>
+
+					<input
+						type="text"
+						name="services_eyebrow"
+						value={page.services_eyebrow ?? ""}
+						maxlength="100"
+					/>
+				</label>
+
+				<label class="full">
+					<span>Título da seção</span>
+
+					<input
+						type="text"
+						name="services_title"
+						value={page.services_title}
+						maxlength="180"
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Descrição da seção</span>
+
+					<textarea
+						name="services_description"
+						rows="4"
+						maxlength="800"
+						required
+					>{page.services_description}</textarea>
+				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header>
+				<div>
+					<span>Catálogo e preços</span>
+					<h2>Introdução dos grids comerciais</h2>
+					<p>
+						Os itens e pacotes são gerenciados no Catálogo; estes campos controlam o texto da seção pública.
+					</p>
+				</div>
+			</header>
+
+			<div class="fields">
+				<label>
+					<span>Texto superior opcional</span>
+
+					<input
+						type="text"
+						name="pricing_eyebrow"
+						value={page.pricing_eyebrow ?? ""}
+						maxlength="100"
+					/>
+				</label>
+
+				<label class="full">
+					<span>Título da seção</span>
+
+					<input
+						type="text"
+						name="pricing_title"
+						value={page.pricing_title}
+						maxlength="180"
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Descrição da seção</span>
+
+					<textarea
+						name="pricing_description"
+						rows="4"
+						maxlength="800"
+						required
+					>{page.pricing_description}</textarea>
+				</label>
+
+				<label class="full">
+					<span>Aviso abaixo do catálogo</span>
+
+					<textarea
+						name="pricing_disclaimer"
+						rows="4"
+						maxlength="1200"
+						placeholder="Valores podem variar conforme..."
+					>{page.pricing_disclaimer ?? ""}</textarea>
+
+					<small>
+						Use para explicar peças, licenças, deslocamento, avaliação e condições de orçamento.
+					</small>
+				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header>
+				<div>
+					<span>CTA final</span>
+					<h2>Chamada de encerramento</h2>
+					<p>
+						Última oportunidade de converter o visitante em uma conversa pelo WhatsApp.
+					</p>
+				</div>
+			</header>
+
+			<div class="fields">
+				<label>
+					<span>Texto superior</span>
+
+					<input
+						type="text"
+						name="cta_eyebrow"
+						value={page.cta_eyebrow}
+						maxlength="100"
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Título</span>
+
+					<input
+						type="text"
+						name="cta_title"
+						value={page.cta_title}
+						maxlength="180"
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Descrição</span>
+
+					<textarea
+						name="cta_description"
+						rows="4"
+						maxlength="800"
+						required
+					>{page.cta_description}</textarea>
+				</label>
+
+				<label>
+					<span>Texto do botão principal</span>
+
+					<input
+						type="text"
+						name="cta_button_label"
+						value={page.cta_button_label}
+						maxlength="80"
+						required
+					/>
+				</label>
+
+				<label class="full">
+					<span>Mensagem do WhatsApp</span>
+
+					<textarea
+						name="cta_message"
+						rows="4"
+						maxlength="1200"
+						required
+					>{page.cta_message}</textarea>
+				</label>
+
+				<label>
+					<span>Texto do botão secundário</span>
+
+					<input
+						type="text"
+						name="cta_secondary_label"
+						value={page.cta_secondary_label ?? ""}
+						maxlength="80"
+						placeholder="Conhecer outra divisão"
+					/>
+				</label>
+
+				<label>
+					<span>Destino do botão secundário</span>
+
+					<input
+						type="text"
+						name="cta_secondary_href"
+						value={page.cta_secondary_href ?? ""}
+						maxlength="500"
+						placeholder="/"
+					/>
+
+					<small>
+						Preencha texto e destino juntos ou deixe ambos vazios.
+					</small>
 				</label>
 			</div>
 		</section>
@@ -257,7 +614,7 @@ const errorMessages:
 			</a>
 
 			<button type="submit">
-				Salvar alterações
+				Salvar todas as alterações
 			</button>
 		</footer>
 	</form>
@@ -312,7 +669,7 @@ const errorMessages:
 
 	.panel > header {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: space-between;
 		gap: 24px;
 		margin-bottom: 26px;
@@ -324,6 +681,14 @@ const errorMessages:
 		font-size: 0.61rem;
 		font-weight: 700;
 		text-transform: uppercase;
+	}
+
+	.panel header p {
+		max-width: 720px;
+		margin: 9px 0 0;
+		color: #70839a;
+		font-size: 0.67rem;
+		line-height: 1.55;
 	}
 
 	h2 {
@@ -341,6 +706,7 @@ const errorMessages:
 
 	label {
 		display: grid;
+		align-content: start;
 		gap: 8px;
 	}
 
@@ -348,6 +714,12 @@ const errorMessages:
 		color: #99abc1;
 		font-size: 0.7rem;
 		font-weight: 600;
+	}
+
+	label small {
+		color: #687b93;
+		font-size: 0.61rem;
+		line-height: 1.5;
 	}
 
 	.full {
@@ -389,11 +761,23 @@ const errorMessages:
 	}
 
 	.form-footer {
+		position: sticky;
+		bottom: 16px;
+		z-index: 4;
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
 		gap: 14px;
-		padding-top: 8px;
+		padding: 14px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.22);
+		border-radius: 14px;
+		background:
+			rgba(5, 13, 25, 0.94);
+		backdrop-filter: blur(14px);
+		box-shadow:
+			0 18px 44px
+			rgba(0, 0, 0, 0.3);
 	}
 
 	.form-footer a {
@@ -430,6 +814,21 @@ const errorMessages:
 
 		.panel {
 			padding: 22px 18px;
+		}
+
+		.panel > header {
+			flex-direction: column;
+		}
+
+		.form-footer {
+			bottom: 8px;
+			align-items: stretch;
+			flex-direction: column-reverse;
+		}
+
+		.form-footer a,
+		.form-footer button {
+			text-align: center;
 		}
 	}
 </style>
