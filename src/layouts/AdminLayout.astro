@@ -1,0 +1,300 @@
+---
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const {
+	title,
+	description,
+} = Astro.props;
+
+const pathname =
+	Astro.url.pathname;
+
+const user =
+	Astro.locals.user;
+
+const navigation = [
+	{
+		href: "/admin",
+		label: "Visão geral",
+		exact: true,
+	},
+	{
+		href: "/admin/pages",
+		label: "Páginas",
+		exact: false,
+	},
+	{
+		href: "/admin/catalog",
+		label: "Catálogo",
+		exact: false,
+	},
+	{
+		href: "/admin/settings",
+		label: "Configurações",
+		exact: false,
+	},
+];
+
+function isActive(
+	href: string,
+	exact: boolean,
+): boolean {
+	return exact
+		? pathname === href
+		: pathname.startsWith(href);
+}
+---
+
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+
+		<meta
+			name="viewport"
+			content="width=device-width"
+		/>
+
+		<meta
+			name="robots"
+			content="noindex, nofollow"
+		/>
+
+		<title>{title} — Noden Admin</title>
+	</head>
+
+	<body>
+		<header class="topbar">
+			<a
+				class="brand"
+				href="/admin"
+			>
+				NODEN
+			</a>
+
+			<nav aria-label="Painel administrativo">
+				{
+					navigation.map((item) => (
+						<a
+							href={item.href}
+							aria-current={
+								isActive(
+									item.href,
+									item.exact,
+								)
+									? "page"
+									: undefined
+							}
+						>
+							{item.label}
+						</a>
+					))
+				}
+			</nav>
+
+			<div class="account">
+				<span>{user?.email}</span>
+
+				<form
+					method="post"
+					action="/api/admin/logout"
+				>
+					<button type="submit">
+						Sair
+					</button>
+				</form>
+			</div>
+		</header>
+
+		<main class="container">
+			<header class="page-header">
+				<div>
+					<p class="eyebrow">
+						PAINEL ADMINISTRATIVO
+					</p>
+
+					<h1>{title}</h1>
+
+					{
+						description && (
+							<p class="description">
+								{description}
+							</p>
+						)
+					}
+				</div>
+
+				<div class="actions">
+					<slot name="actions" />
+				</div>
+			</header>
+
+			<slot />
+		</main>
+	</body>
+</html>
+
+<style>
+	:global(*) {
+		box-sizing: border-box;
+	}
+
+	:global(html) {
+		font-family:
+			Inter,
+			system-ui,
+			sans-serif;
+		background: #03070d;
+		color: #f5f8ff;
+	}
+
+	:global(body) {
+		margin: 0;
+		min-height: 100vh;
+	}
+
+	:global(a) {
+		color: inherit;
+	}
+
+	.topbar {
+		position: sticky;
+		z-index: 20;
+		top: 0;
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: 36px;
+		min-height: 72px;
+		padding: 0 max(
+			24px,
+			calc((100% - 1180px) / 2)
+		);
+		border-bottom: 1px solid
+			rgba(105, 145, 205, 0.18);
+		background: rgba(3, 8, 16, 0.94);
+		backdrop-filter: blur(18px);
+	}
+
+	.brand {
+		letter-spacing: 0.25em;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	nav {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	nav a {
+		padding: 9px 12px;
+		border-radius: 9px;
+		color: #8193ab;
+		font-size: 0.76rem;
+		text-decoration: none;
+	}
+
+	nav a[aria-current="page"] {
+		background: rgba(49, 119, 220, 0.16);
+		color: #dbe9ff;
+	}
+
+	.account {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+	}
+
+	.account span {
+		max-width: 220px;
+		overflow: hidden;
+		color: #7789a1;
+		font-size: 0.69rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.account button {
+		padding: 9px 14px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.28);
+		border-radius: 9px;
+		cursor: pointer;
+		background: rgba(42, 93, 168, 0.13);
+		color: #d9e7ff;
+	}
+
+	.container {
+		width: min(100% - 40px, 1180px);
+		margin: 0 auto;
+		padding: 64px 0 90px;
+	}
+
+	.page-header {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		gap: 32px;
+		margin-bottom: 46px;
+	}
+
+	.eyebrow {
+		margin: 0;
+		color: #5ca2ff;
+		letter-spacing: 0.2em;
+		font-size: 0.64rem;
+		font-weight: 700;
+	}
+
+	h1 {
+		margin: 12px 0 0;
+		font-size: clamp(2.4rem, 6vw, 4.6rem);
+		font-weight: 400;
+		letter-spacing: -0.055em;
+	}
+
+	.description {
+		max-width: 680px;
+		margin: 16px 0 0;
+		color: #8799b1;
+		line-height: 1.65;
+	}
+
+	.actions {
+		flex-shrink: 0;
+	}
+
+	@media (max-width: 760px) {
+		.topbar {
+			grid-template-columns:
+				1fr auto;
+			gap: 16px;
+			padding: 12px 18px;
+		}
+
+		nav {
+			grid-column: 1 / -1;
+			grid-row: 2;
+			overflow-x: auto;
+		}
+
+		.account span {
+			display: none;
+		}
+
+		.container {
+			width: min(100% - 28px, 1180px);
+			padding-top: 44px;
+		}
+
+		.page-header {
+			align-items: start;
+			flex-direction: column;
+		}
+	}
+</style>

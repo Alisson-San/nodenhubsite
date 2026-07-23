@@ -1,0 +1,90 @@
+---
+import ServiceLayout from "../../layouts/ServiceLayout.astro";
+
+import ServiceHero from "./ServiceHero.astro";
+import ServicesGrid from "./ServicesGrid.astro";
+import PricingTable from "./PricingTable.astro";
+
+import ContactCTA from "../common/ContactCTA.astro";
+
+import {
+	getWhatsAppUrl,
+} from "../../config/site";
+
+import {
+	loadSiteConfig,
+} from "../../lib/site/siteRepository";
+
+import type {
+	ServicePageConfig,
+} from "../../types/services";
+
+interface Props {
+	page: ServicePageConfig;
+}
+
+const {
+	page,
+} = Astro.props;
+
+const site =
+	await loadSiteConfig();
+---
+
+<ServiceLayout
+	site={site}
+	title={page.seo.title}
+	description={page.seo.description}
+	canonical={page.seo.canonical}
+	division={page.division}
+	accent={page.theme.accent}
+	accentSecondary={page.theme.accentSecondary}
+>
+	<ServiceHero
+		division={page.division}
+		eyebrow={page.hero.eyebrow}
+		title={page.hero.title}
+		description={page.hero.description}
+		highlights={page.hero.highlights}
+		primaryLabel={page.hero.primaryLabel}
+		primaryHref={getWhatsAppUrl(
+			page.hero.primaryMessage,
+			site,
+		)}
+		secondaryLabel={page.hero.secondaryLabel}
+		secondaryHref={
+			page.hero.secondaryHref ??
+			"#servicos"
+		}
+	/>
+
+	<ServicesGrid
+		eyebrow={page.servicesSection.eyebrow}
+		title={page.servicesSection.title}
+		description={page.servicesSection.description}
+		services={page.services}
+	/>
+
+	<PricingTable
+		division={page.division}
+		eyebrow={page.pricingSection.eyebrow}
+		title={page.pricingSection.title}
+		description={page.pricingSection.description}
+		items={page.pricing}
+		disclaimer={page.pricingSection.disclaimer}
+	/>
+
+	<ContactCTA
+		eyebrow={page.cta.eyebrow}
+		title={page.cta.title}
+		description={page.cta.description}
+		buttonLabel={page.cta.buttonLabel}
+		buttonHref={getWhatsAppUrl(
+			page.cta.message,
+			site,
+		)}
+		secondaryLabel={page.cta.secondaryLabel}
+		secondaryHref={page.cta.secondaryHref}
+		align="center"
+	/>
+</ServiceLayout>

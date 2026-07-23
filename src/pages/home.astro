@@ -1,0 +1,26 @@
+---
+export const prerender = false;
+
+import DivisionPage from "../components/services/DivisionPage.astro";
+
+import {
+	loadServicePage,
+} from "../lib/services/serviceRepository";
+
+const loaded =
+	await loadServicePage("home");
+
+if (!loaded) {
+	return Astro.redirect(
+		"/404",
+		302,
+	);
+}
+
+Astro.response.headers.set(
+	"X-Noden-Content-Source",
+	loaded.source,
+);
+---
+
+<DivisionPage page={loaded.page} />

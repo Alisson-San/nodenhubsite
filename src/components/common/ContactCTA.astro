@@ -1,0 +1,295 @@
+---
+import { getWhatsAppUrl } from "../../config/site";
+
+interface Props {
+	eyebrow?: string;
+	title?: string;
+	description?: string;
+	buttonLabel?: string;
+	buttonHref?: string;
+	secondaryLabel?: string;
+	secondaryHref?: string;
+	align?: "left" | "center";
+	class?: string;
+}
+
+const {
+	eyebrow = "FALE COM A NODEN",
+	title = "Tecnologia clara, próxima e feita para resolver.",
+	description =
+		"Conte o que você precisa e vamos encontrar a solução mais adequada para sua casa, computador ou negócio.",
+	buttonLabel = "Chamar no WhatsApp",
+	buttonHref = getWhatsAppUrl(),
+	secondaryLabel,
+	secondaryHref,
+	align = "left",
+	class: className = "",
+} = Astro.props;
+
+const buttonExternal =
+	buttonHref.startsWith("http://") ||
+	buttonHref.startsWith("https://");
+
+const secondaryExternal =
+	secondaryHref?.startsWith("http://") ||
+	secondaryHref?.startsWith("https://");
+---
+
+<section
+	class:list={["contact-cta", className]}
+	data-align={align}
+>
+	<div class="contact-cta__glow" aria-hidden="true"></div>
+
+	<div class="contact-cta__content">
+		<span class="contact-cta__eyebrow">
+			{eyebrow}
+		</span>
+
+		<h2>{title}</h2>
+
+		<p>{description}</p>
+
+		<div class="contact-cta__actions">
+			<a
+				class="contact-cta__primary"
+				href={buttonHref}
+				target={buttonExternal ? "_blank" : undefined}
+				rel={buttonExternal ? "noopener noreferrer" : undefined}
+			>
+				{buttonLabel}
+
+				<svg
+					viewBox="0 0 20 20"
+					aria-hidden="true"
+					focusable="false"
+				>
+					<path
+						d="M6 14L14 6M8 6h6v6"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</a>
+
+			{
+				secondaryLabel && secondaryHref && (
+					<a
+						class="contact-cta__secondary"
+						href={secondaryHref}
+						target={
+							secondaryExternal
+								? "_blank"
+								: undefined
+						}
+						rel={
+							secondaryExternal
+								? "noopener noreferrer"
+								: undefined
+						}
+					>
+						{secondaryLabel}
+					</a>
+				)
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+    .contact-cta,
+    .contact-cta * {
+        box-sizing: border-box;
+    }
+
+	.contact-cta {
+		position: relative;
+		isolation: isolate;
+		width: min(100% - 40px, 1120px);
+		margin: 90px auto 0;
+		overflow: hidden;
+		border: 1px solid rgba(95, 143, 214, 0.18);
+		border-radius: 28px;
+		background:
+			linear-gradient(
+				135deg,
+				rgba(16, 35, 64, 0.96),
+				rgba(6, 14, 27, 0.98)
+			);
+	}
+
+	.contact-cta__glow {
+		position: absolute;
+		z-index: -1;
+		top: -170px;
+		right: -80px;
+		width: 430px;
+		height: 430px;
+		border-radius: 999px;
+		background:
+			radial-gradient(
+				circle,
+				rgba(35, 120, 255, 0.25),
+				rgba(87, 43, 255, 0.1) 45%,
+				transparent 72%
+			);
+		filter: blur(12px);
+		pointer-events: none;
+	}
+
+	.contact-cta__content {
+		max-width: 760px;
+		padding: clamp(42px, 7vw, 76px);
+	}
+
+	.contact-cta[data-align="center"] .contact-cta__content {
+		margin: 0 auto;
+		text-align: center;
+	}
+
+	.contact-cta__eyebrow {
+		color: #76a8ee;
+		font-size: 0.59rem;
+		font-weight: 600;
+		letter-spacing: 0.24em;
+	}
+
+	.contact-cta h2 {
+		max-width: 700px;
+		margin: 17px 0 0;
+		color: #ffffff;
+		font-size: clamp(2rem, 5vw, 4.1rem);
+		font-weight: 400;
+		letter-spacing: -0.05em;
+		line-height: 1.02;
+	}
+
+	.contact-cta[data-align="center"] h2,
+	.contact-cta[data-align="center"] p {
+		margin-right: auto;
+		margin-left: auto;
+	}
+
+	.contact-cta p {
+		max-width: 600px;
+		margin: 23px 0 0;
+		color: #93a3b9;
+		font-size: 0.91rem;
+		line-height: 1.7;
+	}
+
+	.contact-cta__actions {
+		display: flex;
+		margin-top: 30px;
+		align-items: center;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.contact-cta[data-align="center"] .contact-cta__actions {
+		justify-content: center;
+	}
+
+	.contact-cta__primary,
+	.contact-cta__secondary {
+		display: inline-flex;
+		min-height: 46px;
+		padding: 0 18px;
+		align-items: center;
+		justify-content: center;
+		border-radius: 13px;
+		font-size: 0.72rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			border-color 180ms ease,
+			background-color 180ms ease,
+			color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.contact-cta__primary {
+		gap: 9px;
+		border: 1px solid rgba(93, 155, 246, 0.36);
+		background:
+			linear-gradient(
+				135deg,
+				rgba(37, 111, 226, 0.42),
+				rgba(70, 51, 210, 0.35)
+			);
+		color: #ffffff;
+	}
+
+	.contact-cta__primary svg {
+		width: 17px;
+		height: 17px;
+	}
+
+	.contact-cta__primary:hover {
+		border-color: rgba(93, 171, 255, 0.7);
+		background:
+			linear-gradient(
+				135deg,
+				rgba(41, 126, 249, 0.55),
+				rgba(83, 61, 231, 0.48)
+			);
+		transform: translateY(-1px);
+	}
+
+	.contact-cta__secondary {
+		border: 1px solid rgba(121, 147, 184, 0.18);
+		background: rgba(255, 255, 255, 0.025);
+		color: #a9b6c8;
+	}
+
+	.contact-cta__secondary:hover {
+		border-color: rgba(121, 161, 220, 0.32);
+		background: rgba(255, 255, 255, 0.055);
+		color: #ffffff;
+		transform: translateY(-1px);
+	}
+
+	.contact-cta a:focus-visible {
+		outline: 2px solid rgba(70, 147, 255, 0.78);
+		outline-offset: 4px;
+	}
+
+	@media (max-width: 600px) {
+	.contact-cta {
+		width: min(100% - 28px, 1120px);
+		margin-top: 64px;
+		border-radius: 22px;
+	}
+
+	.contact-cta__content {
+		width: 100%;
+		padding: 38px 24px;
+	}
+
+	.contact-cta h2 {
+		font-size: clamp(2rem, 11vw, 3rem);
+	}
+
+	.contact-cta__actions {
+		width: 100%;
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.contact-cta__primary,
+	.contact-cta__secondary {
+		width: 100%;
+		max-width: 100%;
+	}
+}
+
+	@media (prefers-reduced-motion: reduce) {
+		.contact-cta__primary,
+		.contact-cta__secondary {
+			transition: none;
+		}
+	}
+</style>

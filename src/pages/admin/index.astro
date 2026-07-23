@@ -1,0 +1,130 @@
+---
+export const prerender = false;
+
+import AdminLayout
+	from "../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout
+	title="Visão geral"
+	description="Gerencie o conteúdo e as configurações públicas da Noden."
+>
+	<section class="grid">
+		<a
+			class="card"
+			href="/admin/pages"
+		>
+			<span>Conteúdo</span>
+
+			<h2>Páginas de serviço</h2>
+
+			<p>
+				Editar textos e publicação das páginas
+				Home, Game e Data.
+			</p>
+
+			<strong>Abrir páginas →</strong>
+		</a>
+
+		<a
+			class="card"
+			href="/admin/catalog"
+		>
+			<span>Catálogo</span>
+
+			<h2>Serviços e preços</h2>
+
+			<p>
+				Organizar serviços, valores, ordem
+				e destaques.
+			</p>
+
+			<strong>Abrir catálogo →</strong>
+		</a>
+
+		<a
+			class="card"
+			href="/admin/settings"
+		>
+			<span>Sistema</span>
+
+			<h2>Configurações</h2>
+
+			<p>
+				Contatos, regiões atendidas
+				e redes sociais.
+			</p>
+
+			<strong>
+				Abrir configurações →
+			</strong>
+		</a>
+	</section>
+</AdminLayout>
+
+<style>
+	.grid {
+		display: grid;
+		grid-template-columns:
+			repeat(3, minmax(0, 1fr));
+		gap: 18px;
+	}
+
+	.card {
+		display: flex;
+		min-height: 245px;
+		padding: 28px;
+		border: 1px solid
+			rgba(105, 145, 205, 0.2);
+		border-radius: 20px;
+		flex-direction: column;
+		background:
+			linear-gradient(
+				145deg,
+				rgba(15, 31, 56, 0.76),
+				rgba(4, 11, 21, 0.9)
+			);
+		text-decoration: none;
+		transition:
+			transform 180ms ease,
+			border-color 180ms ease;
+	}
+
+	a.card:hover {
+		border-color:
+			rgba(75, 145, 255, 0.52);
+		transform: translateY(-3px);
+	}
+
+	.card span {
+		color: #619fea;
+		letter-spacing: 0.14em;
+		font-size: 0.61rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.card h2 {
+		margin: 38px 0 0;
+		font-size: 1.45rem;
+		font-weight: 500;
+	}
+
+	.card p {
+		margin-bottom: 24px;
+		color: #899bb3;
+		line-height: 1.6;
+	}
+
+	.card strong {
+		margin-top: auto;
+		color: #7cb3ff;
+		font-size: 0.72rem;
+	}
+
+	@media (max-width: 850px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
