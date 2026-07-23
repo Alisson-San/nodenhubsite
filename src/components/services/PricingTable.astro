@@ -747,6 +747,113 @@ const hasInteractiveControls =
 			)
 			.trim();
 
+	type CatalogUrlState = {
+		query: string;
+		kind: string;
+	};
+
+	const catalogKindToUrl:
+		Record<string, string> = {
+			service: "servico",
+			package: "pacote",
+			product: "produto",
+			consulting: "consultoria",
+		};
+
+	const catalogUrlToKind:
+		Record<string, string> = {
+			servico: "service",
+			pacote: "package",
+			produto: "product",
+			consultoria: "consulting",
+		};
+
+	const readCatalogUrlState =
+		(): CatalogUrlState => {
+			const params =
+				new URLSearchParams(
+					window.location.search,
+				);
+
+			return {
+				query:
+					params.get(
+						"busca",
+					) ?? "",
+
+				kind:
+					catalogUrlToKind[
+						params.get(
+							"tipo",
+						) ?? ""
+					] ?? "",
+			};
+		};
+
+	const writeCatalogUrlState = (
+		state: CatalogUrlState,
+		catalogId: string,
+	): void => {
+		const url =
+			new URL(
+				window.location.href,
+			);
+
+		const query =
+			state.query.trim();
+
+		if (query) {
+			url.searchParams.set(
+				"busca",
+				query,
+			);
+		} else {
+			url.searchParams.delete(
+				"busca",
+			);
+		}
+
+		const kind =
+			catalogKindToUrl[
+				state.kind
+			] ?? "";
+
+		if (kind) {
+			url.searchParams.set(
+				"tipo",
+				kind,
+			);
+		} else {
+			url.searchParams.delete(
+				"tipo",
+			);
+		}
+
+		if (
+			(query || kind) &&
+			catalogId
+		) {
+			url.hash =
+				`#${catalogId}`;
+		}
+
+		const nextUrl =
+			`${url.pathname}${url.search}${url.hash}`;
+
+		const currentUrl =
+			`${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+		if (nextUrl === currentUrl) {
+			return;
+		}
+
+		window.history.replaceState(
+			window.history.state,
+			"",
+			nextUrl,
+		);
+	};
+
 	document
 		.querySelectorAll<HTMLElement>(
 			"[data-catalog-root]",
@@ -817,10 +924,19 @@ const hasInteractiveControls =
 					"[data-catalog-empty]",
 				);
 
-			const state = {
-				query: "",
-				kind: "",
-			};
+			const state =
+				readCatalogUrlState();
+
+			if (
+				state.kind &&
+				!cards.some(
+					(card) =>
+						card.dataset.kind ===
+						state.kind,
+				)
+			) {
+				state.kind = "";
+			}
 
 			const setKind =
 				(value: string) => {
@@ -854,6 +970,15 @@ const hasInteractiveControls =
 							},
 						);
 				};
+
+			if (searchInput) {
+				searchInput.value =
+					state.query;
+			}
+
+			setKind(
+				state.kind,
+			);
 
 			const applyFilters =
 				() => {
@@ -962,6 +1087,11 @@ const hasInteractiveControls =
 						clearSearch.hidden =
 							!state.query;
 					}
+
+					writeCatalogUrlState(
+						state,
+						root.id,
+					);
 				};
 
 			root
