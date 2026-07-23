@@ -158,27 +158,29 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 						)
 					}
 
-					<a
-						href={resolveWhatsAppUrl(item)}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						{item.ctaLabel ?? "Consultar pelo WhatsApp"}
-
-						<svg
-							viewBox="0 0 20 20"
-							aria-hidden="true"
+					<footer class="pricing-card__footer">
+						<a
+							href={resolveWhatsAppUrl(item)}
+							target="_blank"
+							rel="noopener noreferrer"
 						>
-							<path
-								d="M6 14 14 6M8 6h6v6"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.7"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							/>
-						</svg>
-					</a>
+							{item.ctaLabel ?? "Consultar pelo WhatsApp"}
+
+							<svg
+								viewBox="0 0 20 20"
+								aria-hidden="true"
+							>
+								<path
+									d="M6 14 14 6M8 6h6v6"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.7"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								/>
+							</svg>
+						</a>
+					</footer>
 				</article>
 			))
 		}
@@ -240,13 +242,15 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		display: grid;
 		margin-top: 48px;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
+		align-items: stretch;
 		gap: 16px;
 	}
 
 	.pricing-card {
 		position: relative;
 		display: flex;
-		min-height: 100%;
+		height: 100%;
+		min-height: 0;
 		padding: 28px;
 		flex-direction: column;
 		border: 1px solid rgba(104, 145, 204, 0.16);
@@ -259,6 +263,12 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 			);
 	}
 
+	.pricing-card__footer {
+		display: flex;
+		width: 100%;
+		margin-top: auto;
+		padding-top: clamp(26px, 2.5vw, 34px);
+	}
 	.pricing-card.is-featured {
 		border-color:
 			color-mix(
@@ -393,11 +403,10 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		line-height: 1.55;
 	}
 
-	.pricing-card > a {
+	.pricing-card__footer > a {
 		display: inline-flex;
 		width: 100%;
 		min-height: 45px;
-		margin-top: auto;
 		padding: 0 15px;
 		align-items: center;
 		justify-content: center;
@@ -425,18 +434,13 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 			transform 180ms ease;
 	}
 
-	.pricing-card ul + a,
-	.pricing-card__note + a,
-	.pricing-card__price + a {
-		margin-top: 26px;
-	}
 
-	.pricing-card > a svg {
+	.pricing-card__footer > a svg {
 		width: 17px;
 		height: 17px;
 	}
 
-	.pricing-card > a:hover {
+	.pricing-card__footer > a:hover {
 		border-color:
 			color-mix(
 				in srgb,
@@ -452,7 +456,7 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		transform: translateY(-1px);
 	}
 
-	.pricing-card > a:focus-visible {
+	.pricing-card__footer > a:focus-visible {
 		outline: 2px solid
 			color-mix(
 				in srgb,
@@ -515,7 +519,7 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.pricing-card > a {
+		.pricing-card__footer > a {
 			transition: none;
 		}
 	}

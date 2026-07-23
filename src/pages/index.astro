@@ -1,6 +1,24 @@
 ---
+export const prerender = false;
+
 import NodenSymbol from "../components/NodenSymbol.astro";
 import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
+
+import {
+	getWhatsAppUrl,
+} from "../config/site";
+
+import {
+	loadSiteConfig,
+} from "../lib/site/siteRepository";
+
+const site = await loadSiteConfig();
+
+const whatsappUrl =
+	getWhatsAppUrl(
+		undefined,
+		site,
+	);
 ---
 
 <html lang="pt-BR">
@@ -9,9 +27,9 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 		<meta name="viewport" content="width=device-width" />
 		<meta
 			name="description"
-			content="Noden Technology Hub — tecnologia, performance e dados conectados."
+			content={site.description}
 		/>
-		<title>NODEN — Technology Hub</title>
+		<title>{site.name} — Technology Hub</title>
 
 	</head>
 
@@ -105,10 +123,13 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 										<span class="coverage-label">ATENDIMENTO DOMICILIAR</span>
 
 										<div class="coverage-cities">
-											<span>Barão</span>
-											<span>Carlos Barbosa</span>
-											<span>Salvador do Sul</span>
-											<span>São Pedro da Serra</span>
+											{
+												site.serviceAreas.map(
+													(area) => (
+														<span>{area}</span>
+													),
+												)
+											}
 										</div>
 									</div>
 								</div>
@@ -176,6 +197,28 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 							<p class="division-meta">
 								Atendimento local · Diagnóstico · Solução prática
 							</p>
+
+							<a
+								class="division-link"
+								href="/home"
+								aria-label="Ver serviços e preços da Noden Home"
+							>
+								Ver serviços e preços
+
+								<svg
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path
+										d="M5 12h14M13 6l6 6-6 6"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.8"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</a>
 						</div>
 					</div>
 
@@ -198,6 +241,28 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 							<p class="division-meta">
 								Hardware · Performance · Otimização
 							</p>
+
+							<a
+								class="division-link"
+								href="/game"
+								aria-label="Ver serviços e preços da Noden Game"
+							>
+								Ver serviços e preços
+
+								<svg
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path
+										d="M5 12h14M13 6l6 6-6 6"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.8"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</a>
 						</div>
 					</div>
 
@@ -221,6 +286,28 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 							<p class="division-meta">
 								Data Engineering · BI · Analytics · Developer
 							</p>
+
+							<a
+								class="division-link"
+								href="/data"
+								aria-label="Ver serviços e preços da Noden Data"
+							>
+								Ver serviços e preços
+
+								<svg
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path
+										d="M5 12h14M13 6l6 6-6 6"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.8"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</a>
 						</div>
 					</div>
 
@@ -249,7 +336,13 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 							<span class="final-brand-letter final-brand-letter-den">DEN</span>
 						</div>
 
-						<a href="whatsapp://send?phone=5554996306632&text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20Noden." rel="noopener noreferrer" class="final-contact-link" aria-label="Entre em contato pelo WhatsApp">
+						<a
+							href={whatsappUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="final-contact-link"
+							aria-label="Entre em contato pelo WhatsApp"
+						>
 							<span class="final-contact-icon" aria-hidden="true">
 								<svg viewBox="0 0 24 24" role="img">
 									<path
@@ -595,6 +688,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 			};
 
 			gsap.set(".division-copy", {
+				autoAlpha: 0,
 				x: 24,
 			});
 
@@ -864,7 +958,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 				.to(
 					"#home-copy",
 					{
-						opacity: 1,
+						autoAlpha: 1,
 						y: 0,
 						x: 0,
 						duration: 0.9,
@@ -876,7 +970,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 				.to(
 					"#home-copy",
 					{
-						opacity: 0,
+						autoAlpha: 0,
 						y: -32,
 						x: 0,
 						duration: 0.8,
@@ -941,7 +1035,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 				.to(
 					"#game-copy",
 					{
-						opacity: 1,
+						autoAlpha: 1,
 						y: 0,
 						x: 0,
 						duration: 0.9,
@@ -953,7 +1047,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 				.to(
 					"#game-copy",
 					{
-						opacity: 0,
+						autoAlpha: 0,
 						y: -32,
 						x: 0,
 						duration: 0.8,
@@ -1018,7 +1112,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 				.to(
 					"#data-copy",
 					{
-						opacity: 1,
+						autoAlpha: 1,
 						y: 0,
 						x: 0,
 						duration: 0.9,
@@ -1030,7 +1124,7 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 				.to(
 					"#data-copy",
 					{
-						opacity: 0,
+						autoAlpha: 0,
 						y: -32,
 						x: 0,
 						duration: 0.8,
@@ -2127,6 +2221,55 @@ import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.a
 		font-weight: 600;
 		letter-spacing: 0.26em;
 		text-transform: uppercase;
+	}
+
+	.division-link {
+		position: relative;
+		z-index: 3;
+		display: inline-flex;
+		min-height: 44px;
+		margin-top: 24px;
+		padding: 0 17px;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		border: 1px solid rgba(108, 159, 234, 0.32);
+		border-radius: 12px;
+		background: rgba(30, 88, 177, 0.16);
+		color: #f7faff;
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.045em;
+		text-decoration: none;
+		pointer-events: auto;
+		touch-action: manipulation;
+		transition:
+			border-color 180ms ease,
+			background-color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.division-link svg {
+		width: 17px;
+		height: 17px;
+		flex-shrink: 0;
+	}
+
+	.division-link:hover {
+		border-color: rgba(73, 154, 255, 0.58);
+		background: rgba(35, 105, 215, 0.25);
+		transform: translateY(-2px);
+	}
+
+	.division-link:focus-visible {
+		outline: 2px solid rgba(70, 147, 255, 0.78);
+		outline-offset: 4px;
+	}
+
+	@media (max-width: 520px) {
+		.division-link {
+			width: 100%;
+		}
 	}
 
 	.final-copy {
