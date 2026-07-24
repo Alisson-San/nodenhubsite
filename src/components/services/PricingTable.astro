@@ -7,7 +7,12 @@ import {
 	getWhatsAppUrl,
 } from "../../config/site";
 
+import {
+	getCatalogIconSymbol,
+} from "../../lib/catalog/icons";
+
 import type {
+	CatalogItemKind,
 	PricingItem,
 	ServiceDivision,
 } from "../../types/services";
@@ -22,6 +27,15 @@ interface Props {
 	disclaimer?: string;
 }
 
+interface CatalogGroup {
+	key: string;
+	title: string;
+	description?: string;
+	iconKey?: string;
+	color: string;
+	items: PricingItem[];
+}
+
 const {
 	id = "precos",
 	division,
@@ -32,33 +46,203 @@ const {
 	disclaimer = "Os valores podem variar conforme o estado do equipamento, complexidade do serviço, peças necessárias e deslocamento.",
 } = Astro.props;
 
-const titleId = `${id}-title`;
+const titleId =
+	`${id}-title`;
 
-const resolvePrice = (item: PricingItem) => {
+const searchId =
+	`${id}-search`;
+
+const itemKindLabels:
+	Record<
+		CatalogItemKind,
+		string
+	> = {
+		service: "Serviços",
+		package: "Pacotes",
+		product: "Produtos",
+		consulting: "Consultoria",
+	};
+
+const itemKindSingularLabels:
+	Record<
+		CatalogItemKind,
+		string
+	> = {
+		service: "Serviço",
+		package: "Pacote",
+		product: "Produto",
+		consulting: "Consultoria",
+	};
+
+const fallbackGroupDescriptions:
+	Record<
+		CatalogItemKind,
+		string
+	> = {
+		service:
+			"Serviços disponíveis nesta área da Noden.",
+
+		package:
+			"Combinações de serviços pensadas para entregar uma solução mais completa.",
+
+		product:
+			"Produtos físicos ou digitais disponíveis nesta área.",
+
+		consulting:
+			"Diagnósticos, orientações e projetos especializados.",
+	};
+
+const resolveItemKind = (
+	item: PricingItem,
+): CatalogItemKind =>
+	item.itemKind ??
+	"service";
+
+const resolvePrice = (
+	item: PricingItem,
+): string => {
 	if (item.priceLabel) {
 		return item.priceLabel;
 	}
 
-	if (typeof item.price === "number") {
-		return formatCurrency(item.price);
+	if (
+		typeof item.price ===
+		"number"
+	) {
+		return formatCurrency(
+			item.price,
+		);
 	}
 
 	return "Sob consulta";
 };
 
-const resolveWhatsAppUrl = (item: PricingItem) => {
+const resolveWhatsAppUrl = (
+	item: PricingItem,
+): string => {
 	const message =
 		item.ctaMessage ??
 		`Olá! Vim pela página Noden ${division.toUpperCase()} e gostaria de saber mais sobre o serviço: ${item.name}.`;
 
-	return getWhatsAppUrl(message);
+	return getWhatsAppUrl(
+		message,
+	);
 };
+
+const buildSearchText = (
+	item: PricingItem,
+): string =>
+	[
+		item.name,
+		item.description,
+		item.category?.name,
+		item.category?.description,
+		item.tier?.name,
+		item.tier?.description,
+		itemKindSingularLabels[
+			resolveItemKind(
+				item,
+			)
+		],
+		...(item.features ?? []),
+		...(
+			item.badges ?? []
+		).map(
+			(badge) =>
+				badge.name,
+		),
+	]
+		.filter(Boolean)
+		.join(" ");
+
+const groupsByKey =
+	new Map<
+		string,
+		CatalogGroup
+	>();
+
+for (const item of items) {
+	const kind =
+		resolveItemKind(
+			item,
+		);
+
+	const category =
+		item.category;
+
+	const key =
+		category
+			? `category:${category.slug}`
+			: `kind:${kind}`;
+
+	const existing =
+		groupsByKey.get(
+			key,
+		);
+
+	if (existing) {
+		existing.items.push(
+			item,
+		);
+
+		continue;
+	}
+
+	groupsByKey.set(
+		key,
+		{
+			key,
+
+			title:
+				category?.name ??
+				itemKindLabels[kind],
+
+			description:
+				category?.description ??
+				fallbackGroupDescriptions[
+					kind
+				],
+
+			iconKey:
+				category?.iconKey,
+
+			color:
+				category?.color ??
+				"var(--service-accent)",
+
+			items: [
+				item,
+			],
+		},
+	);
+}
+
+const groups =
+	[
+		...groupsByKey
+			.values(),
+	];
+
+const availableKinds =
+	[
+		...new Set<
+			CatalogItemKind
+		>(
+			items.map(
+				resolveItemKind,
+			),
+		),
+	];
+
+const hasInteractiveControls =
+	items.length > 1;
 ---
 
 <section
 	class="pricing-table"
 	id={id}
 	aria-labelledby={titleId}
+	data-catalog-root
 >
 	<header class="pricing-table__header">
 		<div>
@@ -76,120 +260,910 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		}
 	</header>
 
-	<div class="pricing-table__items">
-		{
-			items.map((item) => (
-				<article
-					class:list={[
-						"pricing-card",
-						{
-							"is-featured": item.featured,
-						},
-					]}
-				>
-					<div class="pricing-card__top">
-						{
-							(item.badge || item.featured) && (
-								<span class="pricing-card__badge">
-									{item.badge ?? "Mais procurado"}
-								</span>
-							)
-						}
+	{
+		hasInteractiveControls && (
+			<section
+				class="catalog-controls"
+				aria-label="Busca e filtros do catálogo"
+				data-catalog-controls
+				hidden
+			>
+				<div class="catalog-search">
+					<label
+						class="sr-only"
+						for={searchId}
+					>
+						Buscar no catálogo
+					</label>
 
-						<h3>{item.name}</h3>
+					<svg
+						viewBox="0 0 20 20"
+						aria-hidden="true"
+					>
+						<circle
+							cx="8.5"
+							cy="8.5"
+							r="5.5"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.6"
+						/>
 
-						<p>{item.description}</p>
-					</div>
+						<path
+							d="m12.5 12.5 4 4"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.6"
+							stroke-linecap="round"
+						/>
+					</svg>
 
-					<div class="pricing-card__price">
-						{
-							item.pricePrefix && (
-								<span class="pricing-card__prefix">
-									{item.pricePrefix}
-								</span>
-							)
-						}
+					<input
+						id={searchId}
+						type="search"
+						placeholder="Buscar serviço, pacote, recurso..."
+						autocomplete="off"
+						data-catalog-search
+					/>
 
-						<strong>
-							{resolvePrice(item)}
-						</strong>
+					<button
+						type="button"
+						class="catalog-search__clear"
+						aria-label="Limpar busca"
+						data-clear-search
+						hidden
+					>
+						×
+					</button>
+				</div>
 
-						{
-							item.priceSuffix && (
-								<span class="pricing-card__suffix">
-									{item.priceSuffix}
-								</span>
-							)
-						}
-					</div>
+				{
+					availableKinds.length > 1 && (
+						<div class="catalog-filter-group">
+							<span>Tipo de item</span>
 
-					{
-						item.features &&
-							item.features.length > 0 && (
-								<ul>
-									{item.features.map((feature) => (
-										<li>
-											<svg
-												viewBox="0 0 20 20"
-												aria-hidden="true"
-											>
-												<path
-													d="m5.5 10.5 3 3 6-7"
-													fill="none"
-													stroke="currentColor"
-													stroke-width="1.8"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-												/>
-											</svg>
-
-											{feature}
-										</li>
-									))}
-								</ul>
-							)
-					}
-
-					{
-						item.note && (
-							<p class="pricing-card__note">
-								{item.note}
-							</p>
-						)
-					}
-
-					<footer class="pricing-card__footer">
-						<a
-							href={resolveWhatsAppUrl(item)}
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							{item.ctaLabel ?? "Consultar pelo WhatsApp"}
-
-							<svg
-								viewBox="0 0 20 20"
-								aria-hidden="true"
+							<div
+								class="catalog-filter-scroll"
+								role="group"
+								aria-label="Filtrar por tipo"
 							>
-								<path
-									d="M6 14 14 6M8 6h6v6"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.7"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								/>
-							</svg>
-						</a>
-					</footer>
-				</article>
-			))
-		}
-	</div>
+								<button
+									type="button"
+									class="catalog-filter is-active"
+									data-filter-kind=""
+									aria-pressed="true"
+								>
+									Todos
+								</button>
+
+								{
+									availableKinds.map(
+										(kind) => (
+											<button
+												type="button"
+												class="catalog-filter"
+												data-filter-kind={kind}
+												aria-pressed="false"
+											>
+												{itemKindLabels[kind]}
+											</button>
+										),
+									)
+								}
+							</div>
+						</div>
+					)
+				}
+
+				<footer class="catalog-controls__footer">
+					<p
+						aria-live="polite"
+						data-result-count
+					>
+						{items.length} resultados
+					</p>
+
+					<button
+						type="button"
+						data-reset-filters
+						hidden
+					>
+						Limpar filtros
+					</button>
+				</footer>
+			</section>
+		)
+	}
+
+	{
+		items.length === 0 ? (
+			<p class="catalog-empty catalog-empty--initial">
+				Nenhum item disponível no momento.
+			</p>
+		) : (
+			<div class="catalog-groups">
+				{
+					groups.map(
+						(group) => (
+							<section
+								class="catalog-group"
+								data-catalog-group
+								style={`--group-color:${group.color};`}
+								aria-labelledby={`${id}-${group.key.replace(
+									/[^a-z0-9-]/gi,
+									"-",
+								)}`}
+							>
+								<header class="catalog-group__header">
+									<div class="catalog-group__identity">
+										<span
+											class="catalog-group__icon"
+											aria-hidden="true"
+										>
+											{getCatalogIconSymbol(
+												group.iconKey,
+												"•",
+											)}
+										</span>
+
+										<div>
+											<p>Categoria</p>
+
+											<h3
+												id={`${id}-${group.key.replace(
+													/[^a-z0-9-]/gi,
+													"-",
+												)}`}
+											>
+												{group.title}
+											</h3>
+										</div>
+									</div>
+
+									{
+										group.description && (
+											<p class="catalog-group__description">
+												{group.description}
+											</p>
+										)
+									}
+
+									<span
+										class="catalog-group__count"
+										data-group-count
+									>
+										{group.items.length === 1
+											? "1 item"
+											: `${group.items.length} itens`}
+									</span>
+								</header>
+
+								<div class="pricing-table__items">
+									{
+										group.items.map(
+											(item) => {
+												const itemKind =
+													resolveItemKind(
+														item,
+													);
+
+												const badges =
+													(
+														item.badges ??
+														[]
+													).slice(
+														0,
+														3,
+													);
+
+												const legacyBadge =
+													badges.length ===
+														0 &&
+													item.badge &&
+													!item.tier
+														? item.badge
+														: undefined;
+
+												const featuredFallback =
+													badges.length ===
+														0 &&
+													!legacyBadge &&
+													item.featured;
+
+												const hasPromotion =
+													typeof item.price ===
+														"number" &&
+													typeof item.compareAtPrice ===
+														"number" &&
+													item.compareAtPrice >
+														item.price;
+
+												const saving =
+													hasPromotion
+														? item.compareAtPrice! -
+															item.price!
+														: 0;
+
+												return (
+													<article
+														class:list={[
+															"pricing-card",
+															{
+																"is-featured":
+																	item.featured,
+																"has-promotion":
+																	hasPromotion,
+															},
+														]}
+														data-catalog-card
+														data-kind={itemKind}
+														data-search={buildSearchText(
+															item,
+														)}
+													>
+														<div class="pricing-card__top">
+															<div class="pricing-card__classification">
+																<span class="pricing-card__kind">
+																	{
+																		itemKindSingularLabels[
+																			itemKind
+																		]
+																	}
+																</span>
+
+																{
+																	item.tier && (
+																		<span
+																			class="pricing-card__tier"
+																			style={`--tier-color:${item.tier.color};`}
+																		>
+																			{item.tier.name}
+																		</span>
+																	)
+																}
+															</div>
+
+															{
+																(
+																	badges.length >
+																		0 ||
+																	legacyBadge ||
+																	featuredFallback
+																) && (
+																	<div
+																		class="pricing-card__badges"
+																		aria-label="Destaques"
+																	>
+																		{
+																			badges.map(
+																				(
+																					badge,
+																				) => (
+																					<span
+																						class="pricing-card__badge pricing-card__badge--custom"
+																						style={`
+																							--badge-text:${badge.textColor};
+																							--badge-background:${badge.backgroundColor};
+																							--badge-border:${badge.borderColor};
+																						`}
+																					>
+																						<i aria-hidden="true">
+																							{getCatalogIconSymbol(
+																								badge.iconKey,
+																								"🏷️",
+																							)}
+																						</i>
+
+																						{badge.name}
+																					</span>
+																				),
+																			)
+																		}
+
+																		{
+																			legacyBadge && (
+																				<span class="pricing-card__badge">
+																					{legacyBadge}
+																				</span>
+																			)
+																		}
+
+																		{
+																			featuredFallback && (
+																				<span class="pricing-card__badge">
+																					🔥 Mais procurado
+																				</span>
+																			)
+																		}
+																	</div>
+																)
+															}
+
+															<h4>{item.name}</h4>
+
+															<p>{item.description}</p>
+														</div>
+
+														<div class="pricing-card__price">
+															{
+																hasPromotion && (
+																	<div class="pricing-card__old-price">
+																		<span>De</span>
+
+																		<del>
+																			{formatCurrency(
+																				item.compareAtPrice!,
+																			)}
+																		</del>
+																	</div>
+																)
+															}
+
+															<div class="pricing-card__current-price">
+																{
+																	item.pricePrefix && (
+																		<span class="pricing-card__prefix">
+																			{item.pricePrefix}
+																		</span>
+																	)
+																}
+
+																<strong>
+																	{resolvePrice(
+																		item,
+																	)}
+																</strong>
+
+																{
+																	item.priceSuffix && (
+																		<span class="pricing-card__suffix">
+																			{item.priceSuffix}
+																		</span>
+																	)
+																}
+															</div>
+
+															{
+																hasPromotion && (
+																	<span class="pricing-card__saving">
+																		Economize{" "}
+																		{formatCurrency(
+																			saving,
+																		)}
+																	</span>
+																)
+															}
+														</div>
+
+														{
+															item.features &&
+																item.features.length >
+																	0 && (
+																	<ul>
+																		{
+																			item.features.map(
+																				(
+																					feature,
+																				) => (
+																					<li>
+																						<svg
+																							viewBox="0 0 20 20"
+																							aria-hidden="true"
+																						>
+																							<path
+																								d="m5.5 10.5 3 3 6-7"
+																								fill="none"
+																								stroke="currentColor"
+																								stroke-width="1.8"
+																								stroke-linecap="round"
+																								stroke-linejoin="round"
+																							/>
+																						</svg>
+
+																						{feature}
+																					</li>
+																				),
+																			)
+																		}
+																	</ul>
+																)
+														}
+
+														{
+															item.note && (
+																<p class="pricing-card__note">
+																	{item.note}
+																</p>
+															)
+														}
+
+														<footer class="pricing-card__footer">
+															<a
+																href={resolveWhatsAppUrl(
+																	item,
+																)}
+>
+																{
+																	item.ctaLabel ??
+																	"Consultar pelo WhatsApp"
+																}
+
+																<svg
+																	viewBox="0 0 20 20"
+																	aria-hidden="true"
+																>
+																	<path
+																		d="M6 14 14 6M8 6h6v6"
+																		fill="none"
+																		stroke="currentColor"
+																		stroke-width="1.7"
+																		stroke-linecap="round"
+																		stroke-linejoin="round"
+																	/>
+																</svg>
+															</a>
+														</footer>
+													</article>
+												);
+											},
+										)
+									}
+								</div>
+							</section>
+						),
+					)
+				}
+			</div>
+		)
+	}
+
+	<p
+		class="catalog-empty"
+		data-catalog-empty
+		hidden
+	>
+		Nenhum item corresponde à busca ou ao tipo selecionado.
+	</p>
 
 	<p class="pricing-table__disclaimer">
 		{disclaimer}
 	</p>
 </section>
+
+<script>
+	const normalizeCatalogText = (
+		value: string,
+	): string =>
+		value
+			.normalize("NFD")
+			.replace(
+				/[\u0300-\u036f]/g,
+				"",
+			)
+			.toLocaleLowerCase(
+				"pt-BR",
+			)
+			.trim();
+
+	type CatalogUrlState = {
+		query: string;
+		kind: string;
+	};
+
+	const catalogKindToUrl:
+		Record<string, string> = {
+			service: "servico",
+			package: "pacote",
+			product: "produto",
+			consulting: "consultoria",
+		};
+
+	const catalogUrlToKind:
+		Record<string, string> = {
+			servico: "service",
+			pacote: "package",
+			produto: "product",
+			consultoria: "consulting",
+		};
+
+	const readCatalogUrlState =
+		(): CatalogUrlState => {
+			const params =
+				new URLSearchParams(
+					window.location.search,
+				);
+
+			return {
+				query:
+					params.get(
+						"busca",
+					) ?? "",
+
+				kind:
+					catalogUrlToKind[
+						params.get(
+							"tipo",
+						) ?? ""
+					] ?? "",
+			};
+		};
+
+	const writeCatalogUrlState = (
+		state: CatalogUrlState,
+		catalogId: string,
+	): void => {
+		const url =
+			new URL(
+				window.location.href,
+			);
+
+		const query =
+			state.query.trim();
+
+		if (query) {
+			url.searchParams.set(
+				"busca",
+				query,
+			);
+		} else {
+			url.searchParams.delete(
+				"busca",
+			);
+		}
+
+		const kind =
+			catalogKindToUrl[
+				state.kind
+			] ?? "";
+
+		if (kind) {
+			url.searchParams.set(
+				"tipo",
+				kind,
+			);
+		} else {
+			url.searchParams.delete(
+				"tipo",
+			);
+		}
+
+		if (
+			(query || kind) &&
+			catalogId
+		) {
+			url.hash =
+				`#${catalogId}`;
+		}
+
+		const nextUrl =
+			`${url.pathname}${url.search}${url.hash}`;
+
+		const currentUrl =
+			`${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+		if (nextUrl === currentUrl) {
+			return;
+		}
+
+		window.history.replaceState(
+			window.history.state,
+			"",
+			nextUrl,
+		);
+	};
+
+	document
+		.querySelectorAll<HTMLElement>(
+			"[data-catalog-root]",
+		)
+		.forEach((root) => {
+			if (
+				root.dataset
+					.catalogInitialized ===
+				"true"
+			) {
+				return;
+			}
+
+			const controls =
+				root.querySelector<HTMLElement>(
+					"[data-catalog-controls]",
+				);
+
+			if (!controls) {
+				return;
+			}
+
+			root.dataset
+				.catalogInitialized =
+					"true";
+
+			controls.hidden =
+				false;
+
+			const cards =
+				[
+					...root
+						.querySelectorAll<HTMLElement>(
+							"[data-catalog-card]",
+						),
+				];
+
+			const groups =
+				[
+					...root
+						.querySelectorAll<HTMLElement>(
+							"[data-catalog-group]",
+						),
+				];
+
+			const searchInput =
+				root.querySelector<HTMLInputElement>(
+					"[data-catalog-search]",
+				);
+
+			const clearSearch =
+				root.querySelector<HTMLButtonElement>(
+					"[data-clear-search]",
+				);
+
+			const resetButton =
+				root.querySelector<HTMLButtonElement>(
+					"[data-reset-filters]",
+				);
+
+			const resultCount =
+				root.querySelector<HTMLElement>(
+					"[data-result-count]",
+				);
+
+			const emptyState =
+				root.querySelector<HTMLElement>(
+					"[data-catalog-empty]",
+				);
+
+			const state =
+				readCatalogUrlState();
+
+			if (
+				state.kind &&
+				!cards.some(
+					(card) =>
+						card.dataset.kind ===
+						state.kind,
+				)
+			) {
+				state.kind = "";
+			}
+
+			const setKind =
+				(value: string) => {
+					state.kind =
+						value;
+
+					root
+						.querySelectorAll<HTMLButtonElement>(
+							"[data-filter-kind]",
+						)
+						.forEach(
+							(button) => {
+								const active =
+									(
+										button.dataset
+											.filterKind ??
+										""
+									) === value;
+
+								button.setAttribute(
+									"aria-pressed",
+									String(
+										active,
+									),
+								);
+
+								button.classList.toggle(
+									"is-active",
+									active,
+								);
+							},
+						);
+				};
+
+			if (searchInput) {
+				searchInput.value =
+					state.query;
+			}
+
+			setKind(
+				state.kind,
+			);
+
+			const applyFilters =
+				() => {
+					let visibleCount =
+						0;
+
+					const query =
+						normalizeCatalogText(
+							state.query,
+						);
+
+					for (
+						const card of cards
+					) {
+						const searchable =
+							normalizeCatalogText(
+								card.dataset
+									.search ??
+									"",
+							);
+
+						const matchesQuery =
+							!query ||
+							searchable.includes(
+								query,
+							);
+
+						const matchesKind =
+							!state.kind ||
+							card.dataset.kind ===
+								state.kind;
+
+						const visible =
+							matchesQuery &&
+							matchesKind;
+
+						card.hidden =
+							!visible;
+
+						if (visible) {
+							visibleCount +=
+								1;
+						}
+					}
+
+					for (
+						const group of groups
+					) {
+						const groupCards =
+							[
+								...group
+									.querySelectorAll<HTMLElement>(
+										"[data-catalog-card]",
+									),
+							];
+
+						const groupVisibleCount =
+							groupCards.filter(
+								(card) =>
+									!card.hidden,
+							).length;
+
+						group.hidden =
+							groupVisibleCount ===
+							0;
+
+						const count =
+							group.querySelector<HTMLElement>(
+								"[data-group-count]",
+							);
+
+						if (count) {
+							count.textContent =
+								groupVisibleCount ===
+									1
+									? "1 item"
+									: `${groupVisibleCount} itens`;
+						}
+					}
+
+					if (resultCount) {
+						resultCount.textContent =
+							visibleCount === 1
+								? "1 resultado"
+								: `${visibleCount} resultados`;
+					}
+
+					if (emptyState) {
+						emptyState.hidden =
+							visibleCount !==
+							0;
+					}
+
+					const hasFilters =
+						Boolean(
+							state.query ||
+							state.kind,
+						);
+
+					if (resetButton) {
+						resetButton.hidden =
+							!hasFilters;
+					}
+
+					if (clearSearch) {
+						clearSearch.hidden =
+							!state.query;
+					}
+
+					writeCatalogUrlState(
+						state,
+						root.id,
+					);
+				};
+
+			root
+				.querySelectorAll<HTMLButtonElement>(
+					"[data-filter-kind]",
+				)
+				.forEach(
+					(button) => {
+						button.addEventListener(
+							"click",
+							() => {
+								setKind(
+									button.dataset
+										.filterKind ??
+										"",
+								);
+
+								applyFilters();
+							},
+						);
+					},
+				);
+
+			searchInput?.addEventListener(
+				"input",
+				() => {
+					state.query =
+						searchInput.value;
+
+					applyFilters();
+				},
+			);
+
+			clearSearch?.addEventListener(
+				"click",
+				() => {
+					state.query =
+						"";
+
+					if (searchInput) {
+						searchInput.value =
+							"";
+
+						searchInput.focus();
+					}
+
+					applyFilters();
+				},
+			);
+
+			resetButton?.addEventListener(
+				"click",
+				() => {
+					state.query =
+						"";
+
+					if (searchInput) {
+						searchInput.value =
+							"";
+					}
+
+					setKind(
+						"",
+					);
+
+					applyFilters();
+
+					searchInput?.focus();
+				},
+			);
+
+			applyFilters();
+		});
+</script>
 
 <style>
 	.pricing-table,
@@ -198,25 +1172,43 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 	}
 
 	.pricing-table {
-		width: min(100% - 40px, 1120px);
+		width: min(
+			100% - 40px,
+			1120px
+		);
 		margin: 0 auto;
 		padding: 110px 0 30px;
 		scroll-margin-top: 100px;
 	}
 
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
 	.pricing-table__header {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(300px, 0.62fr);
+		grid-template-columns:
+			minmax(0, 1fr)
+			minmax(300px, 0.62fr);
 		align-items: end;
 		gap: 60px;
 	}
 
 	.pricing-table__header > div > span {
-		color: color-mix(
-			in srgb,
-			var(--service-accent) 67%,
-			#ffffff
-		);
+		color:
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					67%,
+				#ffffff
+			);
 		font-size: 0.59rem;
 		font-weight: 600;
 		letter-spacing: 0.24em;
@@ -225,7 +1217,12 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 	.pricing-table h2 {
 		max-width: 700px;
 		margin: 17px 0 0;
-		font-size: clamp(2.4rem, 5.5vw, 4.6rem);
+		font-size:
+			clamp(
+				2.4rem,
+				5.5vw,
+				4.6rem
+			);
 		font-weight: 300;
 		letter-spacing: -0.055em;
 		line-height: 1;
@@ -238,10 +1235,418 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		line-height: 1.7;
 	}
 
+	.catalog-controls {
+		display: grid;
+		gap: 19px;
+		margin-top: 42px;
+		padding: 20px;
+		border: 1px solid
+			rgba(
+				104,
+				145,
+				204,
+				0.16
+			);
+		border-radius: 20px;
+		background:
+			linear-gradient(
+				145deg,
+				rgba(
+					13,
+					29,
+					52,
+					0.72
+				),
+				rgba(
+					5,
+					13,
+					25,
+					0.88
+				)
+			);
+		box-shadow:
+			0 20px 60px
+			rgba(
+				0,
+				0,
+				0,
+				0.17
+			);
+	}
+
+	.catalog-search {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.catalog-search > svg {
+		position: absolute;
+		left: 15px;
+		width: 18px;
+		height: 18px;
+		color: #6f829b;
+		pointer-events: none;
+	}
+
+	.catalog-search input {
+		width: 100%;
+		min-height: 50px;
+		padding:
+			0 48px
+			0 45px;
+		border: 1px solid
+			rgba(
+				105,
+				145,
+				205,
+				0.22
+			);
+		border-radius: 13px;
+		outline: none;
+		background:
+			rgba(
+				2,
+				8,
+				16,
+				0.62
+			);
+		color: #f5f8ff;
+		font: inherit;
+		font-size: 0.76rem;
+	}
+
+	.catalog-search input::placeholder {
+		color: #667991;
+	}
+
+	.catalog-search input:focus {
+		border-color:
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					58%,
+				transparent
+			);
+		box-shadow:
+			0 0 0 3px
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					11%,
+				transparent
+			);
+	}
+
+	.catalog-search__clear {
+		position: absolute;
+		right: 9px;
+		display: grid;
+		width: 34px;
+		height: 34px;
+		padding: 0;
+		place-items: center;
+		border: 0;
+		border-radius: 9px;
+		cursor: pointer;
+		background: transparent;
+		color: #8596aa;
+		font-size: 1.1rem;
+	}
+
+	.catalog-search__clear:hover {
+		background:
+			rgba(
+				255,
+				255,
+				255,
+				0.05
+			);
+		color: #ffffff;
+	}
+
+	.catalog-filter-group {
+		display: grid;
+		gap: 9px;
+	}
+
+	.catalog-filter-group > span {
+		color: #70839b;
+		font-size: 0.59rem;
+		font-weight: 600;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+
+	.catalog-filter-scroll {
+		display: flex;
+		gap: 8px;
+		padding-bottom: 2px;
+		overflow-x: auto;
+		scrollbar-width: thin;
+	}
+
+	.catalog-filter {
+		display: inline-flex;
+		min-height: 36px;
+		padding: 0 12px;
+		align-items: center;
+		flex: 0 0 auto;
+		border: 1px solid
+			rgba(
+				105,
+				145,
+				205,
+				0.19
+			);
+		border-radius: 999px;
+		cursor: pointer;
+		background:
+			rgba(
+				255,
+				255,
+				255,
+				0.018
+			);
+		color: #8194ac;
+		font: inherit;
+		font-size: 0.64rem;
+	}
+
+	.catalog-filter:hover {
+		border-color:
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					45%,
+				transparent
+			);
+		color: #dbe8fa;
+	}
+
+	.catalog-filter.is-active {
+		border-color:
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					55%,
+				transparent
+			);
+		background:
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					14%,
+				transparent
+			);
+		color:
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					48%,
+				#ffffff
+			);
+	}
+
+	.catalog-filter:focus-visible,
+	.catalog-controls button:focus-visible {
+		outline: 2px solid
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					75%,
+				#ffffff
+			);
+		outline-offset: 3px;
+	}
+
+	.catalog-controls__footer {
+		display: flex;
+		min-height: 32px;
+		align-items: center;
+		justify-content:
+			space-between;
+		gap: 18px;
+		padding-top: 15px;
+		border-top: 1px solid
+			rgba(
+				105,
+				145,
+				205,
+				0.1
+			);
+	}
+
+	.catalog-controls__footer p {
+		margin: 0;
+		color: #71849b;
+		font-size: 0.64rem;
+	}
+
+	.catalog-controls__footer button {
+		padding: 7px 10px;
+		border: 0;
+		border-radius: 8px;
+		cursor: pointer;
+		background:
+			rgba(
+				75,
+				132,
+				215,
+				0.1
+			);
+		color: #8eb9f8;
+		font: inherit;
+		font-size: 0.61rem;
+	}
+
+	.catalog-groups {
+		display: grid;
+		gap: 64px;
+		margin-top: 56px;
+	}
+
+	.catalog-group {
+		display: grid;
+		gap: 23px;
+		scroll-margin-top: 110px;
+	}
+
+	.catalog-group__header {
+		position: relative;
+		display: grid;
+		grid-template-columns:
+			minmax(0, 1fr)
+			minmax(260px, 0.7fr)
+			auto;
+		align-items: end;
+		gap: 28px;
+		padding: 0 2px 18px;
+		border-bottom: 1px solid
+			color-mix(
+				in srgb,
+				var(--group-color)
+					20%,
+				rgba(
+					105,
+					145,
+					205,
+					0.12
+				)
+			);
+	}
+
+	.catalog-group__header::after {
+		position: absolute;
+		bottom: -1px;
+		left: 0;
+		width: 82px;
+		height: 1px;
+		content: "";
+		background:
+			linear-gradient(
+				90deg,
+				var(--group-color),
+				transparent
+			);
+		box-shadow:
+			0 0 12px
+			color-mix(
+				in srgb,
+				var(--group-color)
+					35%,
+				transparent
+			);
+	}
+
+	.catalog-group__identity {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+	}
+
+	.catalog-group__icon {
+		display: grid;
+		width: 44px;
+		height: 44px;
+		flex: 0 0 auto;
+		place-items: center;
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--group-color)
+					34%,
+				transparent
+			);
+		border-radius: 13px;
+		background:
+			color-mix(
+				in srgb,
+				var(--group-color)
+					10%,
+				transparent
+			);
+		font-size: 1.05rem;
+	}
+
+	.catalog-group__identity p {
+		margin: 0 0 5px;
+		color:
+			color-mix(
+				in srgb,
+				var(--group-color)
+					54%,
+				#ffffff
+			);
+		font-size: 0.55rem;
+		font-weight: 600;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+	}
+
+	.catalog-group__identity h3 {
+		margin: 0;
+		font-size:
+			clamp(
+				1.55rem,
+				3vw,
+				2.15rem
+			);
+		font-weight: 400;
+		letter-spacing: -0.04em;
+		line-height: 1.05;
+	}
+
+	.catalog-group__description {
+		max-width: 470px;
+		margin: 0;
+		color: #7d8ea5;
+		font-size: 0.69rem;
+		line-height: 1.65;
+	}
+
+	.catalog-group__count {
+		padding: 6px 9px;
+		border: 1px solid
+			rgba(
+				105,
+				145,
+				205,
+				0.17
+			);
+		border-radius: 999px;
+		color: #7588a0;
+		font-size: 0.58rem;
+		white-space: nowrap;
+	}
+
 	.pricing-table__items {
 		display: grid;
-		margin-top: 48px;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns:
+			repeat(
+				3,
+				minmax(0, 1fr)
+			);
 		align-items: stretch;
 		gap: 16px;
 	}
@@ -253,27 +1658,55 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		min-height: 0;
 		padding: 28px;
 		flex-direction: column;
-		border: 1px solid rgba(104, 145, 204, 0.16);
+		border: 1px solid
+			rgba(
+				104,
+				145,
+				204,
+				0.16
+			);
 		border-radius: 23px;
 		background:
 			linear-gradient(
 				145deg,
-				rgba(15, 32, 57, 0.82),
-				rgba(6, 14, 27, 0.92)
+				rgba(
+					15,
+					32,
+					57,
+					0.82
+				),
+				rgba(
+					6,
+					14,
+					27,
+					0.92
+				)
 			);
+		transition:
+			border-color
+				180ms ease,
+			transform
+				180ms ease;
 	}
 
-	.pricing-card__footer {
-		display: flex;
-		width: 100%;
-		margin-top: auto;
-		padding-top: clamp(26px, 2.5vw, 34px);
+	.pricing-card:hover {
+		border-color:
+			rgba(
+				104,
+				153,
+				226,
+				0.28
+			);
+		transform:
+			translateY(-2px);
 	}
+
 	.pricing-card.is-featured {
 		border-color:
 			color-mix(
 				in srgb,
-				var(--service-accent) 43%,
+				var(--service-accent)
+					43%,
 				transparent
 			);
 		background:
@@ -281,54 +1714,167 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 				145deg,
 				color-mix(
 					in srgb,
-					var(--service-accent) 15%,
-					rgba(15, 32, 57, 0.92)
+					var(--service-accent)
+						15%,
+					rgba(
+						15,
+						32,
+						57,
+						0.92
+					)
 				),
-				rgba(7, 15, 29, 0.96)
+				rgba(
+					7,
+					15,
+					29,
+					0.96
+				)
 			);
 		box-shadow:
 			0 24px 65px
 			color-mix(
 				in srgb,
-				var(--service-accent) 9%,
+				var(--service-accent)
+					9%,
 				transparent
 			);
 	}
 
+	.pricing-card.has-promotion::before {
+		position: absolute;
+		inset: 0 auto auto 24px;
+		width: 58px;
+		height: 2px;
+		content: "";
+		background:
+			linear-gradient(
+				90deg,
+				transparent,
+				#63dc9d,
+				transparent
+			);
+		box-shadow:
+			0 0 15px
+			rgba(
+				99,
+				220,
+				157,
+				0.42
+			);
+	}
+
 	.pricing-card__top {
-		min-height: 145px;
+		display: flex;
+		min-height: 190px;
+		flex-direction: column;
+	}
+
+	.pricing-card__classification {
+		display: flex;
+		min-height: 27px;
+		margin-bottom: 13px;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.pricing-card__kind,
+	.pricing-card__tier {
+		display: inline-flex;
+		min-height: 24px;
+		padding: 0 7px;
+		align-items: center;
+		border-radius: 999px;
+		font-size: 0.52rem;
+		line-height: 1;
+	}
+
+	.pricing-card__kind {
+		border: 1px solid
+			rgba(
+				130,
+				157,
+				195,
+				0.18
+			);
+		color: #8293a9;
+		letter-spacing: 0.07em;
+		text-transform: uppercase;
+	}
+
+	.pricing-card__tier {
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--tier-color)
+					34%,
+				transparent
+			);
+		color:
+			color-mix(
+				in srgb,
+				var(--tier-color)
+					48%,
+				#ffffff
+			);
+	}
+
+	.pricing-card__badges {
+		display: flex;
+		min-height: 29px;
+		margin-bottom: 15px;
+		flex-wrap: wrap;
+		gap: 6px;
 	}
 
 	.pricing-card__badge {
 		display: inline-flex;
-		margin-bottom: 18px;
-		padding: 6px 9px;
+		min-height: 27px;
+		padding: 0 8px;
+		align-items: center;
+		gap: 5px;
 		border: 1px solid
 			color-mix(
 				in srgb,
-				var(--service-accent) 28%,
+				var(--service-accent)
+					28%,
 				transparent
 			);
 		border-radius: 999px;
 		background:
 			color-mix(
 				in srgb,
-				var(--service-accent) 10%,
+				var(--service-accent)
+					10%,
 				transparent
 			);
-		color: color-mix(
-			in srgb,
-			var(--service-accent) 58%,
-			#ffffff
-		);
-		font-size: 0.51rem;
+		color:
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					58%,
+				#ffffff
+			);
+		font-size: 0.53rem;
 		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+		letter-spacing: 0.04em;
 	}
 
-	.pricing-card h3 {
-		margin: 0;
+	.pricing-card__badge--custom {
+		border-color:
+			var(--badge-border);
+		background:
+			var(--badge-background);
+		color:
+			var(--badge-text);
+	}
+
+	.pricing-card__badge i {
+		font-style: normal;
+	}
+
+	.pricing-card h4 {
+		margin: auto 0 0;
 		font-size: 1.35rem;
 		font-weight: 400;
 		letter-spacing: -0.03em;
@@ -343,19 +1889,60 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 	}
 
 	.pricing-card__price {
+		display: grid;
+		min-height: 116px;
+		padding: 21px 0;
+		align-content: center;
+		gap: 7px;
+		border-top: 1px solid
+			rgba(
+				103,
+				143,
+				201,
+				0.1
+			);
+		border-bottom: 1px solid
+			rgba(
+				103,
+				143,
+				201,
+				0.1
+			);
+	}
+
+	.pricing-card__old-price {
 		display: flex;
-		min-height: 82px;
-		padding: 23px 0;
+		align-items: center;
+		gap: 6px;
+		color: #687b92;
+		font-size: 0.59rem;
+	}
+
+	.pricing-card__old-price del {
+		text-decoration-color:
+			rgba(
+				255,
+				125,
+				125,
+				0.78
+			);
+	}
+
+	.pricing-card__current-price {
+		display: flex;
 		align-items: baseline;
 		gap: 7px;
 		flex-wrap: wrap;
-		border-top: 1px solid rgba(103, 143, 201, 0.1);
-		border-bottom: 1px solid rgba(103, 143, 201, 0.1);
 	}
 
-	.pricing-card__price strong {
+	.pricing-card__current-price strong {
 		color: #ffffff;
-		font-size: clamp(1.7rem, 3vw, 2.4rem);
+		font-size:
+			clamp(
+				1.7rem,
+				3vw,
+				2.4rem
+			);
 		font-weight: 400;
 		letter-spacing: -0.045em;
 	}
@@ -364,6 +1951,29 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 	.pricing-card__suffix {
 		color: #708299;
 		font-size: 0.62rem;
+	}
+
+	.pricing-card__saving {
+		width: fit-content;
+		padding: 4px 7px;
+		border: 1px solid
+			rgba(
+				90,
+				220,
+				152,
+				0.22
+			);
+		border-radius: 999px;
+		background:
+			rgba(
+				35,
+				160,
+				100,
+				0.08
+			);
+		color: #79dbae;
+		font-size: 0.55rem;
+		font-weight: 600;
 	}
 
 	.pricing-card ul {
@@ -389,11 +1999,13 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		height: 16px;
 		margin-top: 1px;
 		flex-shrink: 0;
-		color: color-mix(
-			in srgb,
-			var(--service-accent) 68%,
-			#ffffff
-		);
+		color:
+			color-mix(
+				in srgb,
+				var(--service-accent)
+					68%,
+				#ffffff
+			);
 	}
 
 	.pricing-card__note {
@@ -401,6 +2013,18 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		color: #66788f;
 		font-size: 0.61rem;
 		line-height: 1.55;
+	}
+
+	.pricing-card__footer {
+		display: flex;
+		width: 100%;
+		margin-top: auto;
+		padding-top:
+			clamp(
+				26px,
+				2.5vw,
+				34px
+			);
 	}
 
 	.pricing-card__footer > a {
@@ -414,14 +2038,16 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		border: 1px solid
 			color-mix(
 				in srgb,
-				var(--service-accent) 32%,
+				var(--service-accent)
+					32%,
 				transparent
 			);
 		border-radius: 12px;
 		background:
 			color-mix(
 				in srgb,
-				var(--service-accent) 11%,
+				var(--service-accent)
+					11%,
 				transparent
 			);
 		color: #ffffff;
@@ -429,11 +2055,13 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		font-weight: 600;
 		text-decoration: none;
 		transition:
-			border-color 180ms ease,
-			background-color 180ms ease,
-			transform 180ms ease;
+			border-color
+				180ms ease,
+			background-color
+				180ms ease,
+			transform
+				180ms ease;
 	}
-
 
 	.pricing-card__footer > a svg {
 		width: 17px;
@@ -444,68 +2072,129 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		border-color:
 			color-mix(
 				in srgb,
-				var(--service-accent) 62%,
+				var(--service-accent)
+					62%,
 				transparent
 			);
 		background:
 			color-mix(
 				in srgb,
-				var(--service-accent) 20%,
+				var(--service-accent)
+					20%,
 				transparent
 			);
-		transform: translateY(-1px);
+		transform:
+			translateY(-1px);
 	}
 
-	.pricing-card__footer > a:focus-visible {
-		outline: 2px solid
-			color-mix(
-				in srgb,
-				var(--service-accent) 75%,
-				#ffffff
+	.catalog-empty {
+		margin: 32px 0 0;
+		padding: 28px;
+		border: 1px dashed
+			rgba(
+				105,
+				145,
+				205,
+				0.23
 			);
-		outline-offset: 4px;
+		border-radius: 16px;
+		color: #7c8fa7;
+		font-size: 0.74rem;
+		line-height: 1.6;
+		text-align: center;
+	}
+
+	.catalog-empty--initial {
+		margin-top: 48px;
 	}
 
 	.pricing-table__disclaimer {
 		max-width: 800px;
-		margin: 23px 0 0;
+		margin: 28px 0 0;
 		color: #5f7086;
 		font-size: 0.61rem;
 		line-height: 1.65;
 	}
 
+	[hidden] {
+		display: none !important;
+	}
+
 	@media (max-width: 900px) {
-		.pricing-table__header {
+		.pricing-table__header,
+		.catalog-group__header {
 			grid-template-columns: 1fr;
-			gap: 18px;
+			gap: 16px;
 		}
 
-		.pricing-table__header > p {
+		.pricing-table__header > p,
+		.catalog-group__description {
 			max-width: 640px;
 		}
 
-		.pricing-table__items {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+		.catalog-group__count {
+			width: fit-content;
 		}
 
-		.pricing-card:last-child:nth-child(odd) {
-			grid-column: 1 / -1;
+		.pricing-table__items {
+			grid-template-columns:
+				repeat(
+					2,
+					minmax(
+						0,
+						1fr
+					)
+				);
 		}
 	}
 
 	@media (max-width: 620px) {
 		.pricing-table {
-			width: min(100% - 28px, 1120px);
+			width:
+				min(
+					100% - 28px,
+					1120px
+				);
 			padding-top: 82px;
 		}
 
-		.pricing-table__items {
-			margin-top: 36px;
-			grid-template-columns: 1fr;
+		.catalog-controls {
+			margin-top: 34px;
+			padding: 15px;
+			border-radius: 17px;
 		}
 
-		.pricing-card:last-child:nth-child(odd) {
-			grid-column: auto;
+		.catalog-filter-scroll {
+			margin-inline: -15px;
+			padding-inline: 15px;
+		}
+
+		.catalog-controls__footer {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		.catalog-groups {
+			gap: 52px;
+			margin-top: 46px;
+		}
+
+		.catalog-group {
+			gap: 18px;
+		}
+
+		.catalog-group__header {
+			padding-bottom: 15px;
+		}
+
+		.catalog-group__identity {
+			align-items: flex-start;
+		}
+
+		.pricing-table__items {
+			grid-template-columns:
+				1fr;
 		}
 
 		.pricing-card {
@@ -516,10 +2205,16 @@ const resolveWhatsAppUrl = (item: PricingItem) => {
 		.pricing-card__top {
 			min-height: auto;
 		}
+
+		.pricing-card h4 {
+			margin-top: 18px;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.pricing-card__footer > a {
+		.pricing-card,
+		.pricing-card__footer > a,
+		.catalog-filter {
 			transition: none;
 		}
 	}

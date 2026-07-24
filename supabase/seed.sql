@@ -20,6 +20,18 @@ alter table public.pricing_items
 alter table public.social_links
 	disable trigger social_links_write_audit;
 
+alter table public.catalog_categories
+	disable trigger catalog_categories_write_audit;
+
+alter table public.catalog_tiers
+	disable trigger catalog_tiers_write_audit;
+
+alter table public.catalog_badges
+	disable trigger catalog_badges_write_audit;
+
+alter table public.pricing_item_badges
+	disable trigger pricing_item_badges_write_audit;
+
 insert into public.site_settings (
 	key,
 	value,
@@ -47,7 +59,7 @@ insert into public.site_settings (
 )
 values (
 	'site.contact',
-	'{"phone":"+55 54 99630-6632","whatsapp":{"phone":"5554996306632","defaultMessage":"Olá! Vim pelo site da Noden."}}'::jsonb,
+	'{"phone":"+55 54 99630-6632","email":"","address":"","serviceHours":"Atendimento mediante agendamento","whatsapp":{"phone":"5554996306632","defaultMessage":"Olá! Vim pelo site da Noden."}}'::jsonb,
 	'Dados públicos de contato.',
 	true
 )
@@ -358,6 +370,60 @@ do update set
 	cta_secondary_href = excluded.cta_secondary_href,
 	is_published = excluded.is_published,
 	updated_at = now();
+
+
+
+insert into public.catalog_tiers (
+	name,
+	slug,
+	description,
+	color,
+	is_active,
+	sort_order
+)
+values (
+	'Mais procurado',
+	'mais-procurado',
+	null,
+	'#4f8cff',
+	true,
+	0
+)
+on conflict (slug)
+do update set
+	name = excluded.name,
+	description = excluded.description,
+	color = excluded.color,
+	is_active = excluded.is_active,
+	sort_order = excluded.sort_order,
+	updated_at = now();
+
+insert into public.catalog_tiers (
+	name,
+	slug,
+	description,
+	color,
+	is_active,
+	sort_order
+)
+values (
+	'Presença digital',
+	'presenca-digital',
+	null,
+	'#4f8cff',
+	true,
+	10
+)
+on conflict (slug)
+do update set
+	name = excluded.name,
+	description = excluded.description,
+	color = excluded.color,
+	is_active = excluded.is_active,
+	sort_order = excluded.sort_order,
+	updated_at = now();
+
+
 
 -- Recria os filhos das três páginas para manter o seed reproduzível.
 delete from public.pricing_items
@@ -766,10 +832,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -784,10 +854,14 @@ select
 	'Avaliação inicial para identificar a provável causa do problema.',
 	'starting_at'::public.price_type,
 	50,
+	null,
 	'A partir de',
 	null,
 	null,
 	'["Análise do equipamento","Identificação inicial da falha","Orientação sobre a solução"]'::jsonb,
+	null,
+	null,
+	'service'::public.catalog_item_kind,
 	null,
 	'O valor poderá ser considerado no orçamento quando o serviço for executado pela Noden.',
 	false,
@@ -805,10 +879,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -823,10 +901,21 @@ select
 	'Reinstalação e configuração inicial do sistema operacional.',
 	'starting_at'::public.price_type,
 	90,
+	null,
 	'A partir de',
 	null,
 	null,
 	'["Instalação do sistema","Drivers e atualizações","Programas essenciais","Testes de funcionamento"]'::jsonb,
+	null,
+	(
+				select tier.id
+				from public.catalog_tiers
+					as tier
+				where tier.slug =
+					'mais-procurado'
+				limit 1
+			),
+	'service'::public.catalog_item_kind,
 	'Mais procurado',
 	'Backup, recuperação de arquivos e licenças são avaliados separadamente.',
 	true,
@@ -844,10 +933,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -862,10 +955,14 @@ select
 	'Limpeza interna e revisão básica do sistema de refrigeração.',
 	'starting_at'::public.price_type,
 	100,
+	null,
 	'A partir de',
 	null,
 	null,
 	'["Limpeza interna","Verificação de ventoinhas","Análise de temperaturas","Testes após a manutenção"]'::jsonb,
+	null,
+	null,
+	'service'::public.catalog_item_kind,
 	null,
 	'Troca de pasta térmica e materiais específicos dependem do equipamento.',
 	false,
@@ -883,10 +980,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -901,10 +1002,14 @@ select
 	'Análise inicial de desempenho, temperaturas, gargalos e estabilidade.',
 	'starting_at'::public.price_type,
 	60,
+	null,
 	'A partir de',
 	null,
 	null,
 	'["Análise do hardware","Testes de desempenho","Monitoramento de temperatura","Orientação sobre melhorias"]'::jsonb,
+	null,
+	null,
+	'service'::public.catalog_item_kind,
 	null,
 	null,
 	false,
@@ -922,10 +1027,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -940,10 +1049,21 @@ select
 	'Limpeza detalhada, revisão da refrigeração e testes do equipamento.',
 	'starting_at'::public.price_type,
 	130,
+	null,
 	'A partir de',
 	null,
 	null,
 	'["Limpeza interna","Revisão das ventoinhas","Análise de temperaturas","Testes de estabilidade"]'::jsonb,
+	null,
+	(
+				select tier.id
+				from public.catalog_tiers
+					as tier
+				where tier.slug =
+					'mais-procurado'
+				limit 1
+			),
+	'service'::public.catalog_item_kind,
 	'Mais procurado',
 	'Materiais térmicos e procedimentos específicos são avaliados conforme o equipamento.',
 	true,
@@ -961,10 +1081,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -979,10 +1103,14 @@ select
 	'Montagem de computador gamer com organização, configuração e testes.',
 	'starting_at'::public.price_type,
 	180,
+	null,
 	'A partir de',
 	null,
 	null,
 	'["Montagem dos componentes","Organização dos cabos","Configuração inicial","Testes de funcionamento"]'::jsonb,
+	null,
+	null,
+	'service'::public.catalog_item_kind,
 	null,
 	'Não inclui sistema operacional, licenças ou aquisição dos componentes.',
 	false,
@@ -1000,10 +1128,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -1019,9 +1151,13 @@ select
 	'free'::public.price_type,
 	null,
 	null,
+	null,
 	'Sem custo',
 	null,
 	'["Entendimento da necessidade","Análise inicial de viabilidade","Definição dos próximos passos"]'::jsonb,
+	null,
+	null,
+	'service'::public.catalog_item_kind,
 	null,
 	null,
 	false,
@@ -1039,10 +1175,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -1057,10 +1197,21 @@ select
 	'Projeto para apresentar serviços, contatos e informações da empresa.',
 	'starting_at'::public.price_type,
 	900,
+	null,
 	'A partir de',
 	null,
 	null,
 	'["Layout responsivo","Páginas institucionais","Contato e redes sociais","Publicação inicial"]'::jsonb,
+	null,
+	(
+				select tier.id
+				from public.catalog_tiers
+					as tier
+				where tier.slug =
+					'presenca-digital'
+				limit 1
+			),
+	'service'::public.catalog_item_kind,
 	'Presença digital',
 	'Domínio, hospedagem, identidade visual e recursos específicos são avaliados separadamente.',
 	true,
@@ -1078,10 +1229,14 @@ insert into public.pricing_items (
 	description,
 	price_type,
 	price,
+	compare_at_price,
 	price_prefix,
 	price_label,
 	price_suffix,
 	features,
+	category_id,
+	tier_id,
+	item_kind,
 	badge,
 	note,
 	is_featured,
@@ -1097,9 +1252,13 @@ select
 	'consultation'::public.price_type,
 	null,
 	null,
+	null,
 	'Sob consulta',
 	null,
 	'["Levantamento do processo","Definição do escopo","Desenvolvimento por etapas","Proposta personalizada"]'::jsonb,
+	null,
+	null,
+	'service'::public.catalog_item_kind,
 	null,
 	null,
 	false,
@@ -1110,6 +1269,8 @@ select
 from public.service_pages as page
 where page.division =
 	'data'::public.service_division;
+
+
 
 insert into public.social_links (
 	platform,
@@ -1200,5 +1361,17 @@ alter table public.pricing_items
 
 alter table public.social_links
 	enable trigger social_links_write_audit;
+
+alter table public.catalog_categories
+	enable trigger catalog_categories_write_audit;
+
+alter table public.catalog_tiers
+	enable trigger catalog_tiers_write_audit;
+
+alter table public.catalog_badges
+	enable trigger catalog_badges_write_audit;
+
+alter table public.pricing_item_badges
+	enable trigger pricing_item_badges_write_audit;
 
 commit;

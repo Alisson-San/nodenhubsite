@@ -12,6 +12,14 @@ import type {
 } from "../../types/database.types";
 
 import {
+	shouldUseDevAdminClient,
+} from "../admin/devAdminBypass";
+
+import {
+	createSupabaseAdminClient,
+} from "./server";
+
+import {
 	requireEnvironmentVariable,
 } from "./env";
 
@@ -24,6 +32,14 @@ export function createSupabaseRequestClient({
 	request,
 	cookies,
 }: RequestClientOptions) {
+	if (
+		shouldUseDevAdminClient(
+			request,
+		)
+	) {
+		return createSupabaseAdminClient();
+	}
+
 	const url = requireEnvironmentVariable(
 		import.meta.env.PUBLIC_SUPABASE_URL,
 		"PUBLIC_SUPABASE_URL",

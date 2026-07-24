@@ -15,6 +15,9 @@ const pathname =
 const user =
 	Astro.locals.user;
 
+const isDevAdminBypass =
+	Astro.locals.isDevAdminBypass;
+
 const navigation = [
 	{
 		href: "/admin",
@@ -96,18 +99,49 @@ function isActive(
 			</nav>
 
 			<div class="account">
+				{
+					isDevAdminBypass && (
+						<strong class="dev-bypass">
+							DEV BYPASS
+						</strong>
+					)
+				}
+
 				<span>{user?.email}</span>
 
-				<form
-					method="post"
-					action="/api/admin/logout"
-				>
-					<button type="submit">
-						Sair
-					</button>
-				</form>
+				{
+					!isDevAdminBypass && (
+						<form
+							method="post"
+							action="/api/admin/logout"
+						>
+							<button type="submit">
+								Sair
+							</button>
+						</form>
+					)
+				}
 			</div>
 		</header>
+
+		{
+			isDevAdminBypass && (
+				<aside
+					class="dev-notice"
+					role="status"
+				>
+					<strong>
+						Autenticação ignorada em desenvolvimento.
+					</strong>
+
+					<span>
+						As operações administrativas usam o
+						cliente secreto do servidor e nunca ficam
+						ativas em build de produção.
+					</span>
+				</aside>
+			)
+		}
 
 		<main class="container">
 			<header class="page-header">
@@ -207,7 +241,7 @@ function isActive(
 	.account {
 		display: flex;
 		align-items: center;
-		gap: 14px;
+		gap: 10px;
 	}
 
 	.account span {
@@ -219,6 +253,18 @@ function isActive(
 		white-space: nowrap;
 	}
 
+	.dev-bypass {
+		padding: 5px 8px;
+		border: 1px solid
+			rgba(255, 176, 63, 0.38);
+		border-radius: 999px;
+		background: rgba(167, 94, 18, 0.16);
+		color: #ffca7a;
+		letter-spacing: 0.08em;
+		font-size: 0.57rem;
+		white-space: nowrap;
+	}
+
 	.account button {
 		padding: 9px 14px;
 		border: 1px solid
@@ -227,6 +273,24 @@ function isActive(
 		cursor: pointer;
 		background: rgba(42, 93, 168, 0.13);
 		color: #d9e7ff;
+	}
+
+	.dev-notice {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		padding: 8px 20px;
+		border-bottom: 1px solid
+			rgba(255, 176, 63, 0.22);
+		background: rgba(131, 72, 12, 0.13);
+		color: #d9ab69;
+		font-size: 0.65rem;
+		text-align: center;
+	}
+
+	.dev-notice strong {
+		color: #ffca7a;
 	}
 
 	.container {
@@ -285,6 +349,13 @@ function isActive(
 
 		.account span {
 			display: none;
+		}
+
+		.dev-notice {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 3px;
+			text-align: left;
 		}
 
 		.container {
