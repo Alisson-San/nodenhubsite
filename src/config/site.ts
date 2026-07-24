@@ -93,7 +93,7 @@ export function getWhatsAppUrl(
 		message ??
 		config.whatsapp.defaultMessage;
 
-	return `https://wa.me/${config.whatsapp.phone}?text=${encodeURIComponent(
+	return `whatsapp://send?phone=${config.whatsapp.phone}&text=${encodeURIComponent(
 		resolvedMessage,
 	)}`;
 }
