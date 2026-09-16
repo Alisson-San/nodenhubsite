@@ -115,6 +115,20 @@ try {
   await evaluate('history.forward()');
   await waitFor('location.hash==="#noden-home"');
   check('Back and forward', true);
+  for (const [w,h] of [[1280,550],[1280,577],[1366,650],[1366,768]]) {
+    await viewport(w,h); await open(`/?notebook=${h}`);
+    await waitFor('document.documentElement.classList.contains("experience-animated") && !document.documentElement.classList.contains("experience-preparing")');
+    const initialTransform = await evaluate('getComputedStyle(document.querySelector("#brand-symbol")).transform');
+    await evaluate('window.scrollTo(0, innerHeight * 6)');
+    await new Promise(r => setTimeout(r,500));
+    check(`Notebook rings animate on scroll ${w}x${h}`, initialTransform !== await evaluate('getComputedStyle(document.querySelector("#brand-symbol")).transform'));
+    for (const id of ['noden-home','noden-game','noden-data']) {
+      await open(`/?notebook=${h}#${id}`);
+      await waitFor(`getComputedStyle(document.getElementById('${id}')).opacity === "1"`);
+      check(`Notebook ${id} fits ${w}x${h}`, await evaluate(`(()=>{const p=document.getElementById('${id}'),r=p.getBoundingClientRect(),a=p.querySelector('a').getBoundingClientRect();return document.documentElement.classList.contains('experience-animated') && r.top>=60 && r.bottom<=innerHeight && a.bottom<=innerHeight && !p.inert})()`));
+    }
+    await shot(`notebook-animation-${w}x${h}`);
+  }
   await send('Emulation.setEmulatedMedia', { features: [{ name:'prefers-reduced-motion', value:'reduce' }] });
   await viewport(1440,900); await open('/#noden-data');
   check('Reduced motion normal flow', await evaluate('!document.documentElement.classList.contains("experience-animated") && document.querySelector("#noden-data").getBoundingClientRect().top >= 50'));

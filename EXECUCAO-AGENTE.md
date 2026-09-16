@@ -83,3 +83,8 @@ C06 avançou: doze campos dos resumos em Configurações, compartilhados por ini
 ## Dependências na retomada — 16/09/2026
 
 Os três alertas restantes foram removidos com override restrito de `path-to-regexp` 6.3.0 sob `@vercel/routing-utils`. `npm audit` agora informa zero vulnerabilidades; manter a ressalva temporal e revisar o override ao atualizar o adaptador. `npm run validate`, testes de rotas geradas e regressão no preview passaram. Nenhum deploy, escrita Supabase ou alteração de autenticação/política foi realizado.
+
+
+## Animação em notebooks — 16/09/2026
+
+Após relato do usuário no servidor 4322, corrigida a restrição excessiva de altura de 800px. A animação agora pode funcionar a partir de 1100×550 com cartões compactos até 799px, desde que o conteúdo caiba. QA passou a exigir movimento dos anéis ao rolar, além de leitura e navegação. Testes/capturas em `/tmp/noden-animation-dev` e `/tmp/noden-animation-production`; veja a causa e os limites em `REVISAO-NODEN.md`. Recarregar a página local para aplicar a mudança.
