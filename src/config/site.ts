@@ -1,9 +1,12 @@
+import { defaultHomeContent } from "../lib/site/homeContent";
+
 import type {
 	RuntimeSiteConfig,
 } from "../types/site";
 
 export const siteConfig:
 	RuntimeSiteConfig = {
+	home: defaultHomeContent,
 	name: "Noden",
 
 	legalName:
@@ -93,7 +96,7 @@ export function getWhatsAppUrl(
 		message ??
 		config.whatsapp.defaultMessage;
 
-	return `whatsapp://send?phone=${config.whatsapp.phone}&text=${encodeURIComponent(
+	return `https://wa.me/${config.whatsapp.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
 		resolvedMessage,
 	)}`;
 }

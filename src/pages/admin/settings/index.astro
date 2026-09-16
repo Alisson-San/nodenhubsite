@@ -1,4 +1,5 @@
 ---
+import { homeContentFields } from "../../../lib/site/homeContent";
 export const prerender = false;
 
 import AdminLayout
@@ -219,6 +220,19 @@ const errorMessages:
 						required
 					/>
 				</label>
+			</div>
+		</section>
+
+		<section class="panel">
+			<header><span>Página inicial</span><h2>Apresentação e contato</h2></header>
+			<p>Textos compartilhados entre a página inicial e /mobile. Salvar publica as alterações. As divisões e seus catálogos continuam nos editores de páginas e serviços.</p>
+			<div class="fields">
+				{homeContentFields.map((field) => (
+					<label class="full">
+						<span>{field.label} (até {field.max} caracteres)</span>
+						<textarea name={`home_${field.key}`} rows={field.max > 120 ? 3 : 2} maxlength={field.max} required>{config.home[field.key]}</textarea>
+					</label>
+				))}
 			</div>
 		</section>
 

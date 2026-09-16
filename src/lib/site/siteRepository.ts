@@ -1,3 +1,5 @@
+import { readHomeContent } from "./homeContent";
+
 import {
 	siteConfig as fallbackSiteConfig,
 } from "../../config/site";
@@ -173,6 +175,7 @@ export function buildSiteConfig(
 	}
 
 	return {
+		home: readHomeContent(identity?.home),
 		name:
 			readString(
 				identity,

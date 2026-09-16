@@ -11,8 +11,10 @@ const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise(r => ws.addEventListener('open', r, { once: true }));
 let seq = 0;
 const pending = new Map();
+const loaded = new Set();
 ws.addEventListener('message', e => {
   const data = JSON.parse(e.data);
+  if (data.method === 'Page.lifecycleEvent' && data.params.name === 'load') loaded.add(data.params.loaderId);
   if (!data.id) return;
   const task = pending.get(data.id);
   pending.delete(data.id);
@@ -34,7 +36,11 @@ const waitFor = async expression => {
   throw new Error(`Timeout: ${expression}`);
 };
 const open = async path => {
-  await send('Page.navigate', { url: `${base}${path}` });
+  const navigation = await send('Page.navigate', { url: `${base}${path}` });
+  if (navigation.loaderId) {
+    for (let i=0; i<150 && !loaded.has(navigation.loaderId); i++) await new Promise(r => setTimeout(r,100));
+    assert(loaded.has(navigation.loaderId), `Navigation did not load: ${path}`);
+  }
   await waitFor('document.readyState === "complete"');
   await new Promise(r => setTimeout(r, 250));
 };
@@ -53,6 +59,7 @@ const check = (name, condition) => { assert(condition, name); checks.push(name);
 await mkdir(out, { recursive: true });
 try {
   await send('Page.enable');
+  await send('Page.setLifecycleEventsEnabled', { enabled: true });
   for (const [w, h] of [[320,740],[390,844],[768,1024],[910,698],[1440,900],[844,390]]) {
     await viewport(w,h);
     await open('/#noden-home');
@@ -111,6 +118,25 @@ try {
   await viewport(390,844); await open('/home');
   await evaluate('document.querySelector(".site-header__mobile-menu summary").focus()'); await key('Enter'); await key('Escape');
   check('Division menu Escape', await evaluate('!document.querySelector(".site-header__mobile-menu").open && document.activeElement.tagName==="SUMMARY"'));
+  for (const route of ['/home','/game','/data']) {
+    await open(route);
+    const initial = await evaluate('document.querySelector("[data-result-count]")?.textContent');
+    if (!initial) continue;
+    await evaluate('(()=>{const e=document.querySelector("[data-catalog-search]");e.value="zzzz-inexistente-noden";e.dispatchEvent(new Event("input",{bubbles:true}));})()');
+    await waitFor('!document.querySelector("[data-catalog-empty]").hidden');
+    check(`Empty search ${route}`, true);
+    await evaluate('document.querySelector("[data-clear-search]").click()');
+    check(`Clear search ${route}`, await evaluate('document.querySelector("[data-result-count]").textContent') === initial);
+    check(`HTTPS contacts ${route}`, await evaluate('!document.querySelector(\'a[href^="whatsapp:"]\') && !!document.querySelector(\'a[href^="https://wa.me/"]\')'));
+  }
+  await send('Network.setUserAgentOverride', { userAgent: 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1' });
+  await viewport(1024,768,true); await open('/mobile#noden-home');
+  check('Wide tablet keeps mobile route and fragment', await evaluate('location.pathname==="/mobile" && location.hash==="#noden-home" && document.querySelector("#noden-home").getBoundingClientRect().top<768'));
+  await send('Network.setUserAgentOverride', { userAgent: '' });
+  await viewport(1440,900); await open('/');
+  await new Promise(r => setTimeout(r,1100));
+  await shot('index-hero-desktop');
+  await viewport(390,844); await open('/'); await shot('index-hero-mobile');
   await open('/admin');
   check('Anonymous admin redirects to login', await evaluate('location.pathname==="/admin/login" && !!document.querySelector("input[type=password]")'));
   await writeFile(`${out}/results.json`, JSON.stringify({ checks },null,2));

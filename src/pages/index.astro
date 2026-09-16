@@ -1,6 +1,8 @@
 ---
 export const prerender = false;
 
+import SiteFooter from "../components/common/SiteFooter.astro";
+
 import NodenSymbol from "../components/NodenSymbol.astro";
 import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
 
@@ -30,6 +32,8 @@ const whatsappUrl =
 			content={site.description}
 		/>
 		<title>{site.name} — Technology Hub</title>
+		<link rel="canonical" href={new URL("/", site.url)} />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 
 		<noscript><style>
 			.menu-toggle { display: none !important; }
@@ -89,12 +93,16 @@ const whatsappUrl =
 					<div id="inicio" tabindex="-1" class="copy start-copy">
 						<span class="start-kicker">NODEN TECHNOLOGY HUB</span>
 
-						<h1>BEM-VINDO</h1>
+						<h1>{site.home.title}</h1>
 
-						<p class="start-message">
-							<strong>A tecnologia nos conecta.</strong>
-							<span>A Noden transforma essa conexão.</span>
-						</p>
+						<p class="start-message">{site.home.description}</p>
+						<div class="start-actions">
+							<a class="start-contact" href={whatsappUrl} target="_blank" rel="noopener noreferrer">{site.home.contactLabel}</a>
+							<a href="/home">Home · suporte residencial</a>
+							<a href="/game">Game · seu setup</a>
+							<a href="/data">Data · software e dados</a>
+						</div>
+
 					</div>
 
 					<div id="brand-scene" class="brand-scene">
@@ -123,16 +131,8 @@ const whatsappUrl =
 								<div class="about-heading">
 									<span class="about-kicker">UM HUB. TRÊS FRENTES.</span>
 
-									<h2>
-										Tecnologia para
-										<span> pessoas, performance e dados.</span>
-									</h2>
-
-									<p class="about-lead">
-										A Noden reúne serviços complementares para resolver desde
-										o suporte do dia a dia até projetos de alta performance e
-										inteligência de dados.
-									</p>
+									<h2>{site.home.aboutTitle}</h2>
+									<p class="about-lead">{site.home.aboutDescription}</p>
 									<div
 										class="about-coverage"
 										aria-label="Cidades com atendimento domiciliar"
@@ -320,15 +320,8 @@ const whatsappUrl =
 
 					<div id="contato" tabindex="-1" class="copy final-copy">
 						<div class="final-demand">
-							<h2>
-								<span class="final-demand-line final-demand-line-one">
-									Várias demandas
-								</span>
-
-								<span class="final-demand-line final-demand-line-two">
-									Um só lugar.
-								</span>
-							</h2>
+							<h2><span class="final-demand-line final-demand-line-one">{site.home.contactTitle}</span></h2>
+							<p class="contact-description final-demand-line final-demand-line-two">{site.home.contactDescription}</p>
 						</div>
 
 						<div class="final-brand-lockup" aria-label="NODEN">
@@ -361,7 +354,7 @@ const whatsappUrl =
 								</svg>
 							</span>
 
-							<span>ENTRE EM CONTATO</span>
+							<span>{site.home.contactLabel}</span>
 						</a>
 					</div>
 
@@ -373,6 +366,7 @@ const whatsappUrl =
 			</section>
 
 		</main>
+		<SiteFooter site={site} logoIdPrefix="landing-footer" />
 
 		<script is:inline>
 			const header = document.querySelector("#site-header");
@@ -626,15 +620,13 @@ const whatsappUrl =
 
 				if (!node || !ring) return;
 
+				gsap.set(node, { x: 0, y: 0, scale, rotation });
 				const bounds = ring.getBoundingClientRect();
-				const currentX = bounds.left + bounds.width / 2;
-				const currentY = bounds.top + bounds.height / 2;
-
+				const svg = node.ownerSVGElement;
+				const unitScale = svg ? svg.getBoundingClientRect().width / svg.viewBox.baseVal.width : 1;
 				gsap.set(node, {
-					x: targetX - currentX,
-					y: targetY - currentY,
-					scale,
-					rotation,
+					x: (targetX - bounds.left - bounds.width / 2) / unitScale,
+					y: (targetY - bounds.top - bounds.height / 2) / unitScale,
 				});
 			};
 
@@ -646,7 +638,7 @@ const whatsappUrl =
 				placeIntroNode(
 					"#node-home",
 					window.innerWidth * 0.5,
-					window.innerHeight * (mobile ? 0.12 : 0.15),
+					window.innerHeight * (mobile ? 0.12 : 0.18),
 					nodeScale,
 					mobile ? -8 : -16,
 				);
@@ -1418,9 +1410,11 @@ const whatsappUrl =
 
 			const panels = Array.from(document.querySelectorAll<HTMLElement>("#inicio, #quem-somos, #noden-home, #noden-game, #noden-data, #contato"));
 			const syncPanels = () => panels.forEach((panel) => {
-				const visible = Number(getComputedStyle(panel).opacity) > 0.5 &&
+				const contentVisible = panel.id !== "contato" || Array.from(panel.querySelectorAll(".final-demand-line, .final-contact-link")).some((item) => Number(getComputedStyle(item).opacity) > 0.5);
+				const visible = contentVisible && Number(getComputedStyle(panel).opacity) > 0.5 &&
 					(panel.id !== "quem-somos" || Number(getComputedStyle(panel.parentElement!).opacity) > 0.5);
 				panel.inert = !visible;
+				panel.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => { link.inert = !visible || Number(getComputedStyle(link).opacity) <= 0.5; });
 				panel.setAttribute("aria-hidden", String(!visible));
 			});
 			navigateScene = (hash, focus = false) => {
@@ -1453,7 +1447,7 @@ const whatsappUrl =
 				lenis.destroy();
 				navigateScene = undefined;
 				document.documentElement.classList.remove("experience-animated");
-				panels.forEach((panel) => { panel.inert = false; panel.removeAttribute("aria-hidden"); });
+				panels.forEach((panel) => { panel.inert = false; panel.removeAttribute("aria-hidden"); panel.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => { link.inert = false; }); });
 			};
 			});
 		</script>
@@ -1933,7 +1927,7 @@ const whatsappUrl =
 	}
 
 	.about-index {
-		color: rgba(112, 145, 190, 0.42);
+		color: #91a1b8;
 		font-size: 0.6rem;
 		font-weight: 500;
 		letter-spacing: 0.24em;
@@ -2931,4 +2925,20 @@ const whatsappUrl =
 		.site-navigation { inset: 60px 0 auto; max-height: calc(100dvh - 60px); overflow-y: auto; justify-content: flex-start; padding: 20px 24px; }
 	}
 	@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+</style>
+
+<style is:global>
+	.copy.start-copy { width: min(82vw, 850px); z-index: 12; pointer-events: auto; }
+	.copy.start-copy h1 { font-size: clamp(2.25rem, 4.5vw, 4.5rem); line-height: 1.08; letter-spacing: -.055em; }
+	.copy.start-copy .start-kicker { color: #a9bad2; font-size: .72rem; letter-spacing: .24em; }
+	.copy.start-copy .start-message { max-width: 630px; margin: 22px auto 0; color: #b4c3d8; font-size: 1.05rem; line-height: 1.6; letter-spacing: 0; }
+	.start-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
+	.start-actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 12px 16px; border: 1px solid #30445e; border-radius: 12px; background: #0c1729; color: #e6efff; font-size: .84rem; text-decoration: none; }
+	.start-actions .start-contact { flex-basis: 100%; max-width: 260px; margin: 0 calc(50% - 130px) 10px; border-color: #76b9ff; background: #123966; }
+	.start-actions a:hover { border-color: #8ccfff; background: #183353; }
+	.contact-description { font-size: 1rem; line-height: 1.6; color: #b4c3d8; }
+	:root:not(.experience-animated) .start-copy h1 { font-size: clamp(2.25rem, 5vw, 4.5rem); }
+	:root:not(.experience-animated) .start-copy { width: min(90%, 850px); }
+	.experience-animated .final-demand h2 { font-size: clamp(2rem, 4vw, 4rem); }
+	@media (max-width: 480px) { .start-actions a { width: 100%; } }
 </style>

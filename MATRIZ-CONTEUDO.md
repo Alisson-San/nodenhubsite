@@ -105,3 +105,28 @@ Evidência:
 Credenciais Supabase, papel administrativo, regras de acesso, parâmetros de deploy e bypass de autenticação não são campos editoriais para aparecer livremente no painel de conteúdo. Rever configuração e permissões separadamente.
 
 A escolha de tornar cores, durações de animação ou estrutura de layout editáveis exige justificativa: o objetivo é autonomia editorial sem permitir quebrar a leitura. Preferir controles limitados e previsíveis a um editor visual irrestrito.
+
+## Atualização das correções locais — 15/09/2026
+
+O texto inicial desta matriz descreve a primeira inspeção. Conexão/login e o item comercial temporário foram validados posteriormente conforme `VALIDACAO-SUPABASE.md`. Nesta execução não houve gravação no Supabase real.
+
+| IDs | Estado atual | Cadeia comprovada e limite |
+|---|---|---|
+| C02–C04, C22 | Implementado; leitura e validação locais testadas; salvamento remoto não testado | `/` e `/mobile` → `site.home` → `admin/settings` (sete campos) → `parseHomeContentForm` na API `settings/site.ts` → JSON `site_settings`, chave `site.identity`, propriedade `home` → `buildSiteConfig/readHomeContent`. Título/descrição inicial, título/texto Quem somos, título/texto/label contato. Campos obrigatórios; limites 50/120/320/600; formulário antigo incompleto é recusado para não sobrescrever conteúdo com defaults. Sem migração necessária. Salvar publica imediatamente, conforme aviso no formulário. |
+| C03, C07 | Parcial | CTA de contato usa destino compartilhado e label editável; acessos diretos às divisões e âncoras corrigidos. Destinos/ordem da navegação continuam definidos em código. |
+| C05, C08–C11, C23 | Leitura pública implementada e testada; edição remota não repetida | `SiteFooter` agora também em `/` e `/mobile`, consumindo a mesma configuração das divisões. Telefone, regiões, horário, email e redes usam os campos existentes. `getWhatsAppUrl` agora produz HTTPS com mensagem codificada; teste local verificou acentos e caracteres especiais. A mensagem própria de `/links` continua contextual em código. |
+| C06 | Parcial, pendente | Resumos e listas das divisões na inicial e em `/mobile` ainda são independentes do editor das páginas. Não confundir estes resumos com C12/C13. Próxima alteração proposta: consulta leve aos campos públicos de `service_pages`, respeitando `is_published`, sem carregar os catálogos completos na inicial. |
+| C12–C19, C21 | Implementado; escopo de persistência conforme validação anterior | Editores existentes preservados; nenhum serviço/preço alterado. Sem duplicação de formulários. |
+| C20 | Implementado e testado no catálogo atual | `hasInteractiveControls = items.length > 1`; busca, vazio e limpar passaram em Home/Game/Data. Não é um toggle editorial por divisão. |
+| C24–C25 | Parcial | Bio de `/links` usa descrição institucional existente; títulos/cartões ainda parcialmente fixos. Canonical absoluto em `/` e `/mobile`, favicon na inicial. Sem editor novo para metadados de links. |
+| C26–C28 | Pendente de escopo e conteúdo real | Não implementados upload, cases/depoimentos ou FAQ. Não foram inventadas provas comerciais nem condições de atendimento. |
+| C29–C30 | Parcial | Publicação imediata dos novos campos preparada; defaults só para campos ausentes/ilegíveis. Erros de conexão ainda seguem o fallback já existente do repositório. Persistência dos novos campos exige teste isolado ou autorização específica para registro de teste. |
+
+Testes locais: `node --import tsx src/lib/site/homeContent.test.ts` (defaults legados, acentos, vazio, campo ausente, tamanho excedido); validação Astro e navegação Chromium. Esses testes **não** equivalem a editar → salvar → recarregar no banco real.
+
+### Revisão necessária antes de publicar os novos campos
+
+1. Em banco isolado, abrir Configurações, editar os sete textos, salvar, recarregar e conferir ambas as páginas públicas. Testar título de 120 caracteres e descrição máxima.
+2. Conferir que identidade, contato e regiões existentes continuam iguais; a API mantém a estrutura de upsert existente, sem nova política ou autenticação.
+3. Testar usuário não administrador e feedback de erro de gravação. Nenhuma conta ou permissão foi criada nesta execução.
+4. Decidir se resumos C06 devem acompanhar o hero de cada divisão ou ter copy própria; aprovar escopo de links, mídia, cases e FAQ antes de ampliar o editor.

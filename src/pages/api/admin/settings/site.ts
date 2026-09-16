@@ -1,3 +1,5 @@
+import { parseHomeContentForm } from "../../../../lib/site/homeContent";
+
 import type {
 	APIRoute,
 } from "astro";
@@ -132,6 +134,8 @@ export const POST:
 			await context.request
 				.formData();
 
+		const home = parseHomeContentForm(formData);
+
 		const name =
 			readText(
 				formData,
@@ -220,6 +224,7 @@ export const POST:
 			);
 
 		if (
+			!home ||
 			!name ||
 			!legalName ||
 			!description ||
@@ -241,6 +246,7 @@ export const POST:
 
 		const identity:
 			Json = {
+			home,
 			name,
 			legalName,
 			description,

@@ -1,6 +1,8 @@
 ---
 export const prerender = false;
 
+import SiteFooter from "../components/common/SiteFooter.astro";
+
 import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
 
 import {
@@ -79,15 +81,11 @@ const whatsappUrl =
 				<div class="hero-copy reveal">
 					<span class="section-kicker">NODEN TECHNOLOGY HUB</span>
 
-					<h1>
-						Tecnologia para
-						<span>resolver de verdade.</span>
-					</h1>
-
-					<p>
-						Suporte residencial, performance gamer e soluções em dados
-						reunidos em um só lugar.
-					</p>
+					<h1>{site.home.title}</h1>
+					<p>{site.home.description}</p>
+					<nav class="division-shortcuts" aria-label="Escolha uma divisão">
+						<a href="/home">Home</a><a href="/game">Game</a><a href="/data">Data</a>
+					</nav>
 
 					<div class="hero-actions">
 						<a class="primary-action" href="#servicos">
@@ -100,7 +98,7 @@ const whatsappUrl =
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							Falar no WhatsApp
+							{site.home.contactLabel}
 						</a>
 					</div>
 				</div>
@@ -116,16 +114,8 @@ const whatsappUrl =
 					<span class="section-index">01</span>
 					<span class="section-kicker">QUEM SOMOS</span>
 
-					<h2>
-						Um hub.
-						<span>Três frentes.</span>
-					</h2>
-
-					<p>
-						A Noden conecta serviços complementares para acompanhar você
-						desde as necessidades do dia a dia até projetos de performance,
-						automação e inteligência de dados.
-					</p>
+					<h2>{site.home.aboutTitle}</h2>
+					<p>{site.home.aboutDescription}</p>
 				</div>
 
 				<div class="coverage reveal">
@@ -309,14 +299,8 @@ const whatsappUrl =
 				<div class="contact-copy reveal">
 					<span class="section-kicker">NODEN</span>
 
-					<h2>
-						Várias demandas.
-						<span>Um só lugar.</span>
-					</h2>
-
-					<p>
-						Conte o que você precisa e vamos encontrar o melhor caminho.
-					</p>
+					<h2>{site.home.contactTitle}</h2>
+					<p>{site.home.contactDescription}</p>
 
 					<a
 						class="contact-button"
@@ -331,25 +315,13 @@ const whatsappUrl =
 							</svg>
 						</span>
 
-						<span>ENTRE EM CONTATO</span>
+						<span>{site.home.contactLabel}</span>
 					</a>
 				</div>
 			</section>
 		</main>
 
-		<footer>
-			<div class="footer-logo" aria-label="NODEN">
-				<span>N</span>
-
-				<span class="footer-logo-mark" aria-hidden="true">
-					<NodenMarkStatic idPrefix="mobile-footer-mark" />
-				</span>
-
-				<span>DEN</span>
-			</div>
-
-			<p>Technology Hub</p>
-		</footer>
+		<SiteFooter site={site} logoIdPrefix="mobile-shared-footer" />
 
 		<script>
 			// Animate only elements already entering view; content stays visible if JS fails.
@@ -857,31 +829,6 @@ const whatsappUrl =
 		fill: currentColor;
 	}
 
-	footer {
-		padding: 28px 20px 38px;
-		text-align: center;
-		border-top: 1px solid rgba(109, 141, 190, 0.11);
-		background: #02050a;
-	}
-
-	.footer-logo {
-		justify-content: center;
-	}
-
-	.footer-logo-mark {
-		display: inline-block;
-		width: 30px;
-		height: 30px;
-	}
-
-	footer p {
-		margin: 8px 0 0;
-		color: #5f718a;
-		font-size: 0.52rem;
-		letter-spacing: 0.24em;
-		text-transform: uppercase;
-	}
-
 	.reveal {
 		opacity: 1;
 		transform: none;
@@ -911,4 +858,13 @@ const whatsappUrl =
 <style>
  [id] { scroll-margin-top: 90px; }
  a:focus-visible, [tabindex="-1"]:focus-visible { outline: 2px solid #8ccfff; outline-offset: 5px; }
+</style>
+
+<style>
+ .division-shortcuts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+ .division-shortcuts a { display: inline-flex; align-items: center; justify-content: center; min-width: 70px; min-height: 44px; padding: 10px 16px; border: 1px solid #30445e; border-radius: 12px; color: #dcecff; text-decoration: none; }
+ .hero { min-height: auto; padding-top: 110px; padding-bottom: 60px; }
+ .hero-mark { width: min(42vw, 170px); margin-bottom: 28px; }
+ .hero-copy h1 { font-size: clamp(2rem, 7.2vw, 3.6rem); }
+ .hero-scroll { position: relative; margin: 34px auto 0; inset: auto; transform: none; }
 </style>
