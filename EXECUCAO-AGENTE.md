@@ -64,3 +64,12 @@ Etapa 1 implementada: navegação inicial, destinos reais, teclado, fluxo móvel
 - Chromium 153 via `agent-browser`; bibliotecas ausentes extraídas em `/tmp/noden-browser-libs`, sem instalação por sudo. Não fazem parte do projeto.
 - Regressão reproduzível: abrir o site no Chromium, obter `agent-browser get cdp-url`, e executar `node scripts/qa/navigation.mjs http://127.0.0.1:PORT http://localhost:4322 /tmp/noden-evidence` com a porta CDP correspondente. Usar sessão de teste sem autenticação.
 - Capturas e resultados gerados ficam em `/tmp`, fora dos commits. Nenhum push, merge ou deploy.
+
+## Estado ao concluir as correções locais
+
+- Navegação/fluxo normal e animação aprimorada; oferta/contato/rodapé compartilhados; sete campos institucionais preparados para edição. Persistência desses campos ainda requer teste autorizado isolado.
+- Dependências auditadas e atualizadas de forma direcionada: Astro 7.3.2; restam três alertas altos da cadeia do adaptador, descritos no relatório.
+- Preview de produção para repetição: `npm run build`, depois `node --env-file=.env scripts/qa/preview-production.mjs`. Escuta somente `127.0.0.1:4323`, permite GET/HEAD e simula a regra móvel do `vercel.json`; não é deploy nem emulador completo da Vercel.
+- Navegação: `node scripts/qa/navigation.mjs http://127.0.0.1:PORT http://127.0.0.1:4323 /tmp/noden-production-final`. Medição: `node scripts/qa/measure-production.mjs http://127.0.0.1:PORT`. PORT é o CDP retornado pelo navegador de testes, não a porta do site.
+- Ambiente: já havia processo em 4321, preservado. Instância 4322 iniciada nesta execução foi encerrada; após atualização, o comando Astro de status não a reconhecia e ela foi encerrada pelo PID confirmado. Preview4323 é temporário para QA.
+- Não reaplicar seeds/migrações para testar a nova apresentação. Novos campos usam `site.identity.home` no JSON existente e defaults de leitura; nenhuma escrita foi feita no banco real.

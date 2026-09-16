@@ -230,3 +230,33 @@ Também atualizadas somente as transitivas apontadas pelo audit, nas faixas admi
 Resultado: **3 alertas altos, zero críticos/moderados**, todos associados à cadeia `@astrojs/vercel@11.0.3 → @vercel/routing-utils@5.3.3 → path-to-regexp@6.1.0` ([aviso ReDoS](https://github.com/advisories/GHSA-9wv6-86v2-598j)). `npm audit fix --force` sugere downgrade para adaptador 8.0.4; não aplicado por incompatibilidade com a geração atual. Próximo passo: atualização upstream compatível ou override 6.3.x com testes específicos de geração das rotas. Nenhum override improvisado ou atualização indiscriminada.
 
 Arquivos: `package.json`, `package-lock.json`. `npm run validate` passou após atualização; regressão de 65 verificações também passou no build compilado servido localmente. Auditorias JSON locais em `/tmp/noden-audit.json` e `/tmp/noden-audit-final.json`; não versionadas.
+
+## Estabilidade, revisão e build de produção — etapa 4 (15/09/2026)
+
+**NOD-17:** medição do build compilado encontrou salto visual ao ativar a cena desktop depois da primeira pintura: CLS 1,0015 / 1 / 0 em três execuções. Corrigido reservando a cena antes da pintura, mantendo oferta/CTAs imediatamente visíveis. Se o bundle falhar ou demorar mais de 2,5 s, o documento passa para fluxo normal e recupera o fragmento. JavaScript totalmente desabilitado continua usando o fluxo normal desde o início.
+
+Medição posterior (Chromium 153, Ubuntu WSL, Node 22.23.2, build Astro 7.3.2, cache desabilitado, três carregamentos por cenário; observadores PerformanceObserver/CDP):
+
+| Cenário | LCP mediano | CLS observado | TTFB mediano | JS externo transferido |
+|---|---:|---:|---:|---:|
+| `/`, 1440×900, sem limitação | 612 ms | 0 / 0 / 0,00114 | 89,7 ms | 141.424 bytes |
+| `/` → `/mobile`, 390×844, CPU 4×, 1,6 Mbps, latência 150 ms | 704 ms | 0 nas três execuções | 226,1 ms | 0 bytes externos (há scripts inline) |
+
+A medição observa o carregamento e mais 1,8 s; não representa sessões reais, interação prolongada, INP, pontuação Lighthouse ou produção na Vercel. O preview usa o handler compilado e simula somente a regra de User-Agent de `vercel.json`; não reproduz CDN, edge, compressão ou configuração de produção. Registros em `/tmp/noden-production-metrics.json`. Scripts reproduzíveis: `scripts/qa/preview-production.mjs`, `scripts/qa/measure-production.mjs`.
+
+Revisão independente encontrou e confirmou a correção de mais dois casos:
+
+- **NOD-04:** resize de desktop para celular preservava hash mas perdia posição; cleanup agora reaplica o fragmento após o reflow. Revalidado: Home em aproximadamente 96 px e `inert=false`.
+- **NOD-02:** label acessível fixo do CTA sobrepunha o novo texto editável. Removido; nome acessível e texto visível agora coincidem. Demais cenas ocultas ficam fora do foco.
+
+Título de 119 caracteres e descrição de aproximadamente 310 foram simulados somente no DOM desktop; CTAs permaneceram dentro da tela. Nenhum registro foi salvo nesse teste.
+
+### Limites e decisões restantes
+
+- Persistência dos sete campos novos, erros de salvamento, usuário autenticado não administrador e demais fluxos da matriz precisam de ambiente isolado ou autorização específica. A validação anterior de login/item inativo continua válida dentro de seu alcance.
+- C06 (resumos), conteúdo próprio de `/links`, mídia, FAQ e provas reais ainda não têm cobertura editorial completa. Decidir relação entre resumos institucionais e hero de cada divisão; fornecer conteúdo real para cases/depoimentos.
+- Os três alertas do adaptador, permissões de `write_audit_log` e proteção de senhas continuam pendentes. Nenhuma política, autenticação, migração ou configuração remota foi alterada.
+- Sem teste em dispositivo físico, Safari/Firefox ou leitor de tela. Contraste foi medido nos pares documentados; não se declara conformidade WCAG completa.
+- Sem push, merge ou deploy. Capturas e relatórios brutos permanecem em `/tmp`, fora do Git.
+
+Resultado final: `npm run validate` sem erros/avisos, três testes locais do conteúdo institucional e **69 checks de navegador aprovados** no build de produção local, incluindo toque simulado. Cabeçalho `/home`: HTTP 200 e `X-Noden-Content-Source: supabase`, confirmado sem escrita. Capturas finais em `/tmp/noden-production-final/`. Revisão independente revalidou resize e nome acessível após as correções.

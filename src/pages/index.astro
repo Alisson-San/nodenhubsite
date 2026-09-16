@@ -35,6 +35,18 @@ const whatsappUrl =
 		<link rel="canonical" href={new URL("/", site.url)} />
 		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 
+		<script is:inline>
+			// Reserve the desktop scene before first paint, with a readable fallback if the bundle fails.
+			if (matchMedia("(min-width: 1100px) and (min-height: 800px) and (prefers-reduced-motion: no-preference)").matches) {
+				document.documentElement.classList.add("experience-animated", "experience-preparing");
+				setTimeout(() => {
+					if (!document.documentElement.classList.contains("experience-preparing")) return;
+					document.documentElement.classList.remove("experience-animated", "experience-preparing");
+					document.documentElement.dataset.animationUnavailable = "true";
+					requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView());
+				}, 2500);
+			}
+		</script>
 		<noscript><style>
 			.menu-toggle { display: none !important; }
 			.site-header { position: relative !important; height: auto !important; flex-wrap: wrap; gap: 20px; padding: 20px !important; }
@@ -341,7 +353,6 @@ const whatsappUrl =
 							target="_blank"
 							rel="noopener noreferrer"
 							class="final-contact-link"
-							aria-label="Entre em contato pelo WhatsApp"
 						>
 							<span class="final-contact-icon" aria-hidden="true">
 								<svg viewBox="0 0 24 24" role="img">
@@ -421,6 +432,7 @@ const whatsappUrl =
 			window.addEventListener("popstate", followHash);
 
 			gsap.matchMedia().add("(min-width: 1100px) and (min-height: 800px) and (prefers-reduced-motion: no-preference)", () => {
+			if (document.documentElement.dataset.animationUnavailable === "true") return;
 			document.documentElement.classList.add("experience-animated");
 
 			const lenis = new Lenis({
@@ -1438,6 +1450,7 @@ const whatsappUrl =
 
 			const onResize = () => { placeIntroNodes(); ScrollTrigger.refresh(); };
 			window.addEventListener("resize", onResize);
+			document.documentElement.classList.remove("experience-preparing");
 			const initialFrame = requestAnimationFrame(() => { ScrollTrigger.refresh(); followHash(); syncPanels(); });
 			setActiveNavigation("inicio");
 			return () => {
@@ -1448,6 +1461,7 @@ const whatsappUrl =
 				navigateScene = undefined;
 				document.documentElement.classList.remove("experience-animated");
 				panels.forEach((panel) => { panel.inert = false; panel.removeAttribute("aria-hidden"); panel.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => { link.inert = false; }); });
+				requestAnimationFrame(followHash);
 			};
 			});
 		</script>
@@ -2941,4 +2955,8 @@ const whatsappUrl =
 	:root:not(.experience-animated) .start-copy { width: min(90%, 850px); }
 	.experience-animated .final-demand h2 { font-size: clamp(2rem, 4vw, 4rem); }
 	@media (max-width: 480px) { .start-actions a { width: 100%; } }
+</style>
+
+<style is:global>
+ .experience-preparing :is(.brand-scene, .division-shell, .final-copy, .noden-symbol) { visibility: hidden; }
 </style>

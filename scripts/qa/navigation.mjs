@@ -59,6 +59,8 @@ const check = (name, condition) => { assert(condition, name); checks.push(name);
 await mkdir(out, { recursive: true });
 try {
   await send('Page.enable');
+  await send('Network.enable');
+  await send('Network.setCacheDisabled', { cacheDisabled: true });
   await send('Page.setLifecycleEventsEnabled', { enabled: true });
   for (const [w, h] of [[320,740],[390,844],[768,1024],[910,698],[1440,900],[844,390]]) {
     await viewport(w,h);
@@ -72,8 +74,23 @@ try {
     check(`Contact direct ${w}x${h}`, contact.top >= 0 && contact.top < h && contact.opacity === '1');
     await shot(`contact-${w}x${h}`);
   }
+  await viewport(1440,900); await open('/#noden-home');
+  await viewport(390,844);
+  await new Promise(r => setTimeout(r,350));
+  check('Resize preserves direct section', await evaluate('location.hash === "#noden-home" && document.querySelector("#noden-home").getBoundingClientRect().top >= 50 && document.querySelector("#noden-home").getBoundingClientRect().top < innerHeight'));
+  await viewport(1440,900);
+  await new Promise(r => setTimeout(r,350));
+  check('Resize restores animated section', await evaluate('document.documentElement.classList.contains("experience-animated") && !document.querySelector("#noden-home").inert'));
   await viewport(390,844);
   await open('/');
+  await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
+  const touchPoint = await evaluate('(()=>{const r=document.querySelector("#menu-toggle").getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()');
+  await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [touchPoint] });
+  await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await waitFor('document.querySelector("#menu-toggle").getAttribute("aria-expanded")==="true"');
+  check('Touch opens mobile menu', true);
+  await key('Escape');
+  await send('Emulation.setTouchEmulationEnabled', { enabled: false });
   await evaluate('document.querySelector("#menu-toggle").focus()');
   await key('Tab');
   check('Closed menu excluded from focus', await evaluate('!document.activeElement.closest("#site-navigation")'));
@@ -137,10 +154,22 @@ try {
   await new Promise(r => setTimeout(r,1100));
   await shot('index-hero-desktop');
   await viewport(390,844); await open('/'); await shot('index-hero-mobile');
+  if (base.includes(':4323')) {
+    await viewport(1440,900);
+    await send('Network.setBlockedURLs', { urls: ['*/_astro/*.js'] });
+    await open('/?bundle=blocked#noden-home');
+    await waitFor('document.documentElement.dataset.animationUnavailable === "true"');
+    await new Promise(r => setTimeout(r,100));
+    check('Failed animation bundle keeps direct content accessible', await evaluate('!document.documentElement.classList.contains("experience-animated") && document.querySelector("#noden-home").getBoundingClientRect().top >= 50 && document.querySelector("#noden-home").getBoundingClientRect().top < innerHeight'));
+    await shot('failed-animation-bundle');
+    await send('Network.setBlockedURLs', { urls: [] });
+  }
   await open('/admin');
   check('Anonymous admin redirects to login', await evaluate('location.pathname==="/admin/login" && !!document.querySelector("input[type=password]")'));
   await writeFile(`${out}/results.json`, JSON.stringify({ checks },null,2));
 } finally {
   await send('Emulation.setScriptExecutionDisabled', { value: false });
+  await send('Network.setBlockedURLs', { urls: [] });
+  await send('Network.setCacheDisabled', { cacheDisabled: false });
   ws.close();
 }
