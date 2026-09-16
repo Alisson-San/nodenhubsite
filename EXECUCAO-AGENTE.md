@@ -1,0 +1,55 @@
+# Execução do agente Noden
+
+## Ambiente preparado
+
+- Projeto no Ubuntu/WSL: `/home/alisson/Linguagens/Astra/nodenhubsite`.
+- Branch de trabalho: `feature/site-review-agent`, criada a partir de `develop`.
+- Runtime verificado: Node.js 22.23.2 e npm 10.9.8.
+- Dependências instaladas pelo lockfile; servidor local: `http://localhost:4321`.
+- Instruções do agente: `AGENTS.md`. `CLAUDE.md` continua apontando para ele.
+- Contexto: `REVISAO-NODEN.md`, `MATRIZ-CONTEUDO.md` e `evidencias/`.
+
+## Preparação e validação no terminal Ubuntu
+
+```sh
+cd /home/alisson/Linguagens/Astra/nodenhubsite
+git branch --show-current
+npm run astro -- dev status
+```
+
+Se o servidor estiver parado:
+
+```sh
+npm run dev -- --background
+```
+
+Para validar o projeto e consultar os registros:
+
+```sh
+npm run validate
+npm run astro -- dev logs
+```
+
+Não iniciar uma segunda instância se o servidor já estiver ativo. Em uma instalação nova, usar `npm ci --include=optional` antes da validação. O Zsh já está configurado para localizar a instalação local do Node.js.
+
+## Início da próxima tarefa no Codex
+
+Usar o projeto e a branch acima como diretório de trabalho. O ambiente do site e as instruções estão prontos; não foi instalado um Codex CLI no Ubuntu. A tarefa pode continuar pelo aplicativo Codex que já acessa o WSL.
+
+Prompt sugerido para a execução posterior:
+
+> Leia AGENTS.md, REVISAO-NODEN.md e MATRIZ-CONTEUDO.md. Trabalhe na branch feature/site-review-agent. Reproduza e corrija os problemas de navegação, foco e apresentação que independem do Supabase, mantendo a identidade da Noden. Considere a diferença entre a página inicial responsiva e o redirecionamento de produção para /mobile. Atualize as evidências e os documentos após validar cada correção. Deixe login, persistência, migrações e configuração do Supabase para a etapa seguinte. Use commits pequenos seguindo a convenção do histórico. Não publique nem faça merge sem solicitação.
+
+Este prompt é uma orientação para a próxima execução, não uma indicação de que as correções já começaram.
+
+## Convenções Git observadas
+
+- Branches de funcionalidade: `feature/<descricao-em-kebab-case>`.
+- Commits com prefixo semântico e descrição em português: `feat:`, `fix:` e `chore:`.
+- Commit desta preparação: `chore: prepara agente de revisao do site`.
+- Preservar mudanças alheias e adicionar apenas os arquivos da tarefa.
+- `.env`, credenciais, `node_modules`, `.astro`, `dist` e `.vercel` devem continuar fora dos commits conforme o ignore existente.
+
+## Etapa Supabase adiada
+
+O conteúdo público pode usar os dados padrão. Isso não valida conexão, login, edição nem persistência. Não habilitar bypass nem criar chaves fictícias para esconder a pendência. Configurar e testar o backend em uma etapa específica posterior.
