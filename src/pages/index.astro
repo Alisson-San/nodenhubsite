@@ -1,6 +1,8 @@
 ---
 export const prerender = false;
 
+import { splitHomeHighlights } from "../lib/site/homeContent";
+
 import SiteFooter from "../components/common/SiteFooter.astro";
 
 import NodenSymbol from "../components/NodenSymbol.astro";
@@ -199,23 +201,12 @@ const whatsappUrl =
 					<div class="division-shell">
 						<div id="noden-home" tabindex="-1" class="copy division-copy division-home">
 							<span class="division-kicker">NODEN HOME</span>
-							<h2>Suporte técnico presencial para sua casa.</h2>
-							<p class="division-lead">
-								Atendimento residencial com deslocamento até o local para
-								resolver problemas, instalar equipamentos e orientar você com
-								clareza.
-							</p>
+							<h2>{site.home.homeTitle}</h2>
+							<p class="division-lead">{site.home.homeDescription}</p>
 
-							<ul class="division-list">
-								<li>Instalação e configuração de equipamentos</li>
-								<li>Limpeza, formatação e otimização do sistema</li>
-								<li>Upgrades básicos de memória e SSD</li>
-								<li>Consultoria gratuita para dúvidas e problemas</li>
-							</ul>
+							<ul class="division-list">{splitHomeHighlights(site.home.homeHighlights).map((item) => <li>{item}</li>)}</ul>
 
-							<p class="division-meta">
-								Atendimento local · Diagnóstico · Solução prática
-							</p>
+							<p class="division-meta">{site.home.homeMeta}</p>
 
 							<a
 								class="division-link"
@@ -244,22 +235,12 @@ const whatsappUrl =
 					<div class="division-shell">
 						<div id="noden-game" tabindex="-1" class="copy division-copy division-game">
 							<span class="division-kicker">NODEN GAME</span>
-							<h2>Setup gamer pensado em otimização.</h2>
-							<p class="division-lead">
-								Para quem quer montar, revisar ou evoluir o setup com foco em
-								desempenho, estabilidade e melhor escolha de hardware.
-							</p>
+							<h2>{site.home.gameTitle}</h2>
+							<p class="division-lead">{site.home.gameDescription}</p>
 
-							<ul class="division-list">
-								<li>Montagem e revisão completa do setup gamer</li>
-								<li>Diagnóstico de desempenho e gargalos</li>
-								<li>Upgrades de hardware e refrigeração</li>
-								<li>Consultoria para peças, compatibilidade e custo-benefício</li>
-							</ul>
+							<ul class="division-list">{splitHomeHighlights(site.home.gameHighlights).map((item) => <li>{item}</li>)}</ul>
 
-							<p class="division-meta">
-								Hardware · Performance · Otimização
-							</p>
+							<p class="division-meta">{site.home.gameMeta}</p>
 
 							<a
 								class="division-link"
@@ -288,23 +269,12 @@ const whatsappUrl =
 					<div class="division-shell">
 						<div id="noden-data" tabindex="-1" class="copy division-copy division-data">
 							<span class="division-kicker">NODEN DATA</span>
-							<h2>Dados organizados para apoiar decisões reais.</h2>
-							<p class="division-lead">
-								Soluções para estruturar informações, automatizar análises e
-								transformar dados em visão de negócio.
-							</p>
+							<h2>{site.home.dataTitle}</h2>
+							<p class="division-lead">{site.home.dataDescription}</p>
 
-							<ul class="division-list">
-								<li>Dashboards, indicadores e visualização de resultados</li>
-								<li>Soluções de Software, evoluindo processos.</li>
-								<li>Integração, tratamento e organização de dados</li>
-								<li>Automação de relatórios e fluxos analíticos</li>
-								<li>BI, analytics e apoio à tomada de decisão</li>
-							</ul>
+							<ul class="division-list">{splitHomeHighlights(site.home.dataHighlights).map((item) => <li>{item}</li>)}</ul>
 
-							<p class="division-meta">
-								Data Engineering · BI · Analytics · Developer
-							</p>
+							<p class="division-meta">{site.home.dataMeta}</p>
 
 							<a
 								class="division-link"
@@ -431,7 +401,7 @@ const whatsappUrl =
 			window.addEventListener("hashchange", followHash);
 			window.addEventListener("popstate", followHash);
 
-			gsap.matchMedia().add("(min-width: 1100px) and (min-height: 800px) and (prefers-reduced-motion: no-preference)", () => {
+			gsap.matchMedia().add("(min-width: 1100px) and (min-height: 800px) and (prefers-reduced-motion: no-preference)", (context) => {
 			if (document.documentElement.dataset.animationUnavailable === "true") return;
 			document.documentElement.classList.add("experience-animated");
 
@@ -1448,13 +1418,24 @@ const whatsappUrl =
 				setActiveNavigation(getCurrentTimelineLabel());
 			});
 
-			const onResize = () => { placeIntroNodes(); ScrollTrigger.refresh(); };
+			// Editorial text must remain readable when it exceeds the fixed scene.
+			const divisionPanels = Array.from(document.querySelectorAll<HTMLElement>(".division-copy"));
+			const fitsScene = () => divisionPanels.every((panel) => panel.offsetHeight <= window.innerHeight - 160);
+			const contentObserver = new ResizeObserver(() => {
+				if (!fitsScene()) context.revert();
+			});
+			divisionPanels.forEach((panel) => contentObserver.observe(panel));
+			const onResize = () => {
+				if (!fitsScene()) { context.revert(); return; }
+				placeIntroNodes(); ScrollTrigger.refresh();
+			};
 			window.addEventListener("resize", onResize);
 			document.documentElement.classList.remove("experience-preparing");
 			const initialFrame = requestAnimationFrame(() => { ScrollTrigger.refresh(); followHash(); syncPanels(); });
 			setActiveNavigation("inicio");
 			return () => {
 				cancelAnimationFrame(initialFrame);
+				contentObserver.disconnect();
 				window.removeEventListener("resize", onResize);
 				gsap.ticker.remove(tick);
 				lenis.destroy();

@@ -58,6 +58,8 @@ const checks = [];
 const check = (name, condition) => { assert(condition, name); checks.push(name); console.log(`PASS ${name}`); };
 await mkdir(out, { recursive: true });
 try {
+  // Discard DOM-only fixtures left by a previous run before testing real content.
+  await send('Page.navigate', { url: 'about:blank' });
   await send('Page.enable');
   await send('Network.enable');
   await send('Network.setCacheDisabled', { cacheDisabled: true });
@@ -154,6 +156,26 @@ try {
   await new Promise(r => setTimeout(r,1100));
   await shot('index-hero-desktop');
   await viewport(390,844); await open('/'); await shot('index-hero-mobile');
+  await viewport(1440,900); await open('/#noden-home');
+  const summaries = await evaluate('Array.from(document.querySelectorAll(".division-copy")).map(p=>({title:p.querySelector("h2").textContent,description:p.querySelector(".division-lead").textContent,items:Array.from(p.querySelectorAll("li")).map(li=>li.textContent)}))');
+  await evaluate(`(() => {
+    const p = document.querySelector('#noden-home');
+    p.querySelector('h2').textContent = 'Suporte residencial e orientação para os equipamentos da sua casa. '.repeat(2).slice(0,100);
+    p.querySelector('.division-lead').textContent = 'Atendimento residencial com diagnóstico claro e soluções para os equipamentos da sua casa. '.repeat(4).slice(0,260);
+    p.querySelector('ul').replaceChildren(...Array.from({length:6}, () => {
+      const li = document.createElement('li');
+      li.textContent = 'Instalação e configuração de equipamentos com orientação sobre uso, manutenção e desempenho do sistema';
+      return li;
+    }));
+  })()`);
+  await waitFor('!document.documentElement.classList.contains("experience-animated")');
+  await evaluate('document.querySelector("#noden-home a").focus(); document.querySelector("#noden-home a").scrollIntoView({block:"center"})');
+  check('Long editorial summary keeps CTA visible and focusable', await evaluate('(()=>{const p=document.querySelector("#noden-home"),a=p.querySelector("a"),r=a.getBoundingClientRect();return !p.inert && document.activeElement===a && r.top>=80 && r.bottom<=innerHeight && document.documentElement.scrollWidth<=innerWidth})()'));
+  await shot('long-summary-desktop');
+  await viewport(390,844); await open('/mobile#noden-home');
+  const mobileSummaries = await evaluate('Array.from(document.querySelectorAll(".service-copy")).map(p=>({title:p.querySelector("h3").textContent,description:p.querySelector("p").textContent,items:Array.from(p.querySelectorAll("li")).map(li=>li.textContent)}))');
+  check('Initial and mobile share division summaries', JSON.stringify(summaries) === JSON.stringify(mobileSummaries));
+  await shot('mobile-summary-390');
   if (base.includes(':4323')) {
     await viewport(1440,900);
     await send('Network.setBlockedURLs', { urls: ['*/_astro/*.js'] });

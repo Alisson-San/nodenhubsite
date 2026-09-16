@@ -260,3 +260,14 @@ Título de 119 caracteres e descrição de aproximadamente 310 foram simulados s
 - Sem push, merge ou deploy. Capturas e relatórios brutos permanecem em `/tmp`, fora do Git.
 
 Resultado final: `npm run validate` sem erros/avisos, três testes locais do conteúdo institucional e **69 checks de navegador aprovados** no build de produção local, incluindo toque simulado. Cabeçalho `/home`: HTTP 200 e `X-Noden-Content-Source: supabase`, confirmado sem escrita. Capturas finais em `/tmp/noden-production-final/`. Revisão independente revalidou resize e nome acessível após as correções.
+
+
+## Retomada — resumos editáveis (C06), 15/09/2026
+
+- Causa confirmada: títulos, descrições e bullets duplicados e divergentes em `index.astro` e `mobile.astro`. Os editores existentes de páginas não alimentavam esses blocos.
+- Correção: conteúdo próprio da abertura centralizado em `homeContent.ts`, preservando os textos da inicial; doze campos organizados por divisão em Configurações. As duas páginas leem título/descrição/destaques da mesma origem; complemento continua somente na inicial. Sem nova tabela, consulta ou migração. Destinos, rótulos de CTA e ordem continuam fixos.
+- Validação de listas: de 1 a 6 itens com até 100 caracteres cada; normaliza linhas vazias/CRLF antes de guardar. Teste inclui o percurso de serialização multipart do navegador. Formulários antigos sem todos os campos são recusados.
+- Caso visual adicional confirmado: título100 + descrição260 +6 destaques100 produziam cartão de1075px em viewport1440×900, botão em y914 fora da tela. `ResizeObserver` agora desfaz a cena animada quando um cartão excede a altura útil, preservando fluxo, âncora e foco. Animação permanece para conteúdo que cabe.
+- Arquivos: `src/lib/site/homeContent.ts`, teste correspondente, páginas inicial/mobile, `admin/settings/index.astro`, `scripts/qa/navigation.mjs`.
+- Evidência: `npm run validate` (zero erros/avisos), cinco testes de conteúdo; Chromium153 nas seis resoluções, teclado, links, ausência de JS, falha do bundle, redirecionamento móvel simulado e comparação dos resumos. Capturas/resultados locais em `/tmp/noden-resume-content-final`; conteúdo máximo simulado apenas no DOM, sem gravação.
+- Limite: o formulário autenticado e a persistência dos novos campos não foram testados no banco real. Usar banco isolado ou autorização específica. Não altera o estado da validação anterior em `VALIDACAO-SUPABASE.md`.

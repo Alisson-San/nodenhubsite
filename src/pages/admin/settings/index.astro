@@ -223,18 +223,20 @@ const errorMessages:
 			</div>
 		</section>
 
+		{[undefined, 'Home', 'Game', 'Data'].map((group) => (
 		<section class="panel">
-			<header><span>Página inicial</span><h2>Apresentação e contato</h2></header>
-			<p>Textos compartilhados entre a página inicial e /mobile. Salvar publica as alterações. As divisões e seus catálogos continuam nos editores de páginas e serviços.</p>
+			<header><span>Página inicial</span><h2>{group ? `Resumo Noden ${group}` : 'Apresentação e contato'}</h2></header>
+			<p>{group ? 'Resumo compartilhado pela inicial e /mobile. Os detalhes e preços continuam no editor da página da divisão. O complemento aparece na apresentação desktop.' : 'Textos compartilhados entre a página inicial e /mobile. Salvar publica as alterações.'}</p>
 			<div class="fields">
-				{homeContentFields.map((field) => (
+				{homeContentFields.filter((field) => field.group === group).map((field) => (
 					<label class="full">
 						<span>{field.label} (até {field.max} caracteres)</span>
-						<textarea name={`home_${field.key}`} rows={field.max > 120 ? 3 : 2} maxlength={field.max} required>{config.home[field.key]}</textarea>
+						<textarea name={`home_${field.key}`} rows={field.list ? 6 : field.max > 120 ? 3 : 2} maxlength={field.max} required>{config.home[field.key]}</textarea>
 					</label>
 				))}
 			</div>
 		</section>
+		))}
 
 		<section class="panel">
 			<header>

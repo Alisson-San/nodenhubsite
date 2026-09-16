@@ -1,6 +1,8 @@
 ---
 export const prerender = false;
 
+import { splitHomeHighlights } from "../lib/site/homeContent";
+
 import SiteFooter from "../components/common/SiteFooter.astro";
 
 import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
@@ -152,19 +154,11 @@ const whatsappUrl =
 
 						<div class="service-copy">
 							<span class="service-label">NODEN HOME</span>
-							<h3>Suporte técnico presencial para sua casa.</h3>
+							<h3>{site.home.homeTitle}</h3>
 
-							<p>
-								Atendimento residencial com diagnóstico claro,
-								instalações, manutenção e orientação.
-							</p>
+							<p>{site.home.homeDescription}</p>
 
-							<ul>
-								<li>Instalação e configuração de equipamentos</li>
-								<li>Limpeza, formatação e otimização</li>
-								<li>Upgrades de memória e SSD</li>
-								<li>Consultoria para dúvidas e problemas</li>
-							</ul>
+							<ul>{splitHomeHighlights(site.home.homeHighlights).map((item) => <li>{item}</li>)}</ul>
 
 							<a
 								class="service-page-link"
@@ -202,19 +196,11 @@ const whatsappUrl =
 
 						<div class="service-copy">
 							<span class="service-label">NODEN GAME</span>
-							<h3>Setup gamer pensado em otimização.</h3>
+							<h3>{site.home.gameTitle}</h3>
 
-							<p>
-								Montagem, revisão e evolução do setup com foco em
-								desempenho, estabilidade e custo-benefício.
-							</p>
+							<p>{site.home.gameDescription}</p>
 
-							<ul>
-								<li>Montagem e revisão completa do setup</li>
-								<li>Diagnóstico de gargalos</li>
-								<li>Upgrades e refrigeração</li>
-								<li>Consultoria de peças e compatibilidade</li>
-							</ul>
+							<ul>{splitHomeHighlights(site.home.gameHighlights).map((item) => <li>{item}</li>)}</ul>
 
 							<a
 								class="service-page-link"
@@ -251,19 +237,11 @@ const whatsappUrl =
 
 						<div class="service-copy">
 							<span class="service-label">NODEN DATA</span>
-							<h3>Dados organizados para decisões reais.</h3>
+							<h3>{site.home.dataTitle}</h3>
 
-							<p>
-								BI, analytics, automação e soluções de software para
-								transformar informação em resultado.
-							</p>
+							<p>{site.home.dataDescription}</p>
 
-							<ul>
-								<li>Dashboards e indicadores</li>
-								<li>Soluções de software e automação</li>
-								<li>Integração e tratamento de dados</li>
-								<li>BI, analytics e apoio à decisão</li>
-							</ul>
+							<ul>{splitHomeHighlights(site.home.dataHighlights).map((item) => <li>{item}</li>)}</ul>
 
 							<a
 								class="service-page-link"

@@ -73,3 +73,8 @@ Etapa 1 implementada: navegação inicial, destinos reais, teclado, fluxo móvel
 - Navegação: `node scripts/qa/navigation.mjs http://127.0.0.1:PORT http://127.0.0.1:4323 /tmp/noden-production-final`. Medição: `node scripts/qa/measure-production.mjs http://127.0.0.1:PORT`. PORT é o CDP retornado pelo navegador de testes, não a porta do site.
 - Ambiente: já havia processo em 4321, preservado. Instância 4322 iniciada nesta execução foi encerrada; após atualização, o comando Astro de status não a reconhecia e ela foi encerrada pelo PID confirmado. Preview4323 é temporário para QA.
 - Não reaplicar seeds/migrações para testar a nova apresentação. Novos campos usam `site.identity.home` no JSON existente e defaults de leitura; nenhuma escrita foi feita no banco real.
+
+
+## Retomada local — 15/09/2026
+
+C06 avançou: doze campos dos resumos em Configurações, compartilhados por inicial/mobile, sem ampliar consultas ou alterar dados reais. Conteúdo longo aciona fluxo normal no desktop para preservar leitura e CTA. Testes de conteúdo incluem multipart/CRLF; QA de navegação agora também compara as duas aberturas e verifica o CTA com texto no limite. Artefatos desta etapa: `/tmp/noden-resume-content-final`, validação em `/tmp/noden-resume-validate-content.log`. Persistência autenticada permanece pendente de ambiente isolado/autorização específica.
