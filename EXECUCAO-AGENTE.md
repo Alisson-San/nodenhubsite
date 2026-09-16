@@ -78,3 +78,8 @@ Etapa 1 implementada: navegação inicial, destinos reais, teclado, fluxo móvel
 ## Retomada local — 15/09/2026
 
 C06 avançou: doze campos dos resumos em Configurações, compartilhados por inicial/mobile, sem ampliar consultas ou alterar dados reais. Conteúdo longo aciona fluxo normal no desktop para preservar leitura e CTA. Testes de conteúdo incluem multipart/CRLF; QA de navegação agora também compara as duas aberturas e verifica o CTA com texto no limite. Artefatos desta etapa: `/tmp/noden-resume-content-final`, validação em `/tmp/noden-resume-validate-content.log`. Persistência autenticada permanece pendente de ambiente isolado/autorização específica.
+
+
+## Dependências na retomada — 16/09/2026
+
+Os três alertas restantes foram removidos com override restrito de `path-to-regexp` 6.3.0 sob `@vercel/routing-utils`. `npm audit` agora informa zero vulnerabilidades; manter a ressalva temporal e revisar o override ao atualizar o adaptador. `npm run validate`, testes de rotas geradas e regressão no preview passaram. Nenhum deploy, escrita Supabase ou alteração de autenticação/política foi realizado.

@@ -271,3 +271,12 @@ Resultado final: `npm run validate` sem erros/avisos, três testes locais do con
 - Arquivos: `src/lib/site/homeContent.ts`, teste correspondente, páginas inicial/mobile, `admin/settings/index.astro`, `scripts/qa/navigation.mjs`.
 - Evidência: `npm run validate` (zero erros/avisos), cinco testes de conteúdo; Chromium153 nas seis resoluções, teclado, links, ausência de JS, falha do bundle, redirecionamento móvel simulado e comparação dos resumos. Capturas/resultados locais em `/tmp/noden-resume-content-final`; conteúdo máximo simulado apenas no DOM, sem gravação.
 - Limite: o formulário autenticado e a persistência dos novos campos não foram testados no banco real. Usar banco isolado ou autorização específica. Não altera o estado da validação anterior em `VALIDACAO-SUPABASE.md`.
+
+
+## Retomada — dependência transitiva (NOD-15), 16/09/2026
+
+- `npm audit` confirmou três alertas altos herdados de `@astrojs/vercel@11.0.3` → `@vercel/routing-utils@5.3.3` → `path-to-regexp@6.1.0`, todos ligados ao [GHSA-9wv6-86v2-598j](https://github.com/advisories/GHSA-9wv6-86v2-598j). A presença do pacote foi confirmada; não foi demonstrada exploração nas rotas atuais.
+- O código de `routing-utils` executava 6.1.0 e usava o alias 6.3.0 apenas para comparação. Mesmo a versão 6.6.0 consultada no registro npm ainda declarava 6.1.0. Aplicado override restrito a `@vercel/routing-utils` → `path-to-regexp:6.3.0`, versão corrigida da mesma major. Alterados somente `package.json` e a entrada correspondente do lockfile; sem downgrade do adaptador ou atualização geral.
+- Compatibilidade: comparação profunda dos redirects transformados e das rotas de `.vercel/output/config.json` antes/depois resultou idêntica. `scripts/qa/routing.test.mjs` mantém dois testes reproduzíveis para regra móvel, exclusão das outras rotas e destinos públicos/administrativos/dinâmicos gerados. Executar após o build: `node --test scripts/qa/routing.test.mjs`.
+- `npm run validate`: zero erros/avisos e build concluído. `npm audit`: zero vulnerabilidades nesta consulta. Logs em `/tmp/noden-resume-validate-deps.log` e `/tmp/noden-resume-audit-final.json`; capturas e regressão Chromium em `/tmp/noden-resume-deps-final`.
+- Manutenção: revisar/remover o override quando o pacote upstream eliminar 6.1.0; reexecutar testes de rotas e audit ao atualizar o adaptador. A versão 6.3.0 não protege expressões regulares personalizadas inseguras; não foram introduzidas novas expressões. Preview local não valida a infraestrutura remota da Vercel.
