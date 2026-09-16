@@ -381,6 +381,7 @@ const whatsappUrl =
 
 			gsap.registerPlugin(ScrollTrigger);
 
+			let resumeTime: number | undefined;
 			let navigateScene: ((hash: string, focus?: boolean) => void) | undefined;
 			const header = document.querySelector<HTMLElement>("#site-header");
 			document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {
@@ -613,33 +614,18 @@ const whatsappUrl =
 			};
 
 			const placeIntroNodes = () => {
-				const mobile = window.innerWidth <= 800;
-				const nodeScale = mobile ? 0.4 : 0.68;
-				const bottomY = window.innerHeight * (mobile ? 0.86 : 0.8);
-
-				placeIntroNode(
-					"#node-home",
-					window.innerWidth * 0.5,
-					window.innerHeight * (mobile ? 0.12 : 0.18),
-					nodeScale,
-					mobile ? -8 : -16,
-				);
-
-				placeIntroNode(
-					"#node-game",
-					window.innerWidth * (mobile ? 0.17 : 0.08),
-					bottomY,
-					nodeScale,
-					mobile ? 8 : 14,
-				);
-
-				placeIntroNode(
-					"#node-data",
-					window.innerWidth * (mobile ? 0.83 : 0.92),
-					bottomY,
-					nodeScale,
-					mobile ? -8 : -14,
-				);
+				const scene = document.querySelector<HTMLElement>('.scene')!;
+				const copy = document.querySelector<HTMLElement>('#inicio')!;
+				const bounds = scene.getBoundingClientRect();
+				const copyBounds = copy.getBoundingClientRect();
+				const rail = Math.max(40, (copyBounds.left - bounds.left) / 2);
+				const radius = Math.min(58, rail - 24);
+				const symbolWidth = document.querySelector<HTMLElement>('#brand-symbol')!.offsetWidth;
+				const scale = radius / (226 * symbolWidth / 1024);
+				// Side rails keep the full stroke and idle motion outside the reading area.
+				placeIntroNode('#node-home', bounds.left + rail, bounds.height * .3, scale, 0);
+				placeIntroNode('#node-game', bounds.left + rail, bounds.height * .78, scale, 0);
+				placeIntroNode('#node-data', bounds.right - rail, bounds.height * .54, scale, 0);
 			};
 
 			placeIntroNodes();
@@ -650,24 +636,19 @@ const whatsappUrl =
 			const brandSymbolSlot =
 				document.querySelector<HTMLElement>("#brand-symbol-slot");
 
-			const getBrandSymbolTarget = () => {
-				if (!brandSymbol || !brandSymbolSlot) {
-					return { x: 0, y: 0, scale: 0.25 };
-				}
-
-				const slotBounds = brandSymbolSlot.getBoundingClientRect();
-				const symbolWidth = brandSymbol.offsetWidth || 1;
-
+			const brandLockup = document.querySelector<HTMLElement>('.brand-lockup')!;
+			const scene = document.querySelector<HTMLElement>('.scene')!;
+			const getBrandOffset = () => scene.clientHeight / 2 - brandLockup.offsetTop - brandLockup.offsetHeight / 2;
+			gsap.set(brandLockup, { y: getBrandOffset });
+			const getBrandSymbolTarget = (centered = true) => {
+				if (!brandSymbol || !brandSymbolSlot) return { x: 0, y: 0, scale: .25 };
+				const slot = brandSymbolSlot.getBoundingClientRect();
+				const bounds = scene.getBoundingClientRect();
+				const currentOffset = Number(gsap.getProperty(brandLockup, 'y'));
 				return {
-					x:
-						slotBounds.left +
-						slotBounds.width / 2 -
-						window.innerWidth / 2,
-					y:
-						slotBounds.top +
-						slotBounds.height / 2 -
-						window.innerHeight / 2,
-					scale: slotBounds.width / symbolWidth,
+					x: slot.left + slot.width / 2 - bounds.left - bounds.width / 2,
+					y: slot.top + slot.height / 2 - currentOffset + (centered ? getBrandOffset() : 0) - bounds.top - bounds.height / 2,
+					scale: slot.width / parseFloat(getComputedStyle(brandSymbol).width),
 				};
 			};
 
@@ -706,11 +687,11 @@ const whatsappUrl =
 					x:
 						slotBounds.left +
 						slotBounds.width / 2 -
-						window.innerWidth / 2,
+						scene.getBoundingClientRect().left - scene.clientWidth / 2,
 					y:
 						slotBounds.top +
 						slotBounds.height / 2 -
-						window.innerHeight / 2,
+						scene.getBoundingClientRect().top - scene.clientHeight / 2,
 					scale: slotBounds.width / symbolWidth,
 				};
 			};
@@ -1292,27 +1273,35 @@ const whatsappUrl =
 					17.18,
 				);
 
+			const brandPause = 1.5;
+			timeline.shiftChildren(brandPause, false, 4.35);
+			timeline.to(brandLockup, { y: 0, duration: .85, ease: 'power3.inOut' }, 4.95);
+			timeline.to('#brand-symbol', {
+				x: () => getBrandSymbolTarget(false).x,
+				y: () => getBrandSymbolTarget(false).y,
+				duration: .85, ease: 'power3.inOut',
+			}, 4.95);
 			timeline.addLabel("inicio", 0);
-			timeline.addLabel("quem-somos", 4.5);
-			timeline.addLabel("home", 7.28);
-			timeline.addLabel("game", 9.82);
-			timeline.addLabel("data", 12.35);
-			timeline.addLabel("contato", 17.18);
+			timeline.addLabel("quem-somos", 4.5 + brandPause);
+			timeline.addLabel("home", 7.28 + brandPause);
+			timeline.addLabel("game", 9.82 + brandPause);
+			timeline.addLabel("data", 12.35 + brandPause);
+			timeline.addLabel("contato", 17.18 + brandPause);
 
 			const menuTargetTimes: Record<string, number> = {
 				inicio: 0,
 
 				// Marca, proposta, cidades e três segmentos já visíveis.
-				"quem-somos": 5.9,
+				"quem-somos": 5.9 + brandPause,
 
 				// Ícone e painel Home completamente apresentados.
-				home: 8.2,
+				home: 8.2 + brandPause,
 
 				// Ícone e painel Game completamente apresentados.
-				game: 10.75,
+				game: 10.75 + brandPause,
 
 				// Ícone e painel Data completamente apresentados.
-				data: 13.3,
+				data: 13.3 + brandPause,
 
 				// Tratado separadamente para ir ao fim real.
 				contato: timeline.duration(),
@@ -1425,24 +1414,42 @@ const whatsappUrl =
 				if (!fitsScene()) context.revert();
 			});
 			divisionPanels.forEach((panel) => contentObserver.observe(panel));
+			let resizeTimer: ReturnType<typeof setTimeout>;
 			const onResize = () => {
-				if (!fitsScene()) { context.revert(); return; }
-				placeIntroNodes(); ScrollTrigger.refresh();
+				if (!matchMedia("(min-width: 1100px) and (min-height: 550px) and (prefers-reduced-motion: no-preference)").matches) return;
+				resumeTime ??= timeline.time();
+				clearTimeout(resizeTimer);
+				resizeTimer = setTimeout(() => gsap.matchMediaRefresh(), 150);
 			};
 			window.addEventListener("resize", onResize);
 			document.documentElement.classList.remove("experience-preparing");
-			const initialFrame = requestAnimationFrame(() => { ScrollTrigger.refresh(); followHash(); syncPanels(); });
+			const initialFrame = requestAnimationFrame(() => {
+				ScrollTrigger.refresh();
+				const trigger = timeline.scrollTrigger;
+				if (resumeTime !== undefined && trigger) {
+					const time = resumeTime;
+					resumeTime = undefined;
+					lenis.scrollTo(trigger.start + (trigger.end - trigger.start) * time / timeline.duration(), { immediate: true, force: true });
+					timeline.time(time, false);
+					ScrollTrigger.update();
+				} else followHash();
+				syncPanels();
+			});
 			setActiveNavigation("inicio");
 			return () => {
 				cancelAnimationFrame(initialFrame);
+				introIdleTweens.forEach((tween) => tween.kill());
+				introIdleTweens = [];
 				contentObserver.disconnect();
+				clearTimeout(resizeTimer);
 				window.removeEventListener("resize", onResize);
 				gsap.ticker.remove(tick);
 				lenis.destroy();
 				navigateScene = undefined;
 				document.documentElement.classList.remove("experience-animated");
 				panels.forEach((panel) => { panel.inert = false; panel.removeAttribute("aria-hidden"); panel.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => { link.inert = false; }); });
-				requestAnimationFrame(followHash);
+				if (!matchMedia("(min-width: 1100px) and (min-height: 550px) and (prefers-reduced-motion: no-preference)").matches) resumeTime = undefined;
+				if (resumeTime === undefined) requestAnimationFrame(followHash);
 			};
 			});
 		</script>

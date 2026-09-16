@@ -88,3 +88,8 @@ Os três alertas restantes foram removidos com override restrito de `path-to-reg
 ## Animação em notebooks — 16/09/2026
 
 Após relato do usuário no servidor 4322, corrigida a restrição excessiva de altura de 800px. A animação agora pode funcionar a partir de 1100×550 com cartões compactos até 799px, desde que o conteúdo caiba. QA passou a exigir movimento dos anéis ao rolar, além de leitura e navegação. Testes/capturas em `/tmp/noden-animation-dev` e `/tmp/noden-animation-production`; veja a causa e os limites em `REVISAO-NODEN.md`. Recarregar a página local para aplicar a mudança.
+
+
+## Verificação visual da sequência — 16/09/2026
+
+Corrigidas sobreposição dos anéis na abertura e montagem da marca: texto com espaço reservado, palavra NODEN completa centralizada antes de subir e encaixe baseado no centro real da cena. Resize conserva o momento da sequência. Regressão visual reproduzível: `node scripts/qa/animation.mjs http://127.0.0.1:PORT http://127.0.0.1:4323 /tmp/noden-composition-production-final`. Validar também `scripts/qa/navigation.mjs`; a existência de movimento isoladamente não comprova boa composição.
