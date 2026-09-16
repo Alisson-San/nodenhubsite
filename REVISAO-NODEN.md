@@ -198,3 +198,14 @@ Essa direção é uma proposta para orientar a próxima etapa, não um redesign 
 - [W3C — ordem de foco](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html): sequência que preserve sentido e operação.
 - [W3C — contraste mínimo](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html): referência para medir texto, considerando tamanho e exceções.
 - [W3C — tamanho mínimo de alvo](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html): avaliar tamanho e espaçamento; não inferir conformidade por captura.
+
+## Correções locais — etapa 1 (15/09/2026)
+
+Esta seção atualiza os achados históricos acima. A validação autenticada anterior permanece em `VALIDACAO-SUPABASE.md`; nenhum registro real foi alterado nesta execução.
+
+- **NOD-01 — corrigido e testado:** `overflow-x: hidden` em `html/body` criava um ancestral de rolagem que impedia a cena sticky de acompanhar a janela. Reprodução atual: Home em 390×844 com `scrollY=5597`, cena em `-5597` e conteúdo em `-5350`. Alterar temporariamente para `clip` trouxe a cena a `0` e o conteúdo a `247`, confirmando a causa. `index.astro` agora usa `clip` e fluxo normal por padrão; GSAP só aprimora telas a partir de 1100×800 sem movimento reduzido. Após correção: Home em `96px`, sem overflow horizontal.
+- **NOD-02/NOD-09 — corrigidos e testados:** navegação fechada tem `visibility:hidden` e `inert`; menu independente do carregamento do GSAP, Escape devolve foco, saída do cabeçalho fecha o menu. Testados Tab, Shift+Tab, Enter e Espaço. Alvo do acionador: 44×44.
+- **NOD-04 — corrigido e testado:** destinos HTML reais, ordem de leitura começando pelo H1, fragmento/histórico na animação e âncoras nativas no fluxo normal. Links diretos Home/Contato passaram em 320×740, 390×844, 768×1024, 910×698, 1440×900 e 844×390. Sem JS, Home permanece acessível na inicial e em `/mobile`. Incluído link para pular ao conteúdo.
+- **NOD-16/NOD-17 — parcialmente tratados:** `/mobile` deixa de retornar à raiz por largura, evitando conflito entre tablet largo e o redirecionamento por User-Agent do `vercel.json`, que permanece intacto. Conteúdo móvel visível sem JS; entrada em tela tem apenas movimento opcional. Movimento reduzido na inicial usa fluxo normal. A regra da Vercel não é executada pelo servidor Astro local; produção não foi acessada.
+
+Arquivos: `src/pages/index.astro`, `src/pages/mobile.astro`, `scripts/qa/navigation.mjs`. Validação: `npm run validate` sem erros/avisos e build concluído; teste Chromium via CDP, com as seis resoluções, rotas `/mobile`, `/home`, `/game`, `/data`, `/links`, histórico, teclado, movimento reduzido, JS desligado e redirecionamento de visitante de `/admin` para login. Capturas locais: `/tmp/noden-evidence/`; comparação anterior: `/tmp/noden-before-home.png`. Não são evidência de dispositivo físico, leitor de tela ou validação completa do backend.

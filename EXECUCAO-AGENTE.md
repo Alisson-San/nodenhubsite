@@ -53,3 +53,14 @@ Este prompt é uma orientação para a próxima execução, não uma indicação
 ## Etapa Supabase adiada
 
 O conteúdo público pode usar os dados padrão. Isso não valida conexão, login, edição nem persistência. Não habilitar bypass nem criar chaves fictícias para esconder a pendência. Configurar e testar o backend em uma etapa específica posterior.
+
+## Execução local de correções — 15/09/2026
+
+Etapa 1 implementada: navegação inicial, destinos reais, teclado, fluxo móvel/baixo, movimento reduzido e `/mobile` sem dependência de JS. Consulte o registro atualizado em `REVISAO-NODEN.md`.
+
+- Branch confirmada: `feature/site-review-agent`.
+- Preservados os três avisos documentais pendentes e o arquivo não rastreado `VALIDACAO-SUPABASE.md`.
+- Node 22.23.2; servidor iniciado por `npm run dev -- --background`, informou `http://localhost:4322`.
+- Chromium 153 via `agent-browser`; bibliotecas ausentes extraídas em `/tmp/noden-browser-libs`, sem instalação por sudo. Não fazem parte do projeto.
+- Regressão reproduzível: abrir o site no Chromium, obter `agent-browser get cdp-url`, e executar `node scripts/qa/navigation.mjs http://127.0.0.1:PORT http://localhost:4322 /tmp/noden-evidence` com a porta CDP correspondente. Usar sessão de teste sem autenticação.
+- Capturas e resultados gerados ficam em `/tmp`, fora dos commits. Nenhum push, merge ou deploy.

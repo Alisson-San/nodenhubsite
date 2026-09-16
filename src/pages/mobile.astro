@@ -39,24 +39,10 @@ const whatsappUrl =
 			content={site.description}
 		/>
 		<meta name="theme-color" content="#02050a" />
-		<link rel="canonical" href="/" />
+		<link rel="canonical" href={new URL("/", site.url)} />
 		<title>{site.name} — Technology Hub</title>
 
-		<script is:inline>
-			(() => {
-				const mobileBreakpoint = 820;
-				const currentPath = window.location.pathname.replace(/\/$/, "");
 
-				if (
-					window.innerWidth > mobileBreakpoint &&
-					currentPath === "/mobile"
-				) {
-					window.location.replace(
-						`/${window.location.search}${window.location.hash}`,
-					);
-				}
-			})();
-		</script>
 	</head>
 
 	<body>
@@ -165,7 +151,7 @@ const whatsappUrl =
 				</div>
 
 				<div class="service-stack">
-					<article class="mobile-service service-home reveal">
+					<article id="noden-home" tabindex="-1" class="mobile-service service-home reveal">
 						<div class="service-icon service-icon-home" aria-hidden="true">
 							<svg viewBox="0 0 120 120">
 								<path d="M 23 56 L 60 24 L 97 56" />
@@ -214,7 +200,7 @@ const whatsappUrl =
 						</div>
 					</article>
 
-					<article class="mobile-service service-game reveal">
+					<article id="noden-game" tabindex="-1" class="mobile-service service-game reveal">
 						<div class="service-icon service-icon-game" aria-hidden="true">
 							<svg viewBox="0 0 160 120">
 								<path d="M 43 36 H 117 C 137 36 147 54 142 73 L 136 92 C 132 106 117 110 106 99 L 92 82 H 68 L 54 99 C 43 110 28 106 24 92 L 18 73 C 13 54 23 36 43 36 Z" />
@@ -264,7 +250,7 @@ const whatsappUrl =
 						</div>
 					</article>
 
-					<article class="mobile-service service-data reveal">
+					<article id="noden-data" tabindex="-1" class="mobile-service service-data reveal">
 						<div class="service-icon service-icon-data" aria-hidden="true">
 							<svg viewBox="0 0 120 120">
 								<ellipse cx="60" cy="31" rx="31" ry="13" />
@@ -366,24 +352,17 @@ const whatsappUrl =
 		</footer>
 
 		<script>
-			const revealElements = document.querySelectorAll<HTMLElement>(".reveal");
-
-			const observer = new IntersectionObserver(
-				(entries) => {
+			// Animate only elements already entering view; content stays visible if JS fails.
+			if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+				const observer = new IntersectionObserver((entries) => {
 					entries.forEach((entry) => {
-						if (entry.isIntersecting) {
-							entry.target.classList.add("is-visible");
-							observer.unobserve(entry.target);
-						}
+						if (!entry.isIntersecting) return;
+						entry.target.animate([{ transform: "translateY(16px)" }, { transform: "none" }], { duration: 450, easing: "ease-out" });
+						observer.unobserve(entry.target);
 					});
-				},
-				{
-					threshold: 0.14,
-					rootMargin: "0px 0px -8% 0px",
-				},
-			);
-
-			revealElements.forEach((element) => observer.observe(element));
+				});
+				document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+			}
 		</script>
 	</body>
 </html>
@@ -904,8 +883,8 @@ const whatsappUrl =
 	}
 
 	.reveal {
-		opacity: 0;
-		transform: translateY(24px);
+		opacity: 1;
+		transform: none;
 		transition:
 			opacity 700ms ease,
 			transform 700ms ease;
@@ -927,4 +906,9 @@ const whatsappUrl =
 			transition: none;
 		}
 	}
+</style>
+
+<style>
+ [id] { scroll-margin-top: 90px; }
+ a:focus-visible, [tabindex="-1"]:focus-visible { outline: 2px solid #8ccfff; outline-offset: 5px; }
 </style>

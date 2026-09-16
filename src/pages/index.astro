@@ -31,9 +31,15 @@ const whatsappUrl =
 		/>
 		<title>{site.name} — Technology Hub</title>
 
+		<noscript><style>
+			.menu-toggle { display: none !important; }
+			.site-header { position: relative !important; height: auto !important; flex-wrap: wrap; gap: 20px; padding: 20px !important; }
+			.site-navigation { position: static !important; opacity: 1 !important; visibility: visible !important; transform: none !important; pointer-events: auto !important; padding: 0 !important; max-height: none !important; }
+		</style></noscript>
 	</head>
 
 	<body>
+		<a class="skip-link" href="#inicio">Pular para o conteúdo</a>
 
 		<header id="site-header" class="site-header">
 			<a
@@ -80,6 +86,17 @@ const whatsappUrl =
 
 					<NodenSymbol />
 
+					<div id="inicio" tabindex="-1" class="copy start-copy">
+						<span class="start-kicker">NODEN TECHNOLOGY HUB</span>
+
+						<h1>BEM-VINDO</h1>
+
+						<p class="start-message">
+							<strong>A tecnologia nos conecta.</strong>
+							<span>A Noden transforma essa conexão.</span>
+						</p>
+					</div>
+
 					<div id="brand-scene" class="brand-scene">
 						<div class="brand-lockup" aria-label="NODEN Technology Hub">
 							<div class="brand-word">
@@ -95,7 +112,7 @@ const whatsappUrl =
 							<span class="brand-subtitle">TECHNOLOGY HUB</span>
 						</div>
 
-						<div id="about-copy" class="about-copy">
+						<div id="quem-somos" tabindex="-1" class="about-copy">
 							<div class="about-marker">
 								<span class="about-index">01</span>
 								<span class="about-eyebrow">QUEM SOMOS</span>
@@ -166,19 +183,9 @@ const whatsappUrl =
 						</div>
 					</div>
 
-					<div id="start-copy" class="copy start-copy">
-						<span class="start-kicker">NODEN TECHNOLOGY HUB</span>
-
-						<h1>BEM-VINDO</h1>
-
-						<p class="start-message">
-							<strong>A tecnologia nos conecta.</strong>
-							<span>A Noden transforma essa conexão.</span>
-						</p>
-					</div>
 
 					<div class="division-shell">
-						<div id="home-copy" class="copy division-copy division-home">
+						<div id="noden-home" tabindex="-1" class="copy division-copy division-home">
 							<span class="division-kicker">NODEN HOME</span>
 							<h2>Suporte técnico presencial para sua casa.</h2>
 							<p class="division-lead">
@@ -223,7 +230,7 @@ const whatsappUrl =
 					</div>
 
 					<div class="division-shell">
-						<div id="game-copy" class="copy division-copy division-game">
+						<div id="noden-game" tabindex="-1" class="copy division-copy division-game">
 							<span class="division-kicker">NODEN GAME</span>
 							<h2>Setup gamer pensado em otimização.</h2>
 							<p class="division-lead">
@@ -267,7 +274,7 @@ const whatsappUrl =
 					</div>
 
 					<div class="division-shell">
-						<div id="data-copy" class="copy division-copy division-data">
+						<div id="noden-data" tabindex="-1" class="copy division-copy division-data">
 							<span class="division-kicker">NODEN DATA</span>
 							<h2>Dados organizados para apoiar decisões reais.</h2>
 							<p class="division-lead">
@@ -311,7 +318,7 @@ const whatsappUrl =
 						</div>
 					</div>
 
-					<div id="final-copy" class="copy final-copy">
+					<div id="contato" tabindex="-1" class="copy final-copy">
 						<div class="final-demand">
 							<h2>
 								<span class="final-demand-line final-demand-line-one">
@@ -367,12 +374,60 @@ const whatsappUrl =
 
 		</main>
 
+		<script is:inline>
+			const header = document.querySelector("#site-header");
+			const menuToggle = document.querySelector("#menu-toggle");
+			const menu = document.querySelector("#site-navigation");
+			const mobileMenu = window.matchMedia("(max-width: 800px)");
+			const setMenu = (open) => {
+				header?.classList.toggle("is-menu-open", open);
+				menuToggle?.setAttribute("aria-expanded", String(open));
+				menuToggle?.setAttribute("aria-label", open ? "Fechar menu" : "Abrir menu");
+				if (menu) menu.inert = mobileMenu.matches && !open;
+			};
+			menuToggle?.addEventListener("click", () => setMenu(menuToggle.getAttribute("aria-expanded") !== "true"));
+			header?.addEventListener("keydown", (event) => {
+				if (event.key === "Escape") { setMenu(false); menuToggle?.focus(); }
+			});
+			header?.addEventListener("focusout", () => {
+				requestAnimationFrame(() => { if (!header.contains(document.activeElement)) setMenu(false); });
+			});
+			mobileMenu.addEventListener("change", () => setMenu(false));
+			setMenu(false);
+
+ document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener("click", () => setMenu(false)));
+ window.addEventListener("scroll", () => header?.classList.toggle("is-scrolled", scrollY > 24), { passive: true });
+		</script>
+
 		<script>
 			import gsap from "gsap";
 			import { ScrollTrigger } from "gsap/ScrollTrigger";
 			import Lenis from "lenis";
 
 			gsap.registerPlugin(ScrollTrigger);
+
+			let navigateScene: ((hash: string, focus?: boolean) => void) | undefined;
+			const header = document.querySelector<HTMLElement>("#site-header");
+			document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {
+				link.addEventListener("click", (event) => {
+					if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+					if (navigateScene) {
+						event.preventDefault();
+						if (location.hash !== link.hash) history.pushState(null, "", link.hash);
+						navigateScene(link.hash, true);
+					}
+				});
+			});
+			const followHash = () => {
+				if (navigateScene) navigateScene(location.hash);
+				else if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+			};
+			document.fonts.ready.then(() => requestAnimationFrame(followHash));
+			window.addEventListener("hashchange", followHash);
+			window.addEventListener("popstate", followHash);
+
+			gsap.matchMedia().add("(min-width: 1100px) and (min-height: 800px) and (prefers-reduced-motion: no-preference)", () => {
+			document.documentElement.classList.add("experience-animated");
 
 			const lenis = new Lenis({
 				duration: 0.82,
@@ -381,9 +436,8 @@ const whatsappUrl =
 
 			lenis.on("scroll", ScrollTrigger.update);
 
-			gsap.ticker.add((time) => {
-				lenis.raf(time * 1000);
-			});
+			const tick = (time: number) => lenis.raf(time * 1000);
+			gsap.ticker.add(tick);
 
 			gsap.ticker.lagSmoothing(0);
 
@@ -489,12 +543,12 @@ const whatsappUrl =
 				scale: 0.5,
 			});
 
-			gsap.set(".copy:not(#start-copy)", {
+			gsap.set(".copy:not(#inicio)", {
 				opacity: 0,
 				y: 50,
 			});
 
-			gsap.set("#start-copy", {
+			gsap.set("#inicio", {
 				opacity: 1,
 				y: 0,
 			});
@@ -519,17 +573,17 @@ const whatsappUrl =
 				y: 14,
 			});
 
-			gsap.set("#about-copy .about-marker > *", {
+			gsap.set("#quem-somos .about-marker > *", {
 				opacity: 0,
 				x: -18,
 			});
 
-			gsap.set("#about-copy .about-heading > *", {
+			gsap.set("#quem-somos .about-heading > *", {
 				opacity: 0,
 				y: 24,
 			});
 
-			gsap.set("#about-copy .service-card", {
+			gsap.set("#quem-somos .service-card", {
 				opacity: 0,
 				y: 24,
 			});
@@ -692,7 +746,7 @@ const whatsappUrl =
 				x: 24,
 			});
 
-			gsap.set("#final-copy", {
+			gsap.set("#contato", {
 				opacity: 1,
 				y: 0,
 			});
@@ -726,19 +780,19 @@ const whatsappUrl =
 			});
 
 			gsap.fromTo(
-				"#start-copy .start-kicker",
+				"#inicio .start-kicker",
 				{ opacity: 0, y: 14 },
 				{ opacity: 1, y: 0, duration: 0.8, delay: 0.1, ease: "power2.out" },
 			);
 
 			gsap.fromTo(
-				"#start-copy h1",
+				"#inicio h1",
 				{ opacity: 0, y: 28 },
 				{ opacity: 1, y: 0, duration: 1, delay: 0.2, ease: "power3.out" },
 			);
 
 			gsap.fromTo(
-				"#start-copy .start-message",
+				"#inicio .start-message",
 				{ opacity: 0, y: 18 },
 				{ opacity: 1, y: 0, duration: 0.9, delay: 0.38, ease: "power2.out" },
 			);
@@ -756,7 +810,7 @@ const whatsappUrl =
 			);
 
 			timeline.to(
-					"#start-copy",
+					"#inicio",
 					{
 						opacity: 0,
 						y: -35,
@@ -857,7 +911,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#about-copy .about-marker > *",
+					"#quem-somos .about-marker > *",
 					{
 						opacity: 1,
 						x: 0,
@@ -869,7 +923,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#about-copy .about-heading > *",
+					"#quem-somos .about-heading > *",
 					{
 						opacity: 1,
 						y: 0,
@@ -881,7 +935,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#about-copy .service-card",
+					"#quem-somos .service-card",
 					{
 						opacity: 1,
 						y: 0,
@@ -956,7 +1010,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#home-copy",
+					"#noden-home",
 					{
 						autoAlpha: 1,
 						y: 0,
@@ -968,7 +1022,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#home-copy",
+					"#noden-home",
 					{
 						autoAlpha: 0,
 						y: -32,
@@ -1033,7 +1087,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#game-copy",
+					"#noden-game",
 					{
 						autoAlpha: 1,
 						y: 0,
@@ -1045,7 +1099,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#game-copy",
+					"#noden-game",
 					{
 						autoAlpha: 0,
 						y: -32,
@@ -1110,7 +1164,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#data-copy",
+					"#noden-data",
 					{
 						autoAlpha: 1,
 						y: 0,
@@ -1122,7 +1176,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#data-copy",
+					"#noden-data",
 					{
 						autoAlpha: 0,
 						y: -32,
@@ -1290,9 +1344,6 @@ const whatsappUrl =
 				contato: timeline.duration(),
 			};
 
-			const header = document.querySelector<HTMLElement>("#site-header");
-			const menuToggle = document.querySelector<HTMLButtonElement>("#menu-toggle");
-
 			const navigationLinks = Array.from(
 				document.querySelectorAll<HTMLAnchorElement>(
 					"[data-timeline-label]",
@@ -1330,12 +1381,6 @@ const whatsappUrl =
 				return currentLabel;
 			};
 
-			const closeMobileMenu = () => {
-				header?.classList.remove("is-menu-open");
-				menuToggle?.setAttribute("aria-expanded", "false");
-				menuToggle?.setAttribute("aria-label", "Abrir menu");
-			};
-
 			const scrollToTimelineLabel = (label: string) => {
 				const trigger = timeline.scrollTrigger;
 
@@ -1371,33 +1416,25 @@ const whatsappUrl =
 				setActiveNavigation(label);
 			};
 
-			document
-				.querySelectorAll<HTMLAnchorElement>("[data-timeline-label]")
-				.forEach((link) => {
-					link.addEventListener("click", (event) => {
-						event.preventDefault();
-
-						const label = link.dataset.timelineLabel;
-						if (!label) return;
-
-						closeMobileMenu();
-						scrollToTimelineLabel(label);
-					});
-				});
-
-
-			menuToggle?.addEventListener("click", () => {
-				const isOpen = header?.classList.toggle("is-menu-open") ?? false;
-
-				menuToggle.setAttribute("aria-expanded", String(isOpen));
-				menuToggle.setAttribute(
-					"aria-label",
-					isOpen ? "Fechar menu" : "Abrir menu",
-				);
+			const panels = Array.from(document.querySelectorAll<HTMLElement>("#inicio, #quem-somos, #noden-home, #noden-game, #noden-data, #contato"));
+			const syncPanels = () => panels.forEach((panel) => {
+				const visible = Number(getComputedStyle(panel).opacity) > 0.5 &&
+					(panel.id !== "quem-somos" || Number(getComputedStyle(panel.parentElement!).opacity) > 0.5);
+				panel.inert = !visible;
+				panel.setAttribute("aria-hidden", String(!visible));
 			});
+			navigateScene = (hash, focus = false) => {
+				const id = hash.slice(1) || "inicio";
+				const panel = panels.find((item) => item.id === id);
+				if (!panel) return;
+				scrollToTimelineLabel(id.replace("noden-", ""));
+				syncPanels();
+				if (focus) panel.focus({ preventScroll: true });
+			};
 
 			timeline.eventCallback("onUpdate", () => {
 				setActiveNavigation(getCurrentTimelineLabel());
+				syncPanels();
 			});
 
 			lenis.on("scroll", (event: { scroll: number }) => {
@@ -1405,13 +1442,20 @@ const whatsappUrl =
 				setActiveNavigation(getCurrentTimelineLabel());
 			});
 
-			window.addEventListener("resize", () => {
-				closeMobileMenu();
-				placeIntroNodes();
-				ScrollTrigger.refresh();
-			});
-
+			const onResize = () => { placeIntroNodes(); ScrollTrigger.refresh(); };
+			window.addEventListener("resize", onResize);
+			const initialFrame = requestAnimationFrame(() => { ScrollTrigger.refresh(); followHash(); syncPanels(); });
 			setActiveNavigation("inicio");
+			return () => {
+				cancelAnimationFrame(initialFrame);
+				window.removeEventListener("resize", onResize);
+				gsap.ticker.remove(tick);
+				lenis.destroy();
+				navigateScene = undefined;
+				document.documentElement.classList.remove("experience-animated");
+				panels.forEach((panel) => { panel.inert = false; panel.removeAttribute("aria-hidden"); });
+			};
+			});
 		</script>
 	</body>
 </html>
@@ -1438,7 +1482,7 @@ const whatsappUrl =
 
 
 	body {
-		overflow-x: hidden;
+		overflow-x: clip;
 	}
 
 	.site-header {
@@ -2425,7 +2469,7 @@ const whatsappUrl =
 		html,
 		body {
 			width: 100%;
-			overflow-x: hidden;
+			overflow-x: clip;
 		}
 
 		.scroll-stage {
@@ -2481,6 +2525,7 @@ const whatsappUrl =
 				rgba(2, 5, 10, 0.97);
 			backdrop-filter: blur(22px);
 			opacity: 0;
+			visibility: hidden;
 			pointer-events: none;
 			transform: translateY(-14px);
 			transition:
@@ -2489,6 +2534,7 @@ const whatsappUrl =
 		}
 
 		.site-header.is-menu-open .site-navigation {
+			visibility: visible;
 			opacity: 1;
 			pointer-events: auto;
 			transform: translateY(0);
@@ -2851,4 +2897,38 @@ const whatsappUrl =
 		}
 	}
 
+</style>
+<style is:global>
+	/* The document remains readable until the large-screen animation is ready. */
+	[id] { scroll-margin-top: 96px; }
+	a:focus-visible, button:focus-visible, [tabindex="-1"]:focus-visible { outline: 2px solid #8ccfff; outline-offset: 5px; }
+	.skip-link { position: fixed; top: 8px; left: 16px; z-index: 200; padding: 12px; background: #091a30; color: white; transform: translateY(-160%); }
+	.skip-link:focus { transform: none; }
+	:root:not(.experience-animated) .scroll-stage { height: auto; }
+	:root:not(.experience-animated) .scene { position: relative; height: auto; min-height: 100svh; overflow: clip; padding: 110px 0 60px; }
+	:root:not(.experience-animated) .ambient { display: none; }
+	:root:not(.experience-animated) .noden-symbol { position: relative; top: auto; left: auto; width: min(52vw, 260px); margin: 10px auto 34px; transform: none; }
+	:root:not(.experience-animated) :is(.copy, .brand-scene, .about-copy, .division-shell, .final-demand, .final-contact-link) { position: relative; inset: auto; transform: none; opacity: 1; visibility: visible; pointer-events: auto; }
+	:root:not(.experience-animated) :is(.copy, .about-copy) { width: min(90%, 1000px); margin: 0 auto; }
+	:root:not(.experience-animated) .start-copy { padding-bottom: 70px; }
+	:root:not(.experience-animated) .start-copy h1 { font-size: clamp(2.4rem, 7vw, 5rem); }
+	:root:not(.experience-animated) :is(.brand-lockup, .final-brand-lockup, .scroll-hint) { display: none; }
+	:root:not(.experience-animated) .about-copy { display: block; padding: 42px 0 70px; }
+	:root:not(.experience-animated) .about-content { margin-top: 22px; }
+	:root:not(.experience-animated) .about-services { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; }
+	:root:not(.experience-animated) .service-card { display: block; padding: 22px; }
+	:root:not(.experience-animated) .service-card p { font-size: 1rem; line-height: 1.6; }
+	:root:not(.experience-animated) .division-shell { display: block; padding: 0; margin-bottom: 24px; }
+	:root:not(.experience-animated) .division-copy { padding: clamp(22px, 5vw, 42px); }
+	:root:not(.experience-animated) :is(.about-copy h2, .division-copy h2, .final-demand h2) { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; }
+	:root:not(.experience-animated) :is(.about-lead, .division-copy .division-lead, .division-list li) { font-size: 1rem; line-height: 1.65; }
+	:root:not(.experience-animated) :is(.about-kicker, .about-eyebrow, .division-kicker, .coverage-label, .division-meta) { font-size: .72rem; letter-spacing: .12em; color: #a9bad2; white-space: normal; }
+	:root:not(.experience-animated) .coverage-cities span { padding: 8px 12px; font-size: .85rem; }
+	:root:not(.experience-animated) .final-copy { padding: 65px 0 30px; text-align: center; }
+	:root:not(.experience-animated) .final-contact-link { margin-top: 28px; }
+	@media (max-width: 800px) {
+		.menu-toggle { width: 44px; height: 44px; }
+		.site-navigation { inset: 60px 0 auto; max-height: calc(100dvh - 60px); overflow-y: auto; justify-content: flex-start; padding: 20px 24px; }
+	}
+	@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
 </style>
