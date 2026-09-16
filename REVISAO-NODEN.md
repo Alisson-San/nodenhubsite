@@ -220,3 +220,13 @@ Arquivos: `src/pages/index.astro`, `src/pages/mobile.astro`, `scripts/qa/navigat
 - **NOD-14:** sete campos de apresentação preparados no editor existente, API, tipo e leitor público; testes locais de validação/defaults aprovados. Persistência remota permanece não testada por limite de escopo. Mapeamento e revisão pré-publicação em `MATRIZ-CONTEUDO.md`.
 
 Arquivos principais: `homeContent.ts` e teste, `types/site.ts`, `config/site.ts`, `siteRepository.ts`, formulário/API de configurações, inicial, mobile, links, cabeçalho e rodapé compartilhados. Capturas: `/tmp/noden-evidence-final/`, `/tmp/noden-hero-final.png` e `/tmp/noden-mobile-hero-final.png`. Evidências são locais e não entram no Git como arquivos gerados.
+
+## Dependências — etapa 3 (15/09/2026)
+
+**NOD-15 parcialmente resolvido:** auditoria atual reproduziu 12 alertas (1 crítico, 10 altos, 1 moderado). Astro estava em 7.1.3 no lockfile. Atualização direcionada na mesma versão principal resultou em Astro 7.3.2/Sharp 0.35.4; Node continua compatível (>=22.12.0). Motivo: [aviso oficial de AVIF/Sharp](https://github.com/advisories/GHSA-26w7-cxv4-gfx2) e correção de limites de caminho no Astro. Não foi comprovada exploração neste projeto.
+
+Também atualizadas somente as transitivas apontadas pelo audit, nas faixas admitidas: brace-expansion 5.0.12, fast-uri 3.1.8, js-yaml 4.3.2, nanoid 3.3.19, postcss 8.5.28, smol-toml 1.8.0 e svgo 4.1.0. São ferramentas de parsing/build/editor/otimização; o projeto não oferece entrada pública de YAML/TOML/SVG para essas ferramentas. Isso reduz alcance aparente, sem declarar ausência de risco.
+
+Resultado: **3 alertas altos, zero críticos/moderados**, todos associados à cadeia `@astrojs/vercel@11.0.3 → @vercel/routing-utils@5.3.3 → path-to-regexp@6.1.0` ([aviso ReDoS](https://github.com/advisories/GHSA-9wv6-86v2-598j)). `npm audit fix --force` sugere downgrade para adaptador 8.0.4; não aplicado por incompatibilidade com a geração atual. Próximo passo: atualização upstream compatível ou override 6.3.x com testes específicos de geração das rotas. Nenhum override improvisado ou atualização indiscriminada.
+
+Arquivos: `package.json`, `package-lock.json`. `npm run validate` passou após atualização; regressão de 65 verificações também passou no build compilado servido localmente. Auditorias JSON locais em `/tmp/noden-audit.json` e `/tmp/noden-audit-final.json`; não versionadas.
