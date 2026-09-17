@@ -75,7 +75,7 @@ const scrollFraction = async fraction => {
 try {
  await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
  await send('Network.setCacheDisabled',{cacheDisabled:true}); await send('Page.setLifecycleEventsEnabled',{enabled:true});
- for(const [w,h] of [[1280,550],[1280,577],[1366,650],[1366,768],[1440,900],[1920,1080]]) {
+ for(const [w,h] of [[1102,650],[1229,584],[1280,550],[1280,577],[1362,768],[1366,650],[1366,768],[1440,900],[1920,650],[1920,1080]]) {
   await viewport(w,h); await open(`/?composition=${w}-${h}`);
   await waitFor('document.documentElement.classList.contains("experience-animated") && !document.documentElement.classList.contains("experience-preparing")');
   await new Promise(r=>setTimeout(r,1200));
@@ -91,8 +91,29 @@ try {
   await shot(`brand-${w}x${h}`);
   await scrollFraction(.37);
   check(`Symbol stays fitted when word rises ${w}x${h}`,(await evaluate(composition)).aligned);
+  check(`About content fits the scene ${w}x${h}`,await evaluate(`(() => {
+   const panel=document.querySelector('#quem-somos'),scene=document.querySelector('.scene');
+   return panel.offsetTop+panel.offsetHeight<=scene.clientHeight-12;
+  })()`));
   await scrollFraction(0); await new Promise(r=>setTimeout(r,500));
   check(`Reversing preserves readable opening ${w}x${h}`,(await evaluate(composition)).clear);
+  for (const division of ['home','game','data']) {
+   await open(`/?division-fit=${w}-${h}#noden-${division}`);
+   await new Promise(r=>setTimeout(r,500));
+   check(`Division rings fit outside the header and card ${division} ${w}x${h}`,await evaluate(`(() => {
+    const scene=document.querySelector('.scene'),bounds=scene.getBoundingClientRect();
+    const card=document.querySelector('#noden-${division}').getBoundingClientRect();
+    const header=document.querySelector('.site-header').getBoundingClientRect();
+    const rings=Array.from(document.querySelectorAll('.module-ring')).map(ring=>{
+     const m=ring.getScreenCTM(),center=new DOMPoint(ring.cx.baseVal.value,ring.cy.baseVal.value).matrixTransform(m);
+     const radius=(ring.r.baseVal.value+parseFloat(getComputedStyle(ring).strokeWidth)/2)*Math.hypot(m.a,m.b);
+     return {left:center.x-radius,right:center.x+radius,top:center.y-radius,bottom:center.y+radius};
+    });
+    return document.documentElement.classList.contains('experience-animated') && scene.scrollTop===0 &&
+     card.top>=header.bottom+16 && card.bottom<=bounds.bottom-20 &&
+     rings.every(r=>r.left>=bounds.left+20 && r.right<=card.left-20 && r.top>=header.bottom+16 && r.bottom<=bounds.bottom-20);
+   })()`));
+  }
  }
  await viewport(1366,650); await open('/?composition=resize'); await scrollFraction(.24);
  await viewport(1440,900); await new Promise(r=>setTimeout(r,700));

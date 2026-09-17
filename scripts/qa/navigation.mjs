@@ -64,12 +64,18 @@ try {
   await send('Network.enable');
   await send('Network.setCacheDisabled', { cacheDisabled: true });
   await send('Page.setLifecycleEventsEnabled', { enabled: true });
-  for (const [w, h] of [[320,740],[390,844],[768,1024],[910,698],[1440,900],[844,390]]) {
+  for (const [w, h] of [[320,740],[390,844],[768,650],[768,1024],[910,698],[1440,900],[844,390]]) {
     await viewport(w,h);
     await open('/#noden-home');
     await waitFor('getComputedStyle(document.querySelector("#noden-home")).opacity === "1"');
     const home = await evaluate('(()=>{const e=document.querySelector("#noden-home"),r=e.getBoundingClientRect();return {top:r.top,inert:e.inert,overflow:document.documentElement.scrollWidth>innerWidth};})()');
     check(`Home direct ${w}x${h}`, home.top >= 50 && home.top < h && !home.inert && !home.overflow);
+    if (w === 768 && h === 650) {
+      check('Landscape fallback uses the full content width', await evaluate(`(() => {
+        const r=document.querySelector('#noden-home').getBoundingClientRect();
+        return r.width>innerWidth*.85 && Math.abs(r.left+r.width/2-innerWidth/2)<1;
+      })()`));
+    }
     if (w === 390 || w === 1440) await shot(`home-${w}`);
     await open('/#contato');
     const contact = await evaluate('(()=>{const e=document.querySelector(".final-contact-link"),r=e.getBoundingClientRect();return {top:r.top,opacity:getComputedStyle(e).opacity};})()');
@@ -140,7 +146,7 @@ try {
     await shot(route.startsWith('/mobile') ? 'mobile-no-js' : 'index-no-js');
   }
   await send('Emulation.setScriptExecutionDisabled', { value: false });
-  for (const [w,h] of [[320,740],[390,844],[768,1024],[910,698],[1440,900],[844,390]]) {
+  for (const [w,h] of [[320,740],[390,844],[768,650],[768,1024],[910,698],[1440,900],[844,390]]) {
     await viewport(w,h);
     for (const route of ['/mobile','/home','/game','/data','/links']) {
       await open(route);

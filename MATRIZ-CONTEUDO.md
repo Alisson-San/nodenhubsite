@@ -130,3 +130,14 @@ Testes locais: `node --import tsx src/lib/site/homeContent.test.ts` (defaults le
 2. Conferir que identidade, contato e regiões existentes continuam iguais; a API mantém a estrutura de upsert existente, sem nova política ou autenticação.
 3. Testar usuário não administrador e feedback de erro de gravação. Nenhuma conta ou permissão foi criada nesta execução.
 4. Resumos C06 agora têm copy própria compartilhada nas duas aberturas; não acompanham automaticamente o hero ou a publicação de `service_pages`. Revisar essa política editorial e aprovar escopo de links, mídia, cases e FAQ antes de ampliar o editor.
+
+
+## Complemento de responsividade — 16/09/2026
+
+NOD-RESP-01: corrigida a perda de centralização do símbolo na montagem NODEN em larguras fracionárias decorrentes de viewport/zoom. Reprodução e pós-correção medidos em 1362×768; detalhes e limites em `REVISAO-NODEN.md`. Esta alteração visual não modifica campos editoriais, origem de dados nem o estado de validação da persistência desta matriz.
+
+
+Complemento NOD-RESP-02/03: espaçamentos de Quem somos adaptados para notebooks baixos e fallback de divisões corrigido em paisagem; proteção de conteúdo alto estendida a Quem somos. Sem mudanças editoriais ou de persistência. Reprodução, medições e limites em `REVISAO-NODEN.md`.
+
+
+Complemento NOD-RESP-04/05/06: corrigidos rolagem interna indevida da cena por fragmento, encaixe do símbolo em telas baixas/zoom e centralização dos cartões abaixo do cabeçalho. São correções de apresentação sem alteração do contrato editorial ou de persistência. Evidências e limites em `REVISAO-NODEN.md`.

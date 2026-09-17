@@ -297,3 +297,36 @@ Resultado final: `npm run validate` sem erros/avisos, três testes locais do con
 - Resize reconstrói os cálculos da sequência, preservando seu tempo atual em vez de voltar ao início/fragmento antigo. Cleanup encerra também tweens de repouso criados após o retorno ao topo. Revisão independente identificou esses dois cuidados; incorporados antes de concluir.
 - Novo `scripts/qa/animation.mjs`: abertura sem colisão (inclui espessura do traço), anéis dentro da cena, transição enquanto texto está legível, marca completa centralizada, encaixe quando sobe, rolagem de volta e resize no meio da montagem. Tamanhos: 1280×550, 1280×577, 1366×650, 1366×768, 1440×900, 1920×1080. Artefatos em `/tmp/noden-composition-production-final`; usar porta CDP como no teste de navegação. Capturas são evidência local, não entram no Git.
 - Fluxos gerais continuam cobertos por `scripts/qa/navigation.mjs`, incluindo `/mobile`, teclado, telas baixas e movimento reduzido. `npm run validate` registrado em `/tmp/noden-layout-validate.log`. Não foi alterado conteúdo do Supabase nem realizado deploy.
+
+
+## NOD-RESP-01 — centralização da montagem sob zoom (16/09/2026)
+
+- Causa confirmada: a largura responsiva do símbolo produz pixels fracionários. A inferência automática de `translate(-50%, -50%)` no GSAP compara medidas arredondadas de modos diferentes e, em larguras como 1362 px, perde os percentuais de centralização ao aplicar `x: 0, y: 0`. Mudar o zoom altera a largura calculada e pode mascarar a falha.
+- Reprodução no navegador, viewport 1362×768: símbolo deslocado aproximadamente 204,354 px nos dois eixos em relação ao espaço reservado entre N e DEN.
+- Correção em `src/pages/index.astro`: declarar `xPercent: -50` e `yPercent: -50` explicitamente na inicialização do símbolo; preservar largura fracionária também no cálculo de escala do encaixe final.
+- Verificação após correção em 1362×768: diferenças entre símbolo e espaço reservado inferiores a 0,001 px, largura coincidente e conjunto centralizado. Capturas de antes/depois registradas no workspace da tarefa.
+- Regressão: matriz de `scripts/qa/animation.mjs` ampliada com 1102×650 e 1362×768, que expõem a falha de arredondamento. A ampliação do script não equivale à execução integral de sua matriz nesta rodada.
+- `npm run validate`: 81 arquivos verificados, zero erros, avisos ou hints; build concluído. `git diff --check` aprovado.
+- Limites: esta correção trata a animação inicial e a precisão do símbolo; não constitui auditoria completa de todas as rotas, do backend ou da produção. Sem deploy, commit ou alterações de dados.
+
+
+## NOD-RESP-02 e NOD-RESP-03 — telas baixas e paisagem (16/09/2026)
+
+- NOD-RESP-02: o conteúdo de Quem somos ultrapassava o limite inferior em 1280×577 (bottom 591,975 px em viewport de aproximadamente 578 px). A proteção anterior observava apenas os cartões das divisões. Compactados espaçamentos e padding de Quem somos em desktop com altura de 550 a 799 px, preservando o tamanho das fontes; o ResizeObserver agora também verifica se esse conteúdo cabe, oferecendo fluxo normal quando necessário.
+- Pós-correção, recarga em 1280×550: animação ativa, Quem somos entre y=203,637 e 533,35 dentro da cena de 550,4 px.
+- NOD-RESP-03: em 768×650, a regra de paisagem mantinha o wrapper das divisões com 46vw mesmo no fallback, produzindo cartões estreitos à esquerda (~317,94 px). O fallback agora explicita width:100% no wrapper. Pós-correção: cartões com 677,512 px e margem esquerda 37,637 px, ocupando 90% da cena e centralizados. Em 1024×650, navegação coube e cartões mediram 907,9 px, margem 50,437 px.
+- Regressões acrescentadas aos scripts de animação/navegação para verificar limites de Quem somos e largura/centro do fallback em paisagem. Sintaxe dos scripts aprovada; matriz CDP completa não executada nesta rodada. Verificação visual e de DOM realizada pelo navegador suportado.
+- Validação final após os ajustes de espaçamento: `npm run validate` aprovado (81 arquivos, zero erros/avisos/hints, build completo); `git diff --check` aprovado. Cobertura limitada às dimensões/fluxos registrados, sem alegar verificação de todos os dispositivos ou da produção.
+
+- Complemento de navegador: 1536×730 manteve animação ativa, Quem somos com bottom 616,94 px e sem overflow; resize controlado de 1024 para 1280×550 com #quem-somos também preservou posicionamento (scene.scrollTop=0). Deslocamento interno observado somente durante HMR não foi reproduzido no fluxo normal; nenhuma alteração especulativa de overflow aplicada.
+
+
+## NOD-RESP-04/05/06 — divisões e zoom de navegador (16/09/2026)
+
+- NOD-RESP-04: a entrada direta em `/#noden-data`, em nova aba de 1229×584, produziu `scene.scrollTop=35,2` sem HMR. `overflow:hidden` permitia que a navegação por fragmento rolasse internamente a cena fixada. Substituído por `overflow:clip`, mantendo o corte visual sem criar uma área de rolagem interna. Isto confirma o mecanismo que antes só havia aparecido durante HMR; a observação anterior continua sendo o registro daquela rodada limitada.
+- NOD-RESP-05: mesmo sem rolagem interna, o símbolo Data invadia a região do cabeçalho e do cartão em 1229×584. O alvo fixo `x:-205, y:42, scale:1.42` não considerava proporção da janela, altura ou largura do cartão. Agora um envelope circular calculado a partir das posições, raios e espessuras dos anéis SVG limita a escala e posiciona o conjunto no espaço livre à esquerda do cartão e abaixo do cabeçalho. Mantidas as rotações, proporções, ícones e escala máxima anterior.
+- Verificação visual/geométrica após o encaixe: Home, Game e Data em 1229×584, 1280×550 e 1536×730; Game e Data em 1920×650. Anéis dentro da área útil e separados de cabeçalho/cartão; `scene.scrollTop=0`.
+- NOD-RESP-06: Data em 1280×550 tinha cartão com topo 64,787 px sob cabeçalho de 68 px. O wrapper agora reserva 88 px no topo e 24 px no fundo ao centralizar o cartão; o fallback em fluxo normal mantém padding zero.
+- Regressão `scripts/qa/animation.mjs`: incluídos 1229×584 e 1920×650, entrada direta nas três divisões e asserções dos limites reais dos círculos com `getScreenCTM`, espaço do cabeçalho/cartão, limites do cartão e ausência de rolagem interna. A matriz automatizada inteira não foi executada nesta rodada; a verificação foi feita no navegador suportado.
+
+- Pós-correção do padding, Data em 1280×550: cartão entre 96,787 e 517,613 px, cabeçalho com 68 px; anéis e cartão dentro da área útil, sem rolagem interna. A medição no navegador usou centro observado e raio SVG multiplicado pela escala calculada; `getScreenCTM` fica no script QA, pois não estava disponível na superfície de inspeção utilizada.

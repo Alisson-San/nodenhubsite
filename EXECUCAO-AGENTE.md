@@ -93,3 +93,14 @@ Após relato do usuário no servidor 4322, corrigida a restrição excessiva de 
 ## Verificação visual da sequência — 16/09/2026
 
 Corrigidas sobreposição dos anéis na abertura e montagem da marca: texto com espaço reservado, palavra NODEN completa centralizada antes de subir e encaixe baseado no centro real da cena. Resize conserva o momento da sequência. Regressão visual reproduzível: `node scripts/qa/animation.mjs http://127.0.0.1:PORT http://127.0.0.1:4323 /tmp/noden-composition-production-final`. Validar também `scripts/qa/navigation.mjs`; a existência de movimento isoladamente não comprova boa composição.
+
+
+## Correção NOD-RESP-01 — 16/09/2026
+
+Agente de responsividade: diagnóstico do GSAP confirmado no navegador em 1362×768 (desvio de aproximadamente 204,354 px em ambos os eixos); correção mínima com percentuais explícitos de centralização em `src/pages/index.astro` e precisão fracionária no encaixe final. Pós-correção: encaixe com desvio inferior a 0,001 px, largura e centro coincidentes. Adicionadas 1102×650 e 1362×768 à matriz de regressão em `scripts/qa/animation.mjs`. `npm run validate` e `git diff --check` aprovados. Preservadas alterações locais preexistentes; sem commit, deploy ou escrita no backend. A matriz automatizada ampliada ainda depende de execução integral; os testes adicionais de resize, contato e celular são verificados separadamente pelo agente principal.
+
+
+Complemento NOD-RESP-02/03: corrigidos corte de Quem somos em notebook baixo e cartões estreitos no fallback 768×650. Pós-correção validado visualmente em 1280×550 (animação ativa, conteúdo dentro da cena), 768×650 e 1024×650 (cartões centralizados). `npm run validate` final aprovado; scripts QA ampliados e sintaxe aprovada, sem execução integral da matriz CDP nesta rodada. Nenhuma alteração em banco, deploy ou dependências.
+
+
+Complemento NOD-RESP-04/05/06: entrada direta Data em 1229×584 reproduziu rolagem interna da cena e sobreposição do símbolo; aplicada contenção por `overflow:clip` e geometria adaptativa baseada no SVG e na área útil. Reservado espaço vertical para cartões das divisões após reprodução do topo sob cabeçalho em 1280×550. Testes geométricos ampliados sem execução integral da matriz automatizada. Sem banco, deploy, commit ou mudança de dependências.
