@@ -1,0 +1,30 @@
+---
+import type {RuntimeSiteConfig} from "../../types/site";
+import type {PricingItem,ServiceDivision} from '../../types/services';
+import type {ProductDetail} from '../../lib/catalog/editorTypes';
+import {loadSiteConfig} from '../../lib/site/siteRepository';
+import {productAction,productUpdatedDate} from '../../lib/catalog/media';
+import {getWhatsAppUrl} from '../../config/site';
+import {formatCurrency} from '../../lib/formatting';
+import ProductGallery from './ProductGallery.astro';
+interface Props {site?:RuntimeSiteConfig;item:PricingItem;detail:ProductDetail;division:ServiceDivision;preview?:boolean;headingLevel?:'h1'|'h2'}
+const {item,detail,division,headingLevel:Heading='h2'}=Astro.props;
+const site=Astro.props.site??await loadSiteConfig();
+const updatedDate=productUpdatedDate(detail.updatedAt);
+const action=productAction(detail,getWhatsAppUrl(item.ctaMessage||'Olá! Gostaria de saber mais sobre '+item.name,site),item.ctaLabel);
+const status={available:'Disponível',reserved:'Reservado',sold:'Vendido',unavailable:'Indisponível'}[detail.status];
+---
+<article class="product-details">
+<header><span class="eyebrow">NODEN {division.toUpperCase()} · {status}</span><Heading>{item.name}</Heading><p class="summary">{detail.summary||item.description}</p>
+{detail.version&&<p class="version">Versão {detail.version}{updatedDate&&' · Atualizado em '+updatedDate}</p>}
+<div class="actions">{action?<a class="primary" href={action.href} target="_blank" rel="noopener noreferrer">{action.label} ↗</a>:<span class="unavailable">{status}</span>}
+<span>{item.priceLabel||(typeof item.price==='number'?((item.pricePrefix||'')+' '+formatCurrency(item.price)+' '+(item.priceSuffix||'')):'Sob consulta')}</span></div>{item.note&&<p class="note">{item.note}</p>}</header>
+<ProductGallery media={detail.media}/>
+{detail.body&&<section><h2>Sobre o produto</h2><p class="body">{detail.body}</p></section>}
+{detail.features.length>0&&<section><h2>Recursos</h2><ul>{detail.features.map(f=><li>{f}</li>)}</ul></section>}
+{detail.steps.length>0&&<section><h2>Como utilizar</h2><ol>{detail.steps.map(s=><li><h3>{s.title}</h3><p class="body">{s.body}</p></li>)}</ol></section>}
+{detail.faq.length>0&&<section><h2>Perguntas frequentes</h2>{detail.faq.map(f=><details><summary>{f.question}</summary><p class="body">{f.answer}</p></details>)}</section>}
+</article>
+<style>
+.product-details{display:grid;gap:32px;color:#f1f6ff;min-width:0;overflow-wrap:anywhere}.eyebrow{font-size:.72rem;letter-spacing:.14em;color:#b4cef0}.product-details h1,.product-details h2{font-weight:400;letter-spacing:-.04em;line-height:1.12}.product-details header h1,.product-details header h2{font-size:clamp(2rem,5vw,3.8rem);margin:18px 0}.summary{font-size:1.1rem;line-height:1.7;color:#b8c7dc;max-width:800px}.version,.note{font-size:.85rem;color:#a6b9d3}.actions{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:24px}.primary{display:inline-flex;align-items:center;min-height:48px;padding:12px 20px;background:#234a76;border:1px solid #598bc5;border-radius:12px;color:white;text-decoration:none}.unavailable{padding:12px 18px;background:#253043;border-radius:12px}.body{white-space:pre-line;line-height:1.8;color:#b8c7dc}li{line-height:1.7;color:#b8c7dc;margin-bottom:12px}li h3{color:white}details{border-bottom:1px solid #2a3c55;padding:16px 0}summary{cursor:pointer;min-height:30px}a:focus-visible,summary:focus-visible{outline:2px solid #badaff;outline-offset:4px}
+</style>

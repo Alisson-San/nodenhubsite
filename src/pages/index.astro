@@ -3,6 +3,7 @@ export const prerender = false;
 
 import { splitHomeHighlights } from "../lib/site/homeContent";
 
+import Campaigns from "../components/campaigns/Campaigns.astro";
 import SiteFooter from "../components/common/SiteFooter.astro";
 
 import NodenSymbol from "../components/NodenSymbol.astro";
@@ -57,6 +58,7 @@ const whatsappUrl =
 	</head>
 
 	<body>
+		<Campaigns page="/" />
 		<a class="skip-link" href="#inicio">Pular para o conteúdo</a>
 
 		<header id="site-header" class="site-header">

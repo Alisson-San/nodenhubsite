@@ -3,6 +3,7 @@ export const prerender = false;
 
 import { splitHomeHighlights } from "../lib/site/homeContent";
 
+import Campaigns from "../components/campaigns/Campaigns.astro";
 import SiteFooter from "../components/common/SiteFooter.astro";
 
 import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
@@ -50,6 +51,7 @@ const whatsappUrl =
 	</head>
 
 	<body>
+		<Campaigns page="/mobile" />
 		<header class="mobile-header">
 			<a class="mobile-logo" href="#inicio" aria-label="Noden — início">
 				<span>N</span>

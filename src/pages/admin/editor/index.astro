@@ -1,0 +1,37 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import '../../../components/admin/editor/editor.css';
+---
+<AdminLayout title="Editor visual" description="Edite no contexto, confira a apresentação e publique quando estiver pronto.">
+  <a slot="actions" href="/admin/catalog" class="ev-link">Abrir catálogo tradicional ↗</a>
+  <section id="visual-editor" class="ev" aria-label="Editor visual do catálogo">
+    <div class="ev-toolbar">
+      <label>Divisão<select id="ev-division"><option value="home">Noden Home</option><option value="game">Noden Game</option><option value="data">Noden Data</option></select></label>
+      <div class="ev-segment" role="group" aria-label="Conteúdo"><button data-kind="items" aria-pressed="true">Produtos e serviços</button><button data-kind="serviceCards" aria-pressed="false">Cards de soluções</button></div>
+      <div class="ev-history"><button id="ev-undo" disabled>↶ Desfazer</button><button id="ev-redo" disabled>↷ Refazer</button></div>
+      <button id="ev-discard" disabled>Recarregar publicado</button><button id="ev-save" disabled>Salvar rascunho</button><button id="ev-publish" class="ev-primary" disabled>Publicar divisão</button>
+    </div>
+    <p id="ev-notice" class="ev-notice" role="status" aria-live="polite">Carregando catálogo…</p>
+    <div id="ev-errors" class="ev-errors" role="alert" hidden></div>
+    <div class="ev-workspace">
+      <aside class="ev-sidebar" aria-label="Conteúdo do catálogo">
+        <label>Encontrar card<input id="ev-search" type="search" placeholder="Buscar pelo nome…" /></label>
+        <button id="ev-add" disabled>＋ Novo card</button>
+        <p class="ev-hint">Arraste pela alça ou use as setas para ordenar dentro da categoria.</p>
+        <nav id="ev-list" aria-label="Cards editáveis"></nav>
+      </aside>
+      <section class="ev-main" aria-label="Área de edição">
+        <div class="ev-viewbar"><div class="ev-segment" role="group" aria-label="Modo"><button id="ev-edit" aria-pressed="true">Editar card</button><button id="ev-preview" aria-pressed="false">Prévia real</button></div><div class="ev-segment" role="group" aria-label="Tamanho da prévia"><button data-size="desktop" aria-pressed="true">Desktop</button><button data-size="mobile" aria-pressed="false">Mobile</button></div></div>
+        <div id="ev-canvas" class="ev-canvas"><div class="ev-empty">Escolha um card ao lado para começar.</div></div>
+        <iframe id="ev-frame" title="Prévia do catálogo não publicado" hidden></iframe>
+      </section>
+      <aside id="ev-properties" class="ev-properties" aria-label="Propriedades do card"><h2>Propriedades</h2><p class="ev-hint">Selecione um card para ajustar preço, apresentação e mídias.</p></aside>
+    </div>
+  </section>
+  <dialog id="ev-confirm"><form method="dialog"><h2>Publicar esta divisão?</h2><p>Os cards, detalhes e a ordem do rascunho substituirão a versão pública desta divisão.</p><div class="ev-confirm-actions"><button value="cancel">Continuar editando</button><button value="publish" class="ev-primary">Publicar agora</button></div></form></dialog>
+</AdminLayout>
+<script>
+ import { startEditor } from '../../../lib/admin/editor/editorController';
+ startEditor();
+</script>
