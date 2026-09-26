@@ -238,7 +238,7 @@ export function startEditor(){
  document.querySelectorAll<HTMLButtonElement>('[data-size]').forEach(b=>b.onclick=()=>{document.querySelector<HTMLElement>('.ev-main')!.dataset.size=b.dataset.size;document.querySelectorAll('[data-size]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));});
  q('ev-save').onclick=async()=>{busy=true;updateButtons();error();try{const snapshot=structuredClone(doc);const result=await request('/api/admin/editor/drafts',{division,expectedRevision:revision,baseRevision,document:snapshot});revision=result.draft?.revision??result.revision;saved=JSON.stringify(snapshot);notice('Rascunho salvo. O site público não mudou.');}catch(e){error((e as Error).message);}finally{busy=false;updateButtons();}};
  q('ev-discard').onclick=async()=>{
-  if(!confirm('Descartar o rascunho e carregar a versão publicada? Isso remove apenas as edições ainda não publicadas.'))return;
+  if(!confirm('Excluir o rascunho SALVO desta divisão e todas as alterações locais? Produtos criados apenas no rascunho também serão removidos. Esta ação não é uma atualização da página. Para manter o rascunho, cancele.'))return;
   busy=true;updateButtons();error();
   try{if(ready&&revision)await request('/api/admin/editor/drafts',{action:'discard',division,expectedRevision:revision});await load();notice('Versão publicada carregada.');}
   catch(e){error((e as Error).message);}finally{busy=false;updateButtons();}
