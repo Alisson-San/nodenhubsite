@@ -9,9 +9,12 @@ export class History<T> {
  redo():T|null {if(!this.future.length)return null;this.past.push(this.current);this.current=this.future.pop()!;return structuredClone(this.current);}
  get canUndo(){return this.past.length>0;} get canRedo(){return this.future.length>0;}
 }
-export function reorder<T extends {id:string;category_id?:string|null}>(items:T[],from:string,to:string):T[]{
+export function reorder<T extends {id:string;category_id?:string|null}>(items:T[],from:string,to:string,placement?:'before'|'after'):T[]{
  const a=items.find(x=>x.id===from), b=items.find(x=>x.id===to);
- if(!a||!b||a.category_id!==b.category_id)return [...items];
- const group=items.filter(x=>x.category_id===a.category_id);group.splice(group.indexOf(a),1);group.splice(group.indexOf(b)+(items.indexOf(a)<items.indexOf(b)?1:0),0,a);
+ if(!a||!b||!canReorder(items,from,to))return [...items];
+ const group=items.filter(x=>x.category_id===a.category_id);group.splice(group.indexOf(a),1);group.splice(group.indexOf(b)+(placement?Number(placement==='after'):Number(items.indexOf(a)<items.indexOf(b))),0,a);
  let i=0;return items.map(x=>x.category_id===a.category_id?group[i++]:x);
 }
+
+export function canReorder(items:{id:string;category_id?:string|null}[],from:string,to:string):boolean{const a=items.find(x=>x.id===from),b=items.find(x=>x.id===to);return !!a&&!!b&&from!==to&&a.category_id===b.category_id;}
+export function dropPlacement(y:number,top:number,height:number):'before'|'after'{return y<top+height/2?'before':'after';}

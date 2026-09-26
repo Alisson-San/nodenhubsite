@@ -27,9 +27,9 @@ Ainda validar após ativação: salvar/reabrir/publicar item inativo de teste au
 
 ## Ativação no Supabase
 Antes de aplicar, conferir backup e histórico remoto de migrações. Aplicar em ordem:
-1. supabase/migrations/20260925003418_visual_catalog_editor.sql
-2. supabase/migrations/20260925003706_catalog_media_private.sql
-3. supabase/migrations/20260925003952_campaign_editor_after_catalog.sql
+1. supabase/migrations/20260926185005_visual_catalog_editor.sql
+2. supabase/migrations/20260926185012_catalog_media_private.sql
+3. supabase/migrations/20260926185018_campaign_editor_after_catalog.sql
 As mudanças são aditivas; criam armazenamento editorial, políticas e funções. Exigem confirmação específica conforme o escopo acordado antes de executar no banco real.
 Reversão preferida: voltar o código da aplicação, mantendo tabelas e histórico. Não executar remoção destrutiva após publicações. Restaurar conteúdo por novo rascunho revisado a partir do histórico.
 
@@ -39,3 +39,6 @@ Com @electric-sql/pglite instalado fora do projeto:
 PGLITE_MODULE=/tmp/noden-qa-db/node_modules/@electric-sql/pglite/dist/index.js node scripts/qa/catalog-database.test.mjs
 ```
 Não usa credenciais nem o banco real.
+
+## Atualização — 26/09/2026
+Migrações aplicadas com autorização explícita. As pendências de instalação descritas acima são históricas. Ver docs/ATIVACAO-CATALOGO-2026-09-26.md para testes remotos e limites atuais.

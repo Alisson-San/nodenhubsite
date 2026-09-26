@@ -6,5 +6,5 @@
 - Produto relacionado deve estar ativo, em divisão publicada, disponível. Vendido/reservado/indisponível não aparece; uma referência removida também não.
 - Publicação e rascunhos usam optimistic revision: conflito exige recarga e preserva o texto local. Nenhuma sobrescrita automática.
 - Prévia permite explorar conteúdo mesmo antes da instalação; salvar/publicar ficam desabilitados. Não existem campanhas demonstrativas como fallback.
-- Migração local 20260925003952_campaign_editor_after_catalog.sql depende da fundação visual_catalog_editor. Não aplicada remotamente.
+- Migração local 20260926185018_campaign_editor_after_catalog.sql depende da fundação visual_catalog_editor. Aplicada remotamente em 26/09/2026 com autorização do usuário.
 - Testes de lógica: node --import tsx --test src/lib/campaigns/campaigns.test.ts.

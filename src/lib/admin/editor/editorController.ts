@@ -1,4 +1,4 @@
-import { History, reorder } from './editorState';
+import { History, reorder, canReorder, dropPlacement } from './editorState';
 import type { CatalogDocument, CatalogDraft, ProductDetail } from '../../catalog/editorTypes';
 
 type Choice={id:string;name:string};
@@ -11,6 +11,7 @@ export function startEditor(){
  if(!q('visual-editor'))return;
  let doc:CatalogDocument, history:History<CatalogDocument>, response:StateResponse;
  let division='home', kind:'items'|'serviceCards'='items', selected='', ready=false, revision=0, baseRevision=0, saved='', busy=false, preview=false, previewAbort:AbortController|null=null;
+ let cancelDrag:(()=>void)|null=null;
  const notice=(message:string)=>{q('ev-notice').textContent=message;};
  const error=(message='')=>{q('ev-errors').textContent=message;q('ev-errors').hidden=!message;};
  const dirty=()=>!!doc&&JSON.stringify(doc)!==saved;
@@ -58,24 +59,89 @@ export function startEditor(){
   finally{busy=false;updateButtons();}
  }
  function renderList(){
+  cancelDrag?.();
   if(!doc)return;
   const search=q<HTMLInputElement>('ev-search').value.toLocaleLowerCase('pt-BR');
   q('ev-list').innerHTML=items().filter(x=>('name'in x?x.name:x.title).toLocaleLowerCase('pt-BR').includes(search)).map(x=>{
    const title='name'in x?x.name:x.title;
-   return '<div class="ev-list-row" data-id="'+esc(x.id)+'" data-selected="'+(selected===x.id)+'"><button class="ev-grip" draggable="'+(!search)+'" data-drag="'+esc(x.id)+'" aria-label="Arrastar '+esc(title)+'" '+(search?'disabled':'')+'>⠿</button><button data-select="'+esc(x.id)+'">'+esc(title)+(x.is_active?'':' · oculto')+'</button></div>';
+   return '<div class="ev-list-row" data-id="'+esc(x.id)+'" data-selected="'+(selected===x.id)+'"><button class="ev-grip" draggable="false" title="Arraste pela alça para ordenar dentro da categoria" data-drag="'+esc(x.id)+'" aria-label="Arrastar '+esc(title)+'" '+(search?'disabled':'')+'>⠿</button><button data-select="'+esc(x.id)+'">'+esc(title)+(x.is_active?'':' · oculto')+'</button></div>';
   }).join('')||'<p class="ev-hint">Nenhum card encontrado.</p>';
   q('ev-list').querySelectorAll<HTMLButtonElement>('[data-select]').forEach(b=>b.onclick=()=>{selected=b.dataset.select!;render();});
-  q('ev-list').querySelectorAll<HTMLElement>('[data-drag]').forEach(b=>{b.ondragstart=e=>{e.dataTransfer?.setData('text/plain',b.dataset.drag!);};});
-  q('ev-list').querySelectorAll<HTMLElement>('[data-id]').forEach(row=>{
-   row.ondragover=e=>{if(!search)e.preventDefault();};
-   row.ondrop=e=>{e.preventDefault();if(search)return;move(e.dataTransfer?.getData('text/plain')??'',row.dataset.id!);};
+
+  q('ev-list').querySelectorAll<HTMLButtonElement>('[data-drag]').forEach(handle=>{
+   let suppressClick=false;
+   handle.onclick=()=>{if(suppressClick){suppressClick=false;return;}notice(search?'Limpe a busca para reorganizar os cards.':'Segure a alça e arraste até a linha indicada. As setas também permitem ordenar.');};
+   handle.onpointerdown=event=>{
+    if(search||busy||event.button!==0||!event.isPrimary)return;
+    cancelDrag?.();
+    const from=handle.dataset.drag!,pointerId=event.pointerId;
+    const source=handle.closest<HTMLElement>('[data-id]')!;
+    let x=event.clientX,y=event.clientY,active=false,target='',placement:'before'|'after'='before',frame=0;
+    const originX=x,originY=y,list=q('ev-list');
+    const clearMarkers=()=>list.querySelectorAll<HTMLElement>('[data-drop]').forEach(row=>delete row.dataset.drop);
+    const updateTarget=()=>{
+     clearMarkers();target='';
+     const row=document.elementFromPoint(x,y)?.closest<HTMLElement>('.ev-list-row');
+     if(!row||!list.contains(row)||row.dataset.id===from)return;
+     if(!canReorder(items(),from,row.dataset.id!)){
+      row.dataset.drop='blocked';const message='Este card pertence a outra categoria. Reordene dentro da mesma categoria.';if(q('ev-notice').textContent!==message)notice(message);return;
+     }
+     const rect=row.getBoundingClientRect();placement=dropPlacement(y,rect.top,rect.height);target=row.dataset.id!;
+     row.dataset.drop=placement;
+    };
+    const tick=()=>{
+     if(!active)return;
+     const rect=list.getBoundingClientRect();
+     if(list.scrollHeight>list.clientHeight+1){
+      if(y<rect.top+32)list.scrollTop-=8;
+      else if(y>rect.bottom-32)list.scrollTop+=8;
+     }else{
+      if(y<65)window.scrollBy(0,-10);
+      else if(y>window.innerHeight-65)window.scrollBy(0,10);
+     }
+     updateTarget();frame=requestAnimationFrame(tick);
+    };
+    const cleanup=()=>{
+     cancelAnimationFrame(frame);clearMarkers();delete source.dataset.dragging;list.classList.remove('is-dragging');
+     window.removeEventListener('pointermove',pointerMove);window.removeEventListener('pointerup',pointerUp);
+     window.removeEventListener('pointercancel',pointerCancel);window.removeEventListener('keydown',keyDown);
+     window.removeEventListener('blur',lostPointer);handle.removeEventListener('lostpointercapture',lostPointer);
+     if(handle.hasPointerCapture(pointerId))handle.releasePointerCapture(pointerId);cancelDrag=null;
+    };
+    const pointerMove=(e:PointerEvent)=>{
+     if(e.pointerId!==pointerId)return;x=e.clientX;y=e.clientY;
+     if(!active&&Math.hypot(x-originX,y-originY)>=6){
+      active=true;source.dataset.dragging='true';list.classList.add('is-dragging');
+      notice('Arrastando. Solte na linha azul para confirmar; Escape cancela.');tick();
+     }
+     if(active){e.preventDefault();updateTarget();}
+    };
+    const pointerUp=(e:PointerEvent)=>{
+     if(e.pointerId!==pointerId)return;
+     if(active){x=e.clientX;y=e.clientY;updateTarget();}
+     const wasActive=active,destination=target,position=placement;suppressClick=active;cleanup();
+     if(wasActive){e.preventDefault();if(destination){selected=from;move(from,destination,position);q('ev-list').querySelector<HTMLButtonElement>('[data-drag="'+from+'"]')?.focus();}else notice('Nenhuma mudança. Solte sobre outro card da mesma categoria.');}
+    };
+    const pointerCancel=(e:PointerEvent)=>{if(e.pointerId===pointerId){cleanup();notice('Arraste cancelado. A ordem foi preservada.');}};
+    const lostPointer=()=>{cleanup();notice('Arraste cancelado. A ordem foi preservada.');};
+    const keyDown=(e:KeyboardEvent)=>{if(e.key==='Escape'){e.preventDefault();cleanup();notice('Arraste cancelado. A ordem foi preservada.');}};
+    event.preventDefault();handle.setPointerCapture(pointerId);cancelDrag=cleanup;
+    window.addEventListener('pointermove',pointerMove,{passive:false});window.addEventListener('pointerup',pointerUp);
+    window.addEventListener('pointercancel',pointerCancel);window.addEventListener('keydown',keyDown);
+    window.addEventListener('blur',lostPointer);handle.addEventListener('lostpointercapture',lostPointer);
+   };
   });
  }
- function move(from:string,to:string){
+ function move(from:string,to:string,placement?:'before'|'after'){
   if(q<HTMLInputElement>('ev-search').value){notice('Limpe a busca para reorganizar os cards.');return;}
-  if(kind==='items')doc.items=reorder(doc.items,from,to);else doc.serviceCards=reorder(doc.serviceCards,from,to);
-  items().forEach((x,i)=>x.sort_order=i*10);changed();render();notice('Ordem atualizada no rascunho local.');
+  if(!canReorder(items(),from,to)){notice('Reordene os cards dentro da mesma categoria.');return;}
+  const before=items().map(x=>x.id).join(',');
+  if(kind==='items')doc.items=reorder(doc.items,from,to,placement);else doc.serviceCards=reorder(doc.serviceCards,from,to,placement);
+  if(items().map(x=>x.id).join(',')===before){notice('O card já está nessa posição.');return;}
+  items().forEach((x,i)=>x.sort_order=i*10);changed();render();
+  notice('Card movido para a posição '+(items().findIndex(x=>x.id===from)+1)+'. Salve o rascunho para preservar a nova ordem.');
  }
+
  const field=(label:string,key:string,value:unknown,type='text')=>'<label>'+esc(label)+'<input data-field="'+key+'" type="'+type+'" value="'+esc(value)+'"></label>';
  const text=(label:string,key:string,value:unknown)=>'<label>'+esc(label)+'<textarea data-field="'+key+'">'+esc(value)+'</textarea></label>';
  const select=(label:string,key:string,value:unknown,options:[string,string][])=>'<label>'+esc(label)+'<select data-field="'+key+'">'+options.map(([v,l])=>'<option value="'+esc(v)+'" '+(v===value?'selected':'')+'>'+esc(l)+'</option>').join('')+'</select></label>';
