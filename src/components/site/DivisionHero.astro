@@ -53,20 +53,21 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 ---
 
 <section class="hero" aria-labelledby="hero-titulo">
+	{division === "game" && <div class="hero__floor" aria-hidden="true"></div>}
 	<div class="wrap hero__grid">
-		<div class="hero__copy">
+		<div class="hero__copy" data-reveal>
 			<p class="hero__eyebrow">
-				<span class="hero__badge"><DivisionMark division={division} size={30} inverse={division !== "home"} />{meta.name}</span>
-				<span data-edit-field="hero_eyebrow" hidden={!showEyebrow}>{eyebrowText}</span>
+				<span class="hero__badge"><DivisionMark division={division} size={28} />{meta.name}</span>
+				<span class="hero__tagline" data-edit-field="hero_eyebrow" hidden={!showEyebrow}>{eyebrowText}</span>
 			</p>
 			<h1 class="display hero__title" id="hero-titulo" data-edit-field="hero_title">{title}</h1>
 			<p class="hero__lead" data-edit-field="hero_description">{description}</p>
 			<div class="hero__actions">
-				<a class="btn btn--light" href={primaryHref} target="_blank" rel="noopener">
+				<a class="btn" href={primaryHref} target="_blank" rel="noopener">
 					<WhatsAppIcon />
 					<span data-edit-field="hero_primary_label">{primaryLabel}</span>
 				</a>
-				<a class="hero__secondary" href={secondaryHref}>
+				<a class="btn btn--ghost" href={secondaryHref}>
 					<span data-edit-field="hero_secondary_label">{secondaryLabel}</span>
 					<span aria-hidden="true">↓</span>
 				</a>
@@ -83,6 +84,7 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		</div>
 
 		<div class="hero__visual">
+			<div class="hero__glow" aria-hidden="true"></div>
 			<svg class="hero__net" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
 				<defs>
 					{divisionOrder.map((id) => (
@@ -93,8 +95,15 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 						</linearGradient>
 					))}
 				</defs>
+				{division === "home" && (
+					<g class="hero__waves" transform="translate(400 160)">
+						<circle r="190" />
+						<circle r="240" />
+						<circle r="290" />
+					</g>
+				)}
 				{siblings.map(([, x, y]) => <line class="hero__edge" x1="400" y1="160" x2={x} y2={y} />)}
-				<circle class="hero__packet" r="9" />
+				<circle class="hero__packet" r="7" />
 				{siblings.map(([id, x, y]) => (
 					<g transform={`translate(${x} ${y}) scale(0.27)`} class="hero__node">
 						<circle r={RINGS[id].r} class="hero__node-fill" />
@@ -111,7 +120,7 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 
 			{
 				division === "home" && (
-					<div class="card">
+					<div class="card" data-reveal>
 						<p class="card__label">Como funciona hoje</p>
 						<ol class="route">
 							{extras.steps.map((step) => (
@@ -120,16 +129,14 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 								</li>
 							))}
 						</ol>
-						<p class="card__foot">
-							Buscamos e entregamos em {areas.join(", ")}.
-						</p>
+						<p class="card__foot">Buscamos e entregamos em {areas.join(", ")}.</p>
 					</div>
 				)
 			}
 
 			{
 				division === "game" && (
-					<div class="card card--dark">
+					<div class="card card--rgb" data-reveal>
 						<p class="card__label">O que entra no seu setup</p>
 						<ul class="loadout">
 							{visibleServices.map((service, index) => (
@@ -146,11 +153,14 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 
 			{
 				division === "data" && (
-					<div class="card">
-						<p class="card__label">Do processo à decisão</p>
+					<div class="card card--mono" data-reveal>
+						<p class="card__label">pipeline.noden</p>
 						<ol class="pipe">
-							{pipeline.map((step) => (
-								<li>{step}</li>
+							{pipeline.map((step, index) => (
+								<li>
+									<span>{String(index + 1).padStart(2, "0")}</span>
+									{step}
+								</li>
 							))}
 						</ol>
 					</div>
@@ -162,22 +172,17 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 
 <style>
 	.hero {
-		background: var(--accent);
-		color: var(--on-accent);
-		border-bottom: var(--border);
-		overflow: hidden;
 		position: relative;
-	}
-	:global([data-division="game"]) .hero {
-		background: var(--ink);
-		color: var(--white);
+		overflow: hidden;
+		color: var(--text);
 	}
 	.hero__grid {
+		position: relative;
 		display: grid;
-		grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+		grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
 		gap: clamp(32px, 5vw, 72px);
 		align-items: center;
-		padding-block: clamp(40px, 7vw, 96px) clamp(48px, 8vw, 110px);
+		padding-block: clamp(40px, 7vw, 96px) clamp(56px, 8vw, 110px);
 	}
 	.hero__eyebrow {
 		display: flex;
@@ -191,13 +196,14 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		display: inline-flex;
 		align-items: center;
 		gap: 8px;
-		padding: 6px 14px;
-		border: 2px solid currentColor;
+		padding: 5px 14px 5px 6px;
 		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+		background: var(--accent-soft);
+		backdrop-filter: var(--glass-blur);
 	}
-	:global([data-division="game"]) .hero__badge {
-		background: var(--violet);
-		border-color: var(--violet);
+	.hero__tagline {
+		color: var(--accent-text);
 	}
 	.hero__title {
 		max-width: 14ch;
@@ -205,47 +211,45 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 	}
 	.hero__lead {
 		margin-top: 22px;
-		max-width: 44ch;
-		font-size: clamp(1.1rem, 1.7vw, 1.3rem);
-		line-height: 1.45;
+		max-width: 46ch;
+		font-size: clamp(1.1rem, 1.6vw, 1.28rem);
+		line-height: 1.5;
+		color: var(--text-2);
 	}
 	.hero__actions {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 16px 28px;
+		gap: 14px;
 		margin-top: 32px;
-	}
-	.hero__actions .btn {
-		--btn-shadow: var(--ink);
-	}
-	:global([data-division="game"]) .hero__actions .btn {
-		--btn-shadow: var(--violet);
-	}
-	.hero__secondary {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		min-height: 44px;
-		font-weight: 700;
-		color: inherit;
-		text-decoration: none;
-		border-bottom: 2px solid currentColor;
 	}
 	.hero__highlights {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 8px;
 		list-style: none;
-		margin: 30px 0 0;
+		margin: 28px 0 0;
 		padding: 0;
 	}
 	.hero__highlights li {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
 		padding: 6px 14px;
+		border: 1px solid var(--line);
 		border-radius: 999px;
-		background: color-mix(in srgb, currentColor 12%, transparent);
+		background: var(--surface);
+		backdrop-filter: var(--glass-blur);
 		font-weight: 600;
-		font-size: 0.95rem;
+		font-size: 0.93rem;
+		color: var(--text);
+	}
+	.hero__highlights li::before {
+		content: "";
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--grad);
 	}
 
 	/* Visual */
@@ -255,6 +259,18 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		display: grid;
 		align-items: end;
 		justify-items: start;
+	}
+	.hero__glow {
+		position: absolute;
+		top: -4%;
+		right: -6%;
+		width: 80%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 65%);
+		filter: blur(30px);
+		opacity: 0.7;
+		pointer-events: none;
 	}
 	.hero__net {
 		position: absolute;
@@ -266,17 +282,45 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		pointer-events: none;
 		overflow: visible;
 	}
+	.hero__waves circle {
+		fill: none;
+		stroke: var(--accent-2);
+		stroke-width: 2;
+		opacity: 0.25;
+		transform-origin: 0 0;
+		animation: wave 4.5s ease-out infinite;
+	}
+	.hero__waves circle:nth-child(2) {
+		animation-delay: 1.5s;
+	}
+	.hero__waves circle:nth-child(3) {
+		animation-delay: 3s;
+	}
+	@keyframes wave {
+		0% {
+			transform: scale(0.75);
+			opacity: 0;
+		}
+		30% {
+			opacity: 0.35;
+		}
+		100% {
+			transform: scale(1.15);
+			opacity: 0;
+		}
+	}
 	.hero__edge {
-		stroke: currentColor;
-		stroke-width: 3;
-		stroke-dasharray: 2 12;
+		stroke: var(--text-2);
+		stroke-width: 2;
+		stroke-dasharray: 2 10;
 		stroke-linecap: round;
 		opacity: 0.6;
 	}
 	.hero__packet {
-		fill: currentColor;
+		fill: var(--accent);
 		offset-path: path("M 110 90 L 400 160 L 560 470");
 		animation: hero-packet 5s ease-in-out infinite alternate;
+		filter: drop-shadow(0 0 6px var(--accent));
 	}
 	@keyframes hero-packet {
 		from {
@@ -297,7 +341,10 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		stroke: none;
 	}
 	.hero__node-fill {
-		fill: #17123d;
+		fill: #120d2e;
+	}
+	:global([data-theme="home"]) .hero__node-fill {
+		fill: #ffffff;
 	}
 	.hero__main-ring {
 		transform-origin: 0 0;
@@ -308,42 +355,77 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 			transform: rotate(360deg);
 		}
 	}
-	@media (prefers-reduced-motion: reduce) {
-		.hero__packet,
-		.hero__main-ring {
-			animation: none;
+
+	/* Piso neon (Game) */
+	.hero__floor {
+		position: absolute;
+		left: -20%;
+		right: -20%;
+		bottom: -2px;
+		height: 46%;
+		background:
+			linear-gradient(rgb(178 49 251 / 55%) 1px, transparent 1px) 0 0 / 100% 44px,
+			linear-gradient(90deg, rgb(69 70 251 / 45%) 1px, transparent 1px) 0 0 / 60px 100%;
+		transform: perspective(380px) rotateX(62deg);
+		transform-origin: bottom;
+		mask-image: linear-gradient(to top, #000 10%, transparent 90%);
+		-webkit-mask-image: linear-gradient(to top, #000 10%, transparent 90%);
+		animation: floor 2.4s linear infinite;
+		pointer-events: none;
+	}
+	@keyframes floor {
+		to {
+			background-position: 0 44px, 0 0;
 		}
 	}
+
 	.card {
 		position: relative;
 		width: min(100%, 380px);
-		padding: 26px;
-		background: var(--white);
-		color: var(--ink);
-		border: var(--border);
+		padding: 24px;
+		border: 1px solid var(--line);
 		border-radius: var(--radius);
+		background: var(--surface);
+		backdrop-filter: var(--glass-blur);
+		-webkit-backdrop-filter: var(--glass-blur);
 		box-shadow: var(--shadow);
-	}
-	.card--dark {
-		background: var(--ink-2);
-		color: var(--white);
-		border-color: var(--white);
-		box-shadow: 6px 6px 0 var(--violet);
+		color: var(--text);
 	}
 	.card__label {
 		font-weight: 700;
-		color: var(--muted);
-		margin-bottom: 14px;
-	}
-	.card--dark .card__label,
-	.card--dark .card__foot {
-		color: #cfc9ec;
+		font-size: 0.9rem;
+		color: var(--text-2);
+		margin-bottom: 12px;
 	}
 	.card__foot {
-		margin-top: 16px;
-		font-size: 0.92rem;
-		color: var(--muted);
+		margin-top: 14px;
+		font-size: 0.9rem;
+		color: var(--text-2);
 	}
+	/* Borda RGB girando (Game) */
+	.card--rgb {
+		border-color: transparent;
+		background:
+			linear-gradient(var(--bg-2), var(--bg-2)) padding-box,
+			conic-gradient(from var(--angle, 0deg), #b231fb, #4546fb, #01ccfe, #ff2ea0, #b231fb) border-box;
+		border: 1.5px solid transparent;
+		animation: rgb 6s linear infinite;
+	}
+	@property --angle {
+		syntax: "<angle>";
+		initial-value: 0deg;
+		inherits: false;
+	}
+	@keyframes rgb {
+		to {
+			--angle: 360deg;
+		}
+	}
+	.card--mono .card__label {
+		font-family: var(--font-mono);
+		color: var(--accent-text);
+	}
+
 	.route {
 		list-style: none;
 		margin: 0;
@@ -356,52 +438,49 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		display: flex;
 		align-items: center;
 		gap: 14px;
-		padding-block: 10px;
+		padding-block: 9px;
 		font-family: var(--font-display);
-		font-size: 1.25rem;
+		font-size: 1.2rem;
 	}
 	.route li::before {
 		content: counter(step);
-		width: 34px;
-		height: 34px;
+		width: 32px;
+		height: 32px;
 		flex: none;
 		display: grid;
 		place-items: center;
 		border-radius: 50%;
-		border: var(--border);
-		background: var(--cyan);
-		font-size: 1rem;
+		background: var(--grad-button);
+		color: var(--white);
+		font-size: 0.95rem;
 		font-weight: 800;
 	}
 	.route li:not(:last-child)::after {
 		content: "";
 		position: absolute;
-		left: 16px;
-		top: 44px;
-		height: calc(100% - 34px);
-		border-left: 2px dashed var(--ink);
+		left: 15px;
+		top: 41px;
+		height: calc(100% - 32px);
+		border-left: 2px dotted var(--line-strong);
 	}
 	.loadout {
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		display: grid;
-		gap: 0;
 	}
 	.loadout li {
 		display: flex;
 		align-items: baseline;
 		gap: 14px;
-		padding-block: 10px;
-		border-bottom: 1px solid #4b4470;
+		padding-block: 9px;
+		border-bottom: 1px solid var(--line);
 		font-family: var(--font-display);
-		font-size: 1.15rem;
+		font-size: 1.1rem;
 	}
 	.loadout__n {
-		font-family: var(--font-body);
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
-		font-weight: 700;
-		color: #d4b3fb;
+		color: var(--accent-text);
 	}
 	.pipe {
 		list-style: none;
@@ -412,37 +491,58 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 	}
 	.pipe li {
 		position: relative;
-		padding: 12px 16px;
-		border: var(--border);
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 11px 14px;
+		border: 1px solid var(--line);
 		border-radius: var(--radius-sm);
-		font-family: var(--font-display);
-		font-size: 1.15rem;
+		background: var(--surface);
 		font-weight: 700;
 	}
+	.pipe li span {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		color: var(--accent-text);
+	}
 	.pipe li:last-child {
-		background: var(--indigo);
+		background: var(--grad-button);
+		border-color: transparent;
 		color: var(--white);
+	}
+	.pipe li:last-child span {
+		color: rgb(255 255 255 / 80%);
 	}
 	.pipe li:not(:last-child)::after {
 		content: "";
 		position: absolute;
-		left: 50%;
-		bottom: -12px;
+		left: 26px;
+		bottom: -11px;
 		width: 2px;
 		height: 10px;
-		background: var(--ink);
+		background: var(--grad);
 	}
 
+	@media (prefers-reduced-motion: reduce) {
+		.hero__packet,
+		.hero__main-ring,
+		.hero__waves circle,
+		.hero__floor,
+		.card--rgb {
+			animation: none;
+		}
+	}
 	@media (max-width: 900px) {
 		.hero__grid {
 			grid-template-columns: 1fr;
 		}
 		.hero__visual {
 			min-height: 0;
-			padding-block: 24px 8px;
+			padding-block: 8px;
 			justify-items: stretch;
 		}
-		.hero__net {
+		.hero__net,
+		.hero__glow {
 			display: none;
 		}
 		.card {

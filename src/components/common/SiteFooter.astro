@@ -2,6 +2,7 @@
 import SiteLogo from "./SiteLogo.astro";
 import WhatsAppIcon from "./WhatsAppIcon.astro";
 import DivisionMark from "./DivisionMark.astro";
+import SocialIcon from "./SocialIcon.astro";
 import { getWhatsAppUrl, siteConfig } from "../../config/site";
 import { divisionOrder, divisions } from "../../lib/site/divisions";
 import type { RuntimeSiteConfig } from "../../types/site";
@@ -13,17 +14,32 @@ interface Props {
 const { site = siteConfig } = Astro.props;
 const year = new Date().getFullYear();
 const socials = site.socialLinks.filter((link) => link.isActive && link.platform !== "website");
+const phoneHref = site.phone ? `tel:${site.phone.replace(/[^\d+]/g, "")}` : "";
 ---
 
 <footer class="site-footer">
+	<div class="site-footer__glow" aria-hidden="true"></div>
 	<div class="wrap site-footer__grid">
 		<div class="site-footer__brand">
 			<SiteLogo idPrefix="footer-logo" size="lg" inverse />
 			<p>Tecnologia resolvida para casa, setup gamer e empresa. {site.serviceAreas.join(", ")}.</p>
 			<a class="btn btn--whatsapp" href={getWhatsAppUrl(undefined, site)} target="_blank" rel="noopener">
 				<WhatsAppIcon />
-				{site.phone || "Chamar no WhatsApp"}
+				Chamar no WhatsApp
 			</a>
+			{
+				socials.length > 0 && (
+					<ul class="site-footer__social" aria-label="Redes sociais">
+						{socials.map((link) => (
+							<li>
+								<a href={link.url} target="_blank" rel="noopener" aria-label={`${link.label}${link.username ? ` (${link.username})` : ""}`}>
+									<SocialIcon platform={link.platform} />
+								</a>
+							</li>
+						))}
+					</ul>
+				)
+			}
 		</div>
 
 		<nav aria-label="Divisões">
@@ -33,8 +49,11 @@ const socials = site.socialLinks.filter((link) => link.isActive && link.platform
 					divisionOrder.map((id) => (
 						<li data-division={id}>
 							<a href={divisions[id].path}>
-								<DivisionMark division={id} size={28} inverse />
-								{divisions[id].name}
+								<DivisionMark division={id} size={28} />
+								<span>
+									{divisions[id].name}
+									<small>{divisions[id].audience}</small>
+								</span>
 							</a>
 						</li>
 					))
@@ -46,10 +65,39 @@ const socials = site.socialLinks.filter((link) => link.isActive && link.platform
 			<h2>Contato</h2>
 			<ul>
 				{socials.map((link) => (
-					<li><a href={link.url} target="_blank" rel="noopener">{link.label}{link.username ? ` · ${link.username}` : ""}</a></li>
+					<li>
+						<a href={link.url} target="_blank" rel="noopener">
+							<SocialIcon platform={link.platform} size={18} />
+							{link.username || link.label}
+						</a>
+					</li>
 				))}
-				{site.email && <li><a href={`mailto:${site.email}`}>{site.email}</a></li>}
-				<li><a href="/links">Todos os links</a></li>
+				{
+					phoneHref && (
+						<li>
+							<a href={phoneHref}>
+								<SocialIcon platform="phone" size={18} />
+								{site.phone}
+							</a>
+						</li>
+					)
+				}
+				{
+					site.email && (
+						<li>
+							<a href={`mailto:${site.email}`}>
+								<SocialIcon platform="email" size={18} />
+								{site.email}
+							</a>
+						</li>
+					)
+				}
+				<li>
+					<a href="/links">
+						<SocialIcon platform="website" size={18} />
+						Todos os links
+					</a>
+				</li>
 			</ul>
 			<p class="site-footer__hours">{site.serviceHours}</p>
 		</div>
@@ -63,19 +111,35 @@ const socials = site.socialLinks.filter((link) => link.isActive && link.platform
 
 <style>
 	.site-footer {
-		background: var(--ink);
-		color: #e9e7f5;
-		padding-top: clamp(48px, 7vw, 88px);
+		--text: #f4f2ff;
+		--text-2: #b6b0d6;
+		--line: rgb(255 255 255 / 12%);
 		position: relative;
+		overflow: hidden;
+		background: #05040f;
+		color: var(--text);
+		padding-top: clamp(56px, 8vw, 96px);
+	}
+	.site-footer__glow {
+		position: absolute;
+		inset: -40% -10% auto;
+		height: 70%;
+		background:
+			radial-gradient(40% 60% at 20% 100%, rgb(178 49 251 / 28%), transparent 70%),
+			radial-gradient(40% 60% at 55% 100%, rgb(45 47 252 / 26%), transparent 70%),
+			radial-gradient(40% 60% at 90% 100%, rgb(1 204 254 / 20%), transparent 70%);
+		pointer-events: none;
 	}
 	.site-footer::before {
 		content: "";
 		position: absolute;
 		inset: 0 0 auto;
-		height: 8px;
+		height: 1px;
 		background: var(--brand-gradient);
+		opacity: 0.8;
 	}
 	.site-footer__grid {
+		position: relative;
 		display: grid;
 		gap: 40px;
 		grid-template-columns: 1.4fr 1fr 1fr;
@@ -83,13 +147,13 @@ const socials = site.socialLinks.filter((link) => link.isActive && link.platform
 	.site-footer__brand p {
 		margin: 18px 0 24px;
 		max-width: 36ch;
-		color: #c9c5df;
+		color: var(--text-2);
 	}
 	.site-footer h2 {
-		font-size: 1rem;
+		font-size: 0.95rem;
 		font-family: var(--font-body);
 		letter-spacing: 0;
-		color: #a9a4c6;
+		color: var(--text-2);
 		margin-bottom: 12px;
 	}
 	.site-footer ul {
@@ -102,43 +166,65 @@ const socials = site.socialLinks.filter((link) => link.isActive && link.platform
 	.site-footer li a {
 		display: inline-flex;
 		align-items: center;
-		gap: 10px;
+		gap: 12px;
 		min-height: 44px;
+		color: var(--text);
 		text-decoration: none;
 		font-weight: 600;
 	}
+	.site-footer li a small {
+		display: block;
+		color: var(--text-2);
+		font-weight: 500;
+		font-size: 0.85rem;
+	}
 	.site-footer li a:hover {
+		color: #ffffff;
 		text-decoration: underline;
 		text-underline-offset: 4px;
 	}
-	.site-footer .dot {
-		width: 12px;
-		height: 12px;
+	.site-footer__social {
+		display: flex !important;
+		gap: 10px !important;
+		margin-top: 22px !important;
+	}
+	.site-footer__social a {
+		justify-content: center;
+		width: 46px;
+		height: 46px;
+		border: 1px solid rgb(255 255 255 / 20%);
 		border-radius: 50%;
-		border: 3px solid var(--accent);
+		background: rgb(255 255 255 / 5%);
+		transition: background 0.2s ease, transform 0.2s ease;
+	}
+	.site-footer__social a:hover {
+		background: rgb(255 255 255 / 12%);
+		transform: translateY(-2px);
+		text-decoration: none;
 	}
 	.site-footer__hours {
 		margin-top: 12px;
-		color: #a9a4c6;
+		color: var(--text-2);
 		font-size: 0.95rem;
 	}
 	.site-footer :focus-visible {
-		outline-color: var(--white);
-		box-shadow: none;
+		outline-color: #ffffff;
 	}
 	.site-footer__bottom {
+		position: relative;
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 		gap: 16px;
 		flex-wrap: wrap;
 		margin-top: 48px;
-		padding-block: 20px 28px;
-		border-top: 1px solid #36305a;
+		padding-block: 16px 28px;
+		border-top: 1px solid var(--line);
 		font-size: 0.9rem;
-		color: #a9a4c6;
+		color: var(--text-2);
 	}
 	.site-footer__bottom a {
-		color: #a9a4c6;
+		color: var(--text-2);
 		display: inline-flex;
 		align-items: center;
 		min-height: 44px;

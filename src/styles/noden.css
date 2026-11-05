@@ -1,77 +1,134 @@
 /*
  * Noden — sistema visual público.
- * Cores derivadas da logo: violeta, índigo e ciano.
- * Contrastes medidos (WCAG 2.2):
- *   --ink sobre --paper ............ 17.3:1
- *   --muted sobre --paper ........... 6.0:1
- *   branco sobre --violet ........... 5.3:1
- *   branco sobre --indigo ........... 7.7:1
- *   --ink sobre --cyan .............. 9.0:1
- *   --cyan-text sobre --paper ....... 5.3:1
- *   --violet-text sobre --paper ..... 5.8:1
+ * Cores da logo (violeta, índigo, ciano) em transições suaves, vidro e brilho.
+ * Cada página tem um tema (data-theme no .page):
+ *   hub  — escuro "aurora", as três cores se misturando (inicial, links)
+ *   home — claro e aconchegante, céu ciano/azul (Noden Home)
+ *   game — escuro neon RGB de setup (Noden Game)
+ *   data — escuro "blueprint" com grade técnica (Noden Data)
+ *
+ * Contrastes medidos (WCAG 2.2, texto normal ≥ 4.5:1):
+ *   tema escuro: --text 18.1 · --text-2 9.7 · --muted 8.4 · acentos claros ≥ 8.7
+ *   tema claro:  --text 16.7 · --text-2 6.4 · --accent-text home 5.7
+ *   branco sobre os degradês dos botões: menor parada ≥ 5.0
  */
 @import "@fontsource-variable/bricolage-grotesque";
 @import "@fontsource-variable/instrument-sans";
 
 :root {
+	/* Cores brutas */
 	--ink: #120e2a;
 	--ink-2: #2a2547;
-	--muted: #5a5675;
-	--paper: #f1eefb;
-	--paper-2: #e6e1f7;
 	--white: #ffffff;
-	--line: #120e2a;
-	--line-soft: #d6d3e4;
-
 	--violet: #9b2bf0;
-	--violet-text: #8a1fe0;
 	--violet-soft: #f1e4fe;
 	--indigo: #2633e8;
-	--indigo-text: #2633e8;
 	--indigo-soft: #e3e5fd;
 	--cyan: #22c3ee;
-	--cyan-text: #006a8c;
 	--cyan-soft: #dcf5fc;
+	--cyan-text: #006a8c;
+	--violet-text: #8a1fe0;
+	--indigo-text: #2633e8;
 	--whatsapp: #1fa855;
-
-	--brand-gradient: linear-gradient(90deg, #b030f0 0%, #2233f5 52%, #00ccf5 100%);
+	--brand-gradient: linear-gradient(110deg, #b231fb 0%, #2d2ffc 52%, #01ccfe 100%);
 
 	--font-display: "Bricolage Grotesque Variable", "Arial Narrow", system-ui, sans-serif;
 	--font-body: "Instrument Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, monospace;
 
-	--radius: 18px;
-	--radius-sm: 10px;
-	--border: 2px solid var(--line);
-	--shadow: 6px 6px 0 var(--ink);
-	--shadow-sm: 3px 3px 0 var(--ink);
+	--radius: 22px;
+	--radius-sm: 12px;
 	--gutter: clamp(16px, 4vw, 40px);
 	--max: 1240px;
 	--header-h: 68px;
 
-	/* Divisão ativa: sobrescrito em [data-division]. */
-	--accent: var(--indigo);
-	--accent-text: var(--indigo-text);
-	--accent-soft: var(--indigo-soft);
+	/* Tema escuro padrão (hub) */
+	--bg: #07061a;
+	--bg-2: #0f0b29;
+	--surface: rgb(255 255 255 / 5%);
+	--surface-2: rgb(255 255 255 / 9%);
+	--line: rgb(255 255 255 / 12%);
+	--line-strong: rgb(255 255 255 / 24%);
+	--text: #f4f2ff;
+	--text-2: #b6b0d6;
+	--muted: #a9a3cc;
+	--shadow: 0 24px 60px -24px rgb(0 0 0 / 60%);
+	--glass-blur: blur(18px) saturate(140%);
+
+	/* Divisão ativa (hub = as três cores) */
+	--accent: #6f6bff;
+	--accent-2: #01ccfe;
+	--accent-text: #a9b1ff;
+	--accent-soft: rgb(111 107 255 / 14%);
+	--grad: linear-gradient(110deg, #b231fb, #2d2ffc 55%, #01ccfe);
+	--grad-button: linear-gradient(110deg, #9338fb, #2d2ffc 55%, #0767cf);
 	--on-accent: var(--white);
+
+	/* Compatibilidade com componentes antigos */
+	--paper: var(--bg);
+	--paper-2: var(--bg-2);
+	--line-soft: var(--line);
+	--border: 1px solid var(--line);
+	--shadow-sm: var(--shadow);
 }
 
+/* Acentos por divisão (valem em qualquer elemento com data-division) */
 [data-division="home"] {
-	--accent: var(--cyan);
-	--accent-text: var(--cyan-text);
-	--accent-soft: var(--cyan-soft);
-	--on-accent: var(--ink);
+	--accent: #22c3ee;
+	--accent-2: #2d2ffc;
+	--accent-text: #6fe3ff;
+	--accent-soft: rgb(34 195 238 / 14%);
+	--grad: linear-gradient(110deg, #2d2ffc, #0d7dfc 50%, #01ccfe);
+	--grad-button: linear-gradient(110deg, #2d2ffc, #0767cf);
 }
 [data-division="game"] {
-	--accent: var(--violet);
-	--accent-text: var(--violet-text);
-	--accent-soft: var(--violet-soft);
-	--on-accent: var(--white);
+	--accent: #b46bff;
+	--accent-2: #4546fb;
+	--accent-text: #d3a3ff;
+	--accent-soft: rgb(178 49 251 / 16%);
+	--grad: linear-gradient(110deg, #b231fb, #9338fb 50%, #4546fb);
+	--grad-button: linear-gradient(110deg, #9338fb, #4546fb);
 }
 [data-division="data"] {
-	--accent: var(--indigo);
-	--accent-text: var(--indigo-text);
-	--accent-soft: var(--indigo-soft);
-	--on-accent: var(--white);
+	--accent: #4d8dff;
+	--accent-2: #01d4fe;
+	--accent-text: #8fb0ff;
+	--accent-soft: rgb(62 74 252 / 16%);
+	--grad: linear-gradient(110deg, #3e4afc, #089efd 50%, #01d4fe);
+	--grad-button: linear-gradient(110deg, #3e4afc, #0a63c4);
+}
+
+/* Tema claro (Noden Home) */
+[data-theme="home"] {
+	--bg: #f3f7fb;
+	--bg-2: #e8f1f8;
+	--surface: rgb(255 255 255 / 72%);
+	--surface-2: rgb(255 255 255 / 92%);
+	--line: rgb(15 21 48 / 10%);
+	--line-strong: rgb(15 21 48 / 20%);
+	--text: #0f1530;
+	--text-2: #4f5a78;
+	--muted: #4f5a78;
+	--shadow: 0 24px 50px -28px rgb(15 40 90 / 35%);
+}
+[data-theme="home"] [data-division="home"],
+[data-theme="home"][data-division="home"] {
+	--accent-text: #006a8c;
+	--accent-soft: rgb(34 195 238 / 16%);
+}
+[data-theme="home"] [data-division="game"] {
+	--accent-text: #8a1fe0;
+}
+[data-theme="home"] [data-division="data"] {
+	--accent-text: #2633e8;
+}
+[data-theme="game"] {
+	--bg: #06050d;
+	--bg-2: #110a22;
+}
+[data-theme="data"] {
+	--bg: #050b1a;
+	--bg-2: #0a1530;
 }
 
 *,
@@ -84,21 +141,58 @@ html {
 	-webkit-text-size-adjust: 100%;
 	scroll-behavior: smooth;
 	scroll-padding-top: calc(var(--header-h) + 16px);
+	background: var(--bg);
 }
 
 body {
 	margin: 0;
-	/* Textura de rede: pontos discretos, o motivo dos "nós" da marca. */
-	background:
-		radial-gradient(circle at 1px 1px, rgb(18 14 42 / 8%) 1.1px, transparent 1.5px) 0 0 / 26px 26px,
-		var(--paper);
-	color: var(--ink);
+	background: var(--bg);
+	color: var(--text);
 	font-family: var(--font-body);
 	font-size: 1.0625rem;
 	line-height: 1.55;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 	overflow-x: clip;
+}
+
+/* Página: fundo do tema com luzes desfocadas fixas atrás do conteúdo */
+.page {
+	position: relative;
+	isolation: isolate;
+	min-height: 100vh;
+	background: var(--bg);
+	color: var(--text);
+}
+.page::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background:
+		radial-gradient(38vmax 30vmax at 12% 8%, rgb(178 49 251 / 22%), transparent 70%),
+		radial-gradient(40vmax 32vmax at 88% 22%, rgb(45 47 252 / 22%), transparent 70%),
+		radial-gradient(36vmax 30vmax at 60% 100%, rgb(1 204 254 / 14%), transparent 70%);
+}
+[data-theme="home"]::before {
+	background:
+		radial-gradient(40vmax 30vmax at 10% 0%, rgb(1 204 254 / 22%), transparent 70%),
+		radial-gradient(38vmax 30vmax at 92% 18%, rgb(45 47 252 / 12%), transparent 70%),
+		radial-gradient(34vmax 26vmax at 70% 100%, rgb(255 196 160 / 22%), transparent 70%);
+}
+[data-theme="game"]::before {
+	background:
+		radial-gradient(40vmax 32vmax at 8% 10%, rgb(178 49 251 / 30%), transparent 70%),
+		radial-gradient(36vmax 30vmax at 95% 30%, rgb(69 70 251 / 26%), transparent 70%),
+		radial-gradient(30vmax 24vmax at 50% 105%, rgb(255 46 160 / 14%), transparent 70%);
+}
+[data-theme="data"]::before {
+	background:
+		linear-gradient(rgb(120 160 255 / 6%) 1px, transparent 1px) 0 0 / 48px 48px,
+		linear-gradient(90deg, rgb(120 160 255 / 6%) 1px, transparent 1px) 0 0 / 48px 48px,
+		radial-gradient(40vmax 30vmax at 90% 0%, rgb(1 212 254 / 18%), transparent 70%),
+		radial-gradient(40vmax 34vmax at 0% 60%, rgb(62 74 252 / 24%), transparent 70%);
 }
 
 img,
@@ -129,10 +223,9 @@ p {
 }
 
 :focus-visible {
-	outline: 3px solid var(--ink);
+	outline: 2px solid var(--accent-text);
 	outline-offset: 3px;
-	box-shadow: 0 0 0 6px var(--white);
-	border-radius: 6px;
+	border-radius: 8px;
 }
 
 .sr-only {
@@ -153,8 +246,8 @@ p {
 	left: 8px;
 	z-index: 200;
 	padding: 12px 18px;
-	background: var(--ink);
-	color: var(--white);
+	background: var(--text);
+	color: var(--bg);
 	border-radius: var(--radius-sm);
 	font-weight: 700;
 	transform: translateY(-160%);
@@ -171,7 +264,7 @@ p {
 }
 
 .section {
-	padding-block: clamp(56px, 9vw, 120px);
+	padding-block: clamp(64px, 9vw, 128px);
 }
 
 /* Títulos */
@@ -193,10 +286,10 @@ p {
 	line-height: 1.08;
 }
 .lead {
-	font-size: clamp(1.1rem, 1.7vw, 1.35rem);
-	line-height: 1.45;
-	color: var(--ink-2);
-	max-width: 46ch;
+	font-size: clamp(1.1rem, 1.7vw, 1.3rem);
+	line-height: 1.5;
+	color: var(--text-2);
+	max-width: 48ch;
 }
 .kicker {
 	display: inline-flex;
@@ -208,40 +301,55 @@ p {
 }
 .kicker::before {
 	content: "";
-	width: 14px;
-	height: 14px;
-	border-radius: 50%;
-	border: 3px solid currentColor;
+	width: 22px;
+	height: 2px;
+	border-radius: 2px;
+	background: var(--grad);
+}
+/* Texto com o degradê da divisão */
+.gradient-text {
+	background: var(--grad);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+
+/* Vidro */
+.glass {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	box-shadow: var(--shadow);
 }
 
 /* Botões */
 .btn {
-	--btn-bg: var(--ink);
-	--btn-fg: var(--white);
-	--btn-shadow: var(--accent);
+	position: relative;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: 10px;
 	min-height: 52px;
-	padding: 12px 24px;
-	border: var(--border);
+	padding: 12px 26px;
+	border: 1px solid transparent;
 	border-radius: 999px;
-	background: var(--btn-bg);
-	color: var(--btn-fg);
+	background: var(--grad-button);
+	color: var(--white);
 	font: 700 1.02rem/1.1 var(--font-body);
 	text-decoration: none;
 	cursor: pointer;
-	box-shadow: 4px 4px 0 var(--btn-shadow);
-	transition: transform 0.15s ease, box-shadow 0.15s ease;
+	box-shadow: 0 12px 32px -12px color-mix(in srgb, var(--accent) 70%, transparent);
+	transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 .btn:hover {
-	transform: translate(-2px, -2px);
-	box-shadow: 6px 6px 0 var(--btn-shadow);
+	transform: translateY(-2px);
+	box-shadow: 0 18px 40px -12px color-mix(in srgb, var(--accent) 85%, transparent);
+	filter: brightness(1.08);
 }
 .btn:active {
-	transform: translate(2px, 2px);
-	box-shadow: 1px 1px 0 var(--btn-shadow);
+	transform: translateY(0);
 }
 .btn svg {
 	width: 20px;
@@ -249,19 +357,28 @@ p {
 	flex: none;
 }
 .btn--whatsapp {
-	--btn-bg: var(--whatsapp);
-	--btn-fg: var(--white);
-	--btn-shadow: var(--ink);
+	background: linear-gradient(110deg, #11813f, #0d6e35);
+	box-shadow: 0 12px 32px -12px rgb(31 168 85 / 70%);
 }
+.btn--whatsapp:hover {
+	box-shadow: 0 18px 40px -12px rgb(31 168 85 / 85%);
+}
+.btn--ghost,
 .btn--light {
-	--btn-bg: var(--white);
-	--btn-fg: var(--ink);
-	--btn-shadow: var(--ink);
+	background: var(--surface);
+	color: var(--text);
+	border-color: var(--line-strong);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	box-shadow: none;
+}
+.btn--ghost:hover,
+.btn--light:hover {
+	background: var(--surface-2);
+	box-shadow: none;
 }
 .btn--accent {
-	--btn-bg: var(--accent);
-	--btn-fg: var(--on-accent);
-	--btn-shadow: var(--ink);
+	background: var(--grad-button);
 }
 .btn--sm {
 	min-height: 44px;
@@ -273,63 +390,40 @@ p {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
+	min-height: 44px;
 	font-weight: 700;
 	text-decoration: none;
-	border-bottom: 2px solid currentColor;
-	padding-block: 4px;
+	color: var(--text);
+	background-image: var(--grad);
+	background-size: 100% 2px;
+	background-repeat: no-repeat;
+	background-position: 0 calc(100% - 8px);
 }
 
-/* Chips e selos */
+/* Chips */
 .chip {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
 	padding: 6px 14px;
-	border: var(--border);
+	border: 1px solid var(--line-strong);
 	border-radius: 999px;
-	background: var(--white);
+	background: var(--surface);
+	color: var(--text);
 	font-weight: 600;
 	font-size: 0.92rem;
 	line-height: 1.2;
 }
 
-/* Anéis — elemento gráfico vindo da logo */
-.ring {
-	border-radius: 50%;
-	border: clamp(14px, 2.4vw, 30px) solid var(--accent);
-	aspect-ratio: 1;
+/* Revelação ao rolar (ativada por script; sem JS tudo aparece) */
+.js-reveal [data-reveal] {
+	opacity: 0;
+	transform: translateY(24px);
+	transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-
-/* Barra de promessas */
-.promise-list {
-	display: grid;
-	gap: 0;
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-	border: var(--border);
-	border-radius: var(--radius);
-	background: var(--white);
-	overflow: hidden;
-	list-style: none;
-	margin: 0;
-	padding: 0;
-}
-.promise-list li {
-	padding: 22px 24px;
-	border-right: var(--border);
-	border-bottom: var(--border);
-	margin: 0 -2px -2px 0;
-}
-.promise-list strong {
-	display: block;
-	font-family: var(--font-display);
-	font-size: 1.3rem;
-	letter-spacing: -0.02em;
-	line-height: 1.1;
-	margin-bottom: 6px;
-}
-.promise-list span {
-	color: var(--muted);
-	font-size: 0.98rem;
+.js-reveal [data-reveal].is-revealed {
+	opacity: 1;
+	transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -342,5 +436,9 @@ p {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
+	}
+	.js-reveal [data-reveal] {
+		opacity: 1;
+		transform: none;
 	}
 }

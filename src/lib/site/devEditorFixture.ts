@@ -133,3 +133,31 @@ export function buildFixtureView(base: ServicePageConfig, site: RuntimeSiteConfi
 		},
 	};
 }
+
+/** Vitrine de exemplo (somente teste local). Imagens geradas em SVG. */
+export function buildFixtureShowcase(division: "game" | "data"): { ready: boolean; items: import("../showcase/types").ShowcaseItem[] } {
+	const art = (label: string, a: string, b: string, tall = false) =>
+		"data:image/svg+xml;utf8," +
+		encodeURIComponent(
+			`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="${tall ? 1000 : 500}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="50%" font-family="sans-serif" font-size="44" fill="white" text-anchor="middle">${label}</text></svg>`,
+		);
+	const media = (n: number, label: string, a: string, b: string) =>
+		Array.from({ length: n }, (_, i) => ({ path: `00000000-0000-4000-8000-0000000003${String(i).padStart(2, "0")}.webp`, alt: `${label} ${i + 1}`, url: art(`${label} ${i + 1}`, a, b, division === "game") }));
+	if (division === "data") {
+		return {
+			ready: true,
+			items: [
+				{ id: uuid(3001), division, title: "Planejador de cargas", summary: "Dashboard em Power BI para planejar cargas e rotas.", category: "Dashboard", tags: ["Power BI", "SQL"], specs: [], linkUrl: "https://exemplo.com.br/planejador", media: media(3, "Dashboard", "#3e4afc", "#01d4fe"), isPublished: true, sortOrder: 0 },
+				{ id: uuid(3002), division, title: "Site institucional", summary: "Site rápido com painel para editar textos e preços.", category: "Site", tags: ["Astro", "Supabase"], specs: [], linkUrl: "https://exemplo.com.br", media: media(2, "Site", "#2d2ffc", "#9338fb"), isPublished: true, sortOrder: 10 },
+				{ id: uuid(3003), division, title: "Automação de relatórios", summary: "Rascunho de exemplo.", category: "Sistema", tags: ["Python"], specs: [], linkUrl: null, media: [], isPublished: false, sortOrder: 20 },
+			],
+		};
+	}
+	return {
+		ready: true,
+		items: [
+			{ id: uuid(3101), division, title: "Setup branco RGB", summary: "Montagem completa com cabos organizados e testes de estabilidade.", category: "Setup gamer", tags: [], specs: [{ label: "GPU", value: "Exemplo" }, { label: "CPU", value: "Exemplo" }, { label: "RAM", value: "Exemplo" }], linkUrl: null, media: media(3, "Setup", "#b231fb", "#4546fb"), isPublished: true, sortOrder: 0 },
+			{ id: uuid(3102), division, title: "Upgrade de refrigeração", summary: "Troca de cooler e pasta térmica.", category: "Upgrade", tags: [], specs: [{ label: "Cooler", value: "Exemplo" }], linkUrl: null, media: media(1, "Upgrade", "#9338fb", "#01ccfe"), isPublished: true, sortOrder: 10 },
+		],
+	};
+}

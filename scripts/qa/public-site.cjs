@@ -154,6 +154,29 @@ const check = (ok, label) => {
 	check(calmStops === 4 && calmChat, 'movimento reduzido: jornada e conversa já completas');
 	await calm.close();
 
+	// Explorador de serviços (abas) e "monte seu orçamento"
+	const shop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+	await shop.goto(base + '/noden-home', { waitUntil: 'networkidle' });
+	await shop.locator('[role="tab"]').first().focus();
+	await shop.keyboard.press('ArrowDown');
+	await shop.keyboard.press('ArrowDown');
+	const selectedTab = await shop.locator('[role="tab"][aria-selected="true"]').getAttribute('aria-controls');
+	const visiblePanels = await shop.locator('[data-panel]:not([hidden])').evaluateAll((els) => els.map((el) => el.id));
+	check(visiblePanels.length === 1 && visiblePanels[0] === selectedTab, `explorador: setas trocam o painel (${visiblePanels.join(',')})`);
+	const toggles = shop.locator('[data-quote-toggle]');
+	await toggles.nth(0).click();
+	await toggles.nth(1).click();
+	const count = await shop.locator('[data-quote-count]').textContent();
+	const message = decodeURIComponent((await shop.locator('[data-quote-send]').getAttribute('href')).split('text=')[1] || '');
+	check(count === '2' && /Total de referência/.test(message) && message.split('•').length === 3, `orçamento soma 2 itens e monta a mensagem (${count})`);
+	await shop.reload({ waitUntil: 'networkidle' });
+	check((await shop.locator('[data-quote-count]').textContent()) === '2', 'orçamento sobrevive à recarga da página');
+	await shop.click('[data-quote-clear]');
+	check(await shop.locator('[data-quote]').isHidden(), 'limpar esconde a bandeja');
+	await shop.goto(base + '/noden-game', { waitUntil: 'networkidle' });
+	check((await shop.locator('[data-showcase]').count()) === 0, 'vitrine some para o visitante enquanto não há itens publicados');
+	await shop.close();
+
 	// Tela baixa: texto não cabe na cena fixa → leitura normal
 	const low = await browser.newPage({ viewport: { width: 360, height: 560 } });
 	await low.goto(base + '/', { waitUntil: 'networkidle' });

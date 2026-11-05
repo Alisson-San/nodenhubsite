@@ -44,12 +44,24 @@ const vertical = "M 60 0 L 60 1000";
 
 		<div class="journey__route" style={`--count:${steps.length}`}>
 			<svg class="journey__path journey__path--h" viewBox="0 0 1000 140" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+				<defs>
+					<linearGradient id={`${id}-trail-h`} x1="0" y1="0" x2="1" y2="0">
+						<stop offset="0%" class="journey__stop-a" />
+						<stop offset="100%" class="journey__stop-b" />
+					</linearGradient>
+				</defs>
 				<path class="journey__track" d={horizontal} />
-				<path class="journey__trail" d={horizontal} pathLength="1" data-journey-trail />
+				<path class="journey__trail" d={horizontal} pathLength="1" stroke={`url(#${id}-trail-h)`} data-journey-trail />
 			</svg>
 			<svg class="journey__path journey__path--v" viewBox="0 0 120 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+				<defs>
+					<linearGradient id={`${id}-trail-v`} x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" class="journey__stop-a" />
+						<stop offset="100%" class="journey__stop-b" />
+					</linearGradient>
+				</defs>
 				<path class="journey__track" d={vertical} />
-				<path class="journey__trail" d={vertical} pathLength="1" data-journey-trail />
+				<path class="journey__trail" d={vertical} pathLength="1" stroke={`url(#${id}-trail-v)`} data-journey-trail />
 			</svg>
 
 			<span class="journey__van" aria-hidden="true" data-journey-van>
@@ -65,7 +77,7 @@ const vertical = "M 60 0 L 60 1000";
 			<ol class="journey__stops" data-edit-list={editable ? "steps" : undefined}>
 				{
 					steps.map((step, index) => (
-						<li class="journey__stop is-reached" data-journey-stop={stops[index]}>
+						<li class="journey__stop is-reached" data-journey-stop={stops[index]} data-reveal>
 							<span class="journey__dot" aria-hidden="true">
 								{index + 1}
 							</span>
@@ -165,20 +177,27 @@ const vertical = "M 60 0 L 60 1000";
 	.journey {
 		position: relative;
 		overflow: hidden;
-		padding-block: clamp(64px, 9vw, 120px);
-		color: var(--white);
-		background:
-			radial-gradient(circle at 1px 1px, rgb(255 255 255 / 14%) 1.2px, transparent 1.6px) 0 0 / 26px 26px,
-			linear-gradient(120deg, #9b2bf0 0%, #5b2bf0 45%, #2633e8 100%);
-		border-bottom: var(--border);
+		padding-block: clamp(72px, 10vw, 130px);
+		color: var(--text);
+		background: linear-gradient(
+			180deg,
+			transparent,
+			color-mix(in srgb, var(--accent) 10%, transparent) 30%,
+			color-mix(in srgb, var(--accent-2) 10%, transparent) 70%,
+			transparent
+		);
 	}
-	.journey--division {
-		background:
-			radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--on-accent) 14%, transparent) 1.2px, transparent 1.6px) 0 0 / 26px 26px,
-			var(--accent);
-		color: var(--on-accent);
+	.journey::before {
+		content: "";
+		position: absolute;
+		inset: 20% -10% auto;
+		height: 60%;
+		background: radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%);
+		filter: blur(40px);
+		pointer-events: none;
 	}
 	.journey__title {
+		position: relative;
 		max-width: 18ch;
 	}
 	.journey__route {
@@ -200,6 +219,12 @@ const vertical = "M 60 0 L 60 1000";
 	.journey__path--v {
 		display: none;
 	}
+	.journey__stop-a {
+		stop-color: var(--accent-2);
+	}
+	.journey__stop-b {
+		stop-color: var(--accent);
+	}
 	.journey__track,
 	.journey__trail {
 		fill: none;
@@ -207,16 +232,16 @@ const vertical = "M 60 0 L 60 1000";
 		stroke-linecap: round;
 	}
 	.journey__track {
-		stroke: currentColor;
-		stroke-opacity: 0.35;
-		stroke-width: 3;
+		stroke: var(--text-2);
+		stroke-opacity: 0.45;
+		stroke-width: 2;
 		stroke-dasharray: 2 10;
 	}
 	.journey__trail {
-		stroke: currentColor;
 		stroke-width: 5;
 		stroke-dasharray: 1;
 		stroke-dashoffset: 0;
+		filter: drop-shadow(0 0 6px var(--accent));
 	}
 	.journey__van {
 		position: absolute;
@@ -224,33 +249,32 @@ const vertical = "M 60 0 L 60 1000";
 		top: 0;
 		z-index: 3;
 		width: 76px;
-		transform: translate(calc(100% * 0), 0);
 		display: none;
-		filter: drop-shadow(0 6px 0 rgb(18 14 42 / 35%));
+		filter: drop-shadow(0 8px 14px rgb(0 0 0 / 35%));
 	}
 	.journey--live .journey__van {
 		display: block;
 	}
 	.van-body {
-		fill: var(--white);
-		stroke: var(--ink);
+		fill: #ffffff;
+		stroke: #120e2a;
 		stroke-width: 2.5;
 		stroke-linejoin: round;
 	}
 	.van-window {
-		fill: var(--cyan);
-		stroke: var(--ink);
+		fill: #22c3ee;
+		stroke: #120e2a;
 		stroke-width: 2;
 		stroke-linejoin: round;
 	}
 	.van-ring {
 		fill: none;
-		stroke: var(--violet);
+		stroke: #9b2bf0;
 		stroke-width: 4;
 	}
 	.van-wheel {
-		fill: var(--ink);
-		stroke: var(--white);
+		fill: #120e2a;
+		stroke: #ffffff;
 		stroke-width: 2.5;
 	}
 	.journey__stops {
@@ -274,16 +298,18 @@ const vertical = "M 60 0 L 60 1000";
 		z-index: 2;
 		display: grid;
 		place-items: center;
-		width: 64px;
-		height: 64px;
-		margin-top: 38px;
+		width: 60px;
+		height: 60px;
+		margin-top: 40px;
 		border-radius: 50%;
-		border: 3px solid currentColor;
-		background: color-mix(in srgb, var(--ink) 30%, transparent);
+		border: 1px solid var(--line-strong);
+		background: var(--surface-2);
+		backdrop-filter: var(--glass-blur);
+		color: var(--text);
 		font-family: var(--font-display);
 		font-weight: 800;
-		font-size: 1.5rem;
-		transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+		font-size: 1.4rem;
+		transition: background 0.4s ease, color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
 	}
 	.journey__card {
 		width: 100%;
@@ -291,19 +317,21 @@ const vertical = "M 60 0 L 60 1000";
 		gap: 8px;
 		align-content: start;
 		padding: 22px;
-		border: var(--border);
+		border: 1px solid var(--line);
 		border-radius: var(--radius);
-		background: var(--white);
-		color: var(--ink);
-		box-shadow: 6px 6px 0 var(--ink);
-		transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.4s ease;
+		background: var(--surface);
+		backdrop-filter: var(--glass-blur);
+		-webkit-backdrop-filter: var(--glass-blur);
+		box-shadow: var(--shadow);
+		color: var(--text);
+		transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.5s ease, border-color 0.5s ease;
 	}
 	.journey__card h3 {
-		font-size: 1.35rem;
+		font-size: 1.3rem;
 		letter-spacing: -0.02em;
 	}
 	.journey__card > p {
-		color: var(--ink-2);
+		color: var(--text-2);
 	}
 	.journey__promise {
 		display: flex;
@@ -311,17 +339,9 @@ const vertical = "M 60 0 L 60 1000";
 		align-items: flex-start;
 		margin-top: 6px;
 		padding: 10px 12px;
-		border-radius: 12px;
-		background: var(--accent-soft, #ede9fe);
-	}
-	.journey--brand .journey__stop:nth-child(3n + 1) .journey__promise {
-		background: var(--cyan-soft);
-	}
-	.journey--brand .journey__stop:nth-child(3n + 2) .journey__promise {
-		background: var(--indigo-soft);
-	}
-	.journey--brand .journey__stop:nth-child(3n + 3) .journey__promise {
-		background: var(--violet-soft);
+		border-radius: 14px;
+		background: var(--accent-soft);
+		border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 	}
 	.journey__promise svg {
 		width: 20px;
@@ -329,7 +349,7 @@ const vertical = "M 60 0 L 60 1000";
 		flex: none;
 		margin-top: 2px;
 		fill: none;
-		stroke: var(--ink);
+		stroke: var(--accent-text);
 		stroke-width: 2.6;
 		stroke-linecap: round;
 		stroke-linejoin: round;
@@ -340,28 +360,29 @@ const vertical = "M 60 0 L 60 1000";
 	}
 	.journey__promise small {
 		display: block;
-		color: var(--ink-2);
+		color: var(--text-2);
 		font-size: 0.88rem;
 		line-height: 1.35;
 		margin-top: 2px;
 	}
 
-	/* Com animação: paradas ainda não alcançadas ficam em espera */
 	.journey--live .journey__stop:not(.is-reached) .journey__card {
-		opacity: 0.55;
+		opacity: 0.5;
 		transform: translateY(14px);
 	}
 	.journey__stop.is-reached .journey__dot {
-		background: var(--white);
-		color: var(--ink);
-		transform: scale(1.08);
+		background: var(--grad-button);
+		border-color: transparent;
+		color: var(--white);
+		transform: scale(1.06);
+		box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent), 0 10px 30px -8px var(--accent);
 	}
-	.journey--division .journey__stop.is-reached .journey__dot {
-		background: var(--on-accent);
-		color: var(--accent);
+	.journey__stop.is-reached .journey__card {
+		border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
 	}
 
 	.journey__extra {
+		position: relative;
 		display: flex;
 		flex-wrap: wrap;
 		gap: 10px;
@@ -370,12 +391,13 @@ const vertical = "M 60 0 L 60 1000";
 	.journey__chip {
 		padding: 8px 16px;
 		border-radius: 999px;
-		border: 2px solid currentColor;
-		font-weight: 500;
+		border: 1px solid var(--line-strong);
+		background: var(--surface);
+		backdrop-filter: var(--glass-blur);
+		color: var(--text-2);
 	}
-	.journey :focus-visible {
-		outline-color: currentColor;
-		box-shadow: none;
+	.journey__chip strong {
+		color: var(--text);
 	}
 
 	@media (max-width: 860px) {
@@ -396,17 +418,15 @@ const vertical = "M 60 0 L 60 1000";
 			padding-left: 90px;
 		}
 		.journey__stop {
-			padding-inline: 0;
-		}
-		.journey__stop {
 			justify-items: start;
 			position: relative;
+			padding-inline: 0;
 		}
 		.journey__dot {
 			position: absolute;
 			left: -58px;
 			top: 50%;
-			margin-top: -32px;
+			margin-top: -28px;
 			width: 56px;
 			height: 56px;
 		}

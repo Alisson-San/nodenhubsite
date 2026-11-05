@@ -2,6 +2,7 @@
 import SiteLogo from "./SiteLogo.astro";
 import WhatsAppIcon from "./WhatsAppIcon.astro";
 import DivisionMark from "./DivisionMark.astro";
+import SocialIcon from "./SocialIcon.astro";
 import { getWhatsAppUrl, siteConfig } from "../../config/site";
 import { divisionOrder, divisions } from "../../lib/site/divisions";
 import type { RuntimeSiteConfig } from "../../types/site";
@@ -15,6 +16,7 @@ interface Props {
 
 const { site = siteConfig, current, whatsappMessage } = Astro.props;
 const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
+const socials = site.socialLinks.filter((link) => link.isActive && link.platform !== "whatsapp" && link.platform !== "website");
 ---
 
 <header class="site-header" data-site-header>
@@ -81,6 +83,19 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 				<WhatsAppIcon />
 				Chamar no WhatsApp
 			</a>
+			{
+				socials.length > 0 && (
+					<ul class="site-menu__social" aria-label="Redes sociais">
+						{socials.map((link) => (
+							<li>
+								<a href={link.url} target="_blank" rel="noopener" aria-label={link.label}>
+									<SocialIcon platform={link.platform} />
+								</a>
+							</li>
+						))}
+					</ul>
+				)
+			}
 		</nav>
 	</div>
 </header>
@@ -123,13 +138,16 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 		position: sticky;
 		top: 0;
 		z-index: 100;
-		background: var(--paper);
-		border-bottom: 2px solid transparent;
-		transition: border-color 0.2s ease;
+		background: color-mix(in srgb, var(--bg) 62%, transparent);
+		backdrop-filter: blur(18px) saturate(150%);
+		-webkit-backdrop-filter: blur(18px) saturate(150%);
+		border-bottom: 1px solid transparent;
+		transition: border-color 0.25s ease, background 0.25s ease;
 	}
 	.site-header.is-scrolled,
 	:global(.menu-open) .site-header {
-		border-bottom-color: var(--ink);
+		border-bottom-color: var(--line);
+		background: color-mix(in srgb, var(--bg) 82%, transparent);
 	}
 	.site-header__bar {
 		display: flex;
@@ -138,41 +156,40 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 		gap: 16px;
 		min-height: var(--header-h);
 	}
+	.site-header :global(.site-logo) {
+		color: var(--text);
+	}
 	.site-header__nav ul {
 		display: flex;
-		gap: 6px;
+		gap: 4px;
+		padding: 4px;
 		list-style: none;
 		margin: 0;
-		padding: 0;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		background: var(--surface);
 	}
 	.site-header__nav a {
 		display: inline-flex;
 		align-items: center;
 		gap: 8px;
-		min-height: 44px;
-		padding: 0 14px;
-		border: 2px solid transparent;
+		min-height: 40px;
+		padding: 0 14px 0 8px;
 		border-radius: 999px;
+		color: var(--text-2);
 		font-weight: 700;
+		font-size: 0.95rem;
 		text-decoration: none;
+		transition: background 0.2s ease, color 0.2s ease;
 	}
 	.site-header__nav a:hover {
-		border-color: var(--ink);
+		color: var(--text);
+		background: var(--surface-2);
 	}
 	.site-header__nav a[aria-current="page"] {
-		background: var(--accent);
-		color: var(--on-accent);
-		border-color: var(--ink);
-	}
-	.dot {
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
-		border: 3px solid var(--accent);
-		flex: none;
-	}
-	[aria-current="page"] > .dot {
-		border-color: currentColor;
+		color: var(--text);
+		background: var(--accent-soft);
+		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
 	}
 	.site-header__actions {
 		display: flex;
@@ -181,11 +198,11 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 	}
 	.site-header__toggle {
 		display: none;
-		width: 48px;
-		height: 48px;
-		border: var(--border);
+		width: 46px;
+		height: 46px;
+		border: 1px solid var(--line-strong);
 		border-radius: 50%;
-		background: var(--white);
+		background: var(--surface);
 		cursor: pointer;
 		place-items: center;
 	}
@@ -195,24 +212,23 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 		width: 20px;
 	}
 	.burger span {
-		height: 2.5px;
-		background: var(--ink);
+		height: 2px;
+		background: var(--text);
 		border-radius: 2px;
 		transition: transform 0.2s ease;
 	}
 	[aria-expanded="true"] .burger span:first-child {
-		transform: translateY(4.25px) rotate(45deg);
+		transform: translateY(4px) rotate(45deg);
 	}
 	[aria-expanded="true"] .burger span:last-child {
-		transform: translateY(-4.25px) rotate(-45deg);
+		transform: translateY(-4px) rotate(-45deg);
 	}
 
 	.site-menu {
-		border-top: var(--border);
-		background: var(--paper);
+		border-top: 1px solid var(--line);
 		max-height: calc(100dvh - var(--header-h));
 		overflow-y: auto;
-		padding-block: 20px 28px;
+		padding-block: 16px 28px;
 	}
 	.site-menu ul {
 		list-style: none;
@@ -226,29 +242,40 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 		gap: 14px;
 		min-height: 60px;
 		padding: 10px 4px;
-		border-bottom: 2px solid var(--line-soft);
+		border-bottom: 1px solid var(--line);
 		font-family: var(--font-display);
-		font-size: 1.5rem;
+		font-size: 1.45rem;
 		font-weight: 700;
 		text-decoration: none;
+		color: var(--text);
 	}
 	.site-menu li a small {
 		display: block;
 		font-family: var(--font-body);
 		font-size: 0.9rem;
 		font-weight: 600;
-		color: var(--muted);
+		color: var(--text-2);
 	}
-	.site-menu li a .dot {
-		width: 18px;
-		height: 18px;
-		border-width: 4px;
-	}
-	.site-menu li a[aria-current="page"] {
+	.site-menu li a[aria-current="page"] strong {
 		color: var(--accent-text);
 	}
 	.site-menu .btn {
 		width: 100%;
+	}
+	.site-menu ul.site-menu__social {
+		display: flex;
+		gap: 10px;
+		margin: 18px 0 0;
+	}
+	.site-menu__social a {
+		display: grid !important;
+		place-items: center;
+		width: 48px;
+		height: 48px;
+		min-height: 0 !important;
+		padding: 0 !important;
+		border: 1px solid var(--line-strong) !important;
+		border-radius: 50%;
 	}
 
 	@media (max-width: 959px) {
@@ -268,7 +295,7 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 			clip: rect(0 0 0 0);
 		}
 		.site-header__cta {
-			width: 48px;
+			width: 46px;
 			padding: 0;
 		}
 	}

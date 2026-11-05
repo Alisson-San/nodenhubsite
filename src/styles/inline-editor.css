@@ -123,7 +123,7 @@
 		background: var(--ink);
 		color: var(--white);
 	}
-	body.ne-editing .solution .ne-tools {
+	body.ne-editing .explorer__panel .ne-tools {
 		grid-column: 1 / -1;
 		margin: 0 0 4px;
 		width: fit-content;
@@ -193,7 +193,7 @@
 		border-radius: 20px;
 		background: var(--white);
 		color: var(--ink);
-		box-shadow: var(--shadow);
+		box-shadow: 0 30px 80px -20px rgb(0 0 0 / 45%);
 	}
 	.ne-modal::backdrop {
 		background: rgb(18 14 42 / 55%);
@@ -212,14 +212,14 @@
 		padding: 16px 20px;
 	}
 	.ne-modal__head {
-		border-bottom: 2px solid var(--line-soft);
+		border-bottom: 2px solid #d6d3e4;
 	}
 	.ne-modal__head h2 {
 		font-size: 1.5rem;
 	}
 	.ne-modal__foot {
 		justify-content: flex-end;
-		border-top: 2px solid var(--line-soft);
+		border-top: 2px solid #d6d3e4;
 	}
 	.ne-modal__body {
 		overflow-y: auto;
@@ -253,7 +253,7 @@
 	}
 	.ne-field small {
 		font-weight: 500;
-		color: var(--muted);
+		color: #5a5675;
 	}
 	.ne-field input:not([type="checkbox"]),
 	.ne-field select,
@@ -293,7 +293,7 @@
 		accent-color: var(--ink);
 	}
 	.ne-fieldset {
-		border: 2px solid var(--line-soft);
+		border: 2px solid #d6d3e4;
 		border-radius: 14px;
 		padding: 14px;
 		display: grid;
@@ -310,7 +310,7 @@
 		grid-template-columns: 1fr 1.6fr auto;
 		align-items: end;
 		padding-bottom: 12px;
-		border-bottom: 1px solid var(--line-soft);
+		border-bottom: 1px solid #d6d3e4;
 	}
 	@media (max-width: 600px) {
 		.ne-repeat {
@@ -338,7 +338,7 @@
 		background: #fff6dc;
 		color: var(--ink);
 		font-weight: 700;
-		box-shadow: var(--shadow-sm);
+		box-shadow: 0 10px 30px -10px rgb(0 0 0 / 35%);
 		white-space: pre-line;
 	}
 	.ne-toast[hidden] {
@@ -357,4 +357,50 @@
 .ne-suggest .ne-btn {
 	background: var(--ink);
 	color: var(--white);
+}
+
+/* Modal de edição sempre claro, independente do tema da página */
+.ne-modal {
+	color-scheme: light;
+	--text: #120e2a;
+}
+.ne-hint {
+	color: #5a5675;
+	font-size: 0.9rem;
+}
+
+/* Vitrine (projetos e setups) */
+.sc-tools {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 3;
+	margin: 0 !important;
+}
+.sc-edit-media {
+	display: grid;
+	grid-template-columns: 96px 1fr auto;
+	gap: 12px;
+	align-items: end;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #d6d3e4;
+}
+.sc-edit-media img {
+	width: 96px;
+	height: 72px;
+	object-fit: cover;
+	border-radius: 8px;
+	background: #ece9f6;
+}
+.sc-edit-media__tools {
+	display: flex;
+	gap: 6px;
+}
+@media (max-width: 600px) {
+	.sc-edit-media {
+		grid-template-columns: 72px 1fr;
+	}
+	.sc-edit-media__tools {
+		grid-column: 1 / -1;
+	}
 }

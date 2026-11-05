@@ -62,7 +62,7 @@ const chat = chats[division ?? "hub"];
 
 <section class="closing" aria-labelledby="contato-titulo" id="contato">
 	<div class="wrap closing__inner">
-		<div class="closing__copy">
+		<div class="closing__copy" data-reveal>
 			<h2 class="h2" id="contato-titulo" {...edit("cta_title", "contactTitle")}>{title}</h2>
 			<p class="closing__text" {...edit("cta_description", "contactDescription")}>{description}</p>
 			<div class="closing__actions">
@@ -150,12 +150,15 @@ const chat = chats[division ?? "hub"];
 
 <style>
 	.closing {
+		--text: #f4f2ff;
+		--text-2: #c9c3e6;
 		position: relative;
 		overflow: hidden;
 		background:
-			radial-gradient(circle at 1px 1px, rgb(255 255 255 / 9%) 1.2px, transparent 1.6px) 0 0 / 28px 28px,
-			#0f0b29;
-		color: var(--white);
+			radial-gradient(50% 70% at 85% 50%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%),
+			radial-gradient(40% 60% at 10% 100%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent 70%),
+			#0b0820;
+		color: var(--text);
 	}
 	.closing__inner {
 		display: grid;
@@ -185,10 +188,7 @@ const chat = chats[division ?? "hub"];
 		align-items: center;
 		margin-top: 6px;
 	}
-	.closing__actions .btn {
-		--btn-shadow: var(--violet);
-		border-color: var(--white);
-	}
+
 	.closing__actions .link-arrow {
 		color: var(--white);
 	}
@@ -209,12 +209,12 @@ const chat = chats[division ?? "hub"];
 		position: relative;
 		z-index: 2;
 		width: min(100%, 360px);
-		border: 2px solid var(--white);
+		border: 1px solid rgb(255 255 255 / 30%);
 		border-radius: 28px;
 		background: #ece5dd;
 		color: #111b21;
 		overflow: hidden;
-		box-shadow: 10px 10px 0 var(--violet);
+		box-shadow: 0 30px 80px -20px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 0 6px rgb(255 255 255 / 6%);
 	}
 	.chat__head {
 		display: flex;
@@ -319,7 +319,7 @@ const chat = chats[division ?? "hub"];
 		width: min(100%, 470px);
 		aspect-ratio: 1;
 		border-radius: 50%;
-		border: 2px dashed rgb(255 255 255 / 22%);
+		border: 1px dashed rgb(255 255 255 / 22%);
 		animation: orbit 36s linear infinite;
 	}
 	.orbit__item {
@@ -333,9 +333,10 @@ const chat = chats[division ?? "hub"];
 	}
 	.orbit__item :global(.division-mark) {
 		animation: orbit 36s linear infinite reverse;
-		background: #17123d;
+		background: rgb(18 13 46 / 80%);
 		border-radius: 50%;
 		padding: 8px;
+		box-shadow: 0 0 30px -6px color-mix(in srgb, var(--accent) 80%, transparent);
 	}
 	@keyframes orbit {
 		to {

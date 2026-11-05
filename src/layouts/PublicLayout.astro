@@ -18,6 +18,8 @@ interface Props {
 	noindex?: boolean;
 	/** Barra fixa de WhatsApp no celular. */
 	stickyCta?: boolean;
+	/** Tema visual; padrão: o da divisão, ou "hub". */
+	theme?: "hub" | "home" | "game" | "data";
 }
 
 const {
@@ -30,12 +32,13 @@ const {
 	whatsappMessage,
 	noindex = false,
 	stickyCta = true,
+	theme = division ?? "hub",
 } = Astro.props;
 ---
 
 <BaseLayout site={site} title={title} description={description} canonical={canonical} noindex={noindex}>
 	<slot name="head" slot="head" />
-	<div class="page" data-division={division}>
+	<div class="page" data-division={division} data-theme={theme}>
 		<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 		<SiteHeader site={site} current={current} whatsappMessage={whatsappMessage} />
 		<main id="conteudo" tabindex="-1">
@@ -56,6 +59,23 @@ const {
 </BaseLayout>
 
 <script>
+	// Revelação suave dos blocos marcados com data-reveal (sem JS, tudo visível).
+	if (document.documentElement.classList.contains("js-reveal")) {
+		document.documentElement.classList.add("reveal-ready");
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) {
+						entry.target.classList.add("is-revealed");
+						observer.unobserve(entry.target);
+					}
+				}
+			},
+			{ rootMargin: "0px 0px -8% 0px" },
+		);
+		document.querySelectorAll("[data-reveal]").forEach((el) => observer.observe(el));
+	}
+
 	// O botão fixo aparece depois da abertura, que já tem o próprio botão.
 	const sticky = document.querySelector<HTMLElement>("[data-sticky-cta]");
 	if (sticky) {
@@ -87,14 +107,14 @@ const {
 			justify-content: center;
 			gap: 10px;
 			min-height: 56px;
-			border: var(--border);
+			border: 1px solid rgb(255 255 255 / 25%);
 			border-radius: 999px;
-			background: var(--whatsapp);
+			background: linear-gradient(110deg, #11813f, #0d6e35);
 			color: var(--white);
 			font-weight: 700;
 			font-size: 1.05rem;
 			text-decoration: none;
-			box-shadow: var(--shadow-sm);
+			box-shadow: 0 16px 40px -14px rgb(31 168 85 / 80%);
 			transform: translateY(140%);
 			visibility: hidden;
 			transition: transform 0.25s ease, visibility 0.25s;

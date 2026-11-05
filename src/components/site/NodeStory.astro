@@ -237,7 +237,6 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 	/* ---------- Base (sem JavaScript, movimento reduzido ou tela pequena) ---------- */
 	.story {
 		position: relative;
-		border-bottom: var(--border);
 	}
 	.story__skip {
 		position: absolute;
@@ -466,9 +465,7 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 	/* Palco escuro com textura de rede */
 	.story {
 		--story-bg: #0f0b29;
-		background:
-			radial-gradient(circle at 1px 1px, rgb(255 255 255 / 9%) 1.2px, transparent 1.6px) 0 0 / 28px 28px,
-			var(--story-bg);
+		background: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 7%) 1.2px, transparent 1.6px) 0 0 / 28px 28px;
 		color: var(--white);
 	}
 	.story :global(.lead),
@@ -533,7 +530,6 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 	/* ---------- Apresentação animada (ativada pelo script) ---------- */
 	:global(.story--live) {
 		height: calc(var(--story-acts, 6) * 92svh);
-		border-bottom: var(--border);
 	}
 	:global(.story--live) .story__stage {
 		position: sticky;

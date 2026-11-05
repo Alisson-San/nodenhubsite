@@ -14,6 +14,12 @@ const out = process.argv[3] || fs.mkdtempSync(path.join(require('os').tmpdir(), 
   const payloads = [];
   await p.route('**/api/admin/editor/**', async route => {
     const body = route.request().postDataJSON(); payloads.push({ url: route.request().url(), body });
+  await p.route('**/api/admin/showcase**', async route => {
+    let body = null;
+    try { body = route.request().postDataJSON(); } catch { body = null; }
+    if (body) payloads.push({ url: route.request().url(), body });
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, path: '44444444-4444-4444-8444-444444444444.webp', url: 'data:,' }) });
+  });
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ revision: 1, published: true }) });
   });
   const step = async (name, fn) => { try { await fn(); console.log('OK  ', name); } catch (e) { console.log('FAIL', name, e.message.split('\n')[0]); process.exitCode = 1; } };
@@ -57,7 +63,7 @@ const out = process.argv[3] || fs.mkdtempSync(path.join(require('os').tmpdir(), 
   });
 
   await step('mover para baixo', async () => {
-    await Promise.all([p.waitForEvent('load'), p.locator('.solution .ne-tools button[aria-label^="Mover"][aria-label$="para baixo"]').first().click()]);
+    await Promise.all([p.waitForEvent('load'), p.locator('.explorer__panel .ne-tools button[aria-label^="Mover"][aria-label$="para baixo"]').first().click()]);
     const c = payloads.at(-1).body.document.serviceCards; const first = c.find(x => x.sort_order === 0); if (first.title === 'Diagnóstico e suporte') throw new Error('not moved');
   });
 
@@ -68,7 +74,7 @@ const out = process.argv[3] || fs.mkdtempSync(path.join(require('os').tmpdir(), 
 
   await step('excluir com confirmação', async () => {
     const before = 6;
-    await p.locator('.solution .ne-tools button', { hasText: 'Excluir' }).first().click();
+    await p.locator('.explorer__panel .ne-tools button', { hasText: 'Excluir' }).first().click();
     await p.waitForSelector('dialog[open]'); await p.screenshot({ path: path.join(out, 'edit-3-delete.png') });
     await Promise.all([p.waitForEvent('load'), p.click('dialog [data-ne-submit]')]);
     if (payloads.at(-1).body.document.serviceCards.length !== before - 1) throw new Error('not deleted');
@@ -103,6 +109,24 @@ const out = process.argv[3] || fs.mkdtempSync(path.join(require('os').tmpdir(), 
     await p.click('[data-ne-mode]');
     if (await p.locator('[contenteditable]').count()) throw new Error('still editable');
     await p.screenshot({ path: path.join(out, 'edit-4-visitor.png') });
+  });
+
+  await step('vitrine: visualizador e cadastro com imagem', async () => {
+    await p.goto(base + '/noden-data', { waitUntil: 'networkidle' });
+    await p.locator('[data-sc-open]').first().click();
+    await p.keyboard.press('ArrowRight');
+    if (!/2 de/.test(await p.locator('[data-sc-counter]').textContent())) throw new Error('visualizador não avançou');
+    await p.keyboard.press('Escape');
+    await p.click('[data-sc-add]');
+    await p.fill('dialog[open] [name=title]', 'Projeto teste');
+    await p.setInputFiles('dialog[open] [data-upload]', { name: 't.png', mimeType: 'image/png', buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0, 0]) });
+    await p.waitForSelector('dialog[open] [data-alt]');
+    await p.click('dialog[open] [data-submit]');
+    if (!/Descreva/.test(await p.locator('dialog[open] [data-error]').textContent())) throw new Error('aceitou imagem sem descrição');
+    await p.fill('dialog[open] [data-alt]', 'Tela inicial');
+    await Promise.all([p.waitForEvent('load'), p.click('dialog[open] [data-submit]')]);
+    const last = payloads.at(-1);
+    if (!/showcase$/.test(last.url) || last.body.item.media[0].alt !== 'Tela inicial') throw new Error(JSON.stringify(last).slice(0, 200));
   });
 
   await step('inicial: edição de texto e publicação', async () => {

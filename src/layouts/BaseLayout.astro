@@ -50,6 +50,18 @@ const ogImage = new URL("/android-chrome-512x512.png", site.url);
 		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/site.webmanifest" />
 
+		<!-- Revelação ao rolar decidida antes da primeira pintura; se o script
+		     principal não carregar, tudo volta a aparecer em 3 s. -->
+		<script is:inline>
+			(function () {
+				var root = document.documentElement;
+				if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+				root.classList.add("js-reveal");
+				setTimeout(function () {
+					if (!root.classList.contains("reveal-ready")) root.classList.remove("js-reveal");
+				}, 3000);
+			})();
+		</script>
 		<slot name="head" />
 	</head>
 

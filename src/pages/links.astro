@@ -5,6 +5,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import SiteLogo from "../components/common/SiteLogo.astro";
 import WhatsAppIcon from "../components/common/WhatsAppIcon.astro";
 import DivisionMark from "../components/common/DivisionMark.astro";
+import SocialIcon from "../components/common/SocialIcon.astro";
 import { buildLinkItems } from "../data/links";
 import { loadSiteConfig } from "../lib/site/siteRepository";
 import { divisionOrder, divisions } from "../lib/site/divisions";
@@ -19,6 +20,7 @@ const [whatsapp, ...contacts] = buildLinkItems(site).filter((item) => item.href 
 	description="WhatsApp, Instagram e as três divisões da Noden: suporte em casa, PC gamer e sistemas para empresas."
 	canonical="/links"
 >
+	<div class="page" data-theme="hub">
 	<main class="links wrap" id="conteudo">
 		<SiteLogo size="lg" idPrefix="links-logo" />
 		<p class="links__pitch">A gente busca, resolve e devolve funcionando. {site.serviceAreas.join(" · ")}.</p>
@@ -51,6 +53,7 @@ const [whatsapp, ...contacts] = buildLinkItems(site).filter((item) => item.href 
 				contacts.map((item) => (
 					<li>
 						<a class="link-row link-row--plain" href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener" : undefined}>
+							<span class="link-row__icon"><SocialIcon platform={item.icon} /></span>
 							<span>
 								<strong>{item.title}</strong>
 								<small>{item.description}</small>
@@ -61,6 +64,7 @@ const [whatsapp, ...contacts] = buildLinkItems(site).filter((item) => item.href 
 			}
 			<li>
 				<a class="link-row link-row--plain" href="/">
+					<span class="link-row__icon"><SocialIcon platform="website" /></span>
 					<span>
 						<strong>Site completo</strong>
 						<small>{site.url.replace(/^https?:\/\//, "")}</small>
@@ -69,6 +73,7 @@ const [whatsapp, ...contacts] = buildLinkItems(site).filter((item) => item.href 
 			</li>
 		</ul>
 	</main>
+	</div>
 </BaseLayout>
 
 <style>
@@ -109,16 +114,30 @@ const [whatsapp, ...contacts] = buildLinkItems(site).filter((item) => item.href 
 		gap: 16px;
 		min-height: 72px;
 		padding: 14px 18px;
-		border: var(--border);
+		border: 1px solid var(--line);
 		border-radius: var(--radius);
-		background: var(--white);
+		background: var(--surface);
+		backdrop-filter: var(--glass-blur);
+		-webkit-backdrop-filter: var(--glass-blur);
+		color: var(--text);
 		text-align: left;
 		text-decoration: none;
-		transition: transform 0.15s ease, box-shadow 0.15s ease;
+		transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 	}
 	.link-row:hover {
-		transform: translate(-2px, -2px);
-		box-shadow: 4px 4px 0 var(--accent);
+		transform: translateY(-2px);
+		border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+		box-shadow: 0 16px 40px -18px var(--accent);
+	}
+	.link-row__icon {
+		display: grid;
+		place-items: center;
+		width: 48px;
+		height: 48px;
+		flex: none;
+		border-radius: 50%;
+		background: var(--surface-2);
+		border: 1px solid var(--line);
 	}
 	.link-row strong {
 		display: block;
@@ -127,17 +146,8 @@ const [whatsapp, ...contacts] = buildLinkItems(site).filter((item) => item.href 
 	}
 	.link-row small {
 		display: block;
-		color: var(--muted);
+		color: var(--text-2);
 		font-size: 0.92rem;
 	}
-	.link-row__ring {
-		width: 40px;
-		height: 40px;
-		flex: none;
-		border-radius: 50%;
-		border: 8px solid var(--accent);
-	}
-	.link-row--plain {
-		--accent: var(--ink);
-	}
+
 </style>

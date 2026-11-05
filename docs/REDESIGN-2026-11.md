@@ -88,3 +88,21 @@ Textos editáveis novos: `storyTitle` e `storyDescription` (fim da apresentaçã
 - **Menos branco**: fundo lavanda com textura de pontos e área de preços na cor da divisão. `--cyan-text` escurecido para manter 5,3:1 no fundo novo.
 - Removidos: faixa contínua de serviços, barra de promessas, caminho de nós antigo e o símbolo vetorial com conectores.
 - Verificação: `npm run validate` sem erros/avisos; 42 testes unitários; `public-site.cjs` (incluindo jornada, conversa e movimento reduzido) e `inline-editor.cjs` sem falhas.
+
+## Atualização — visual refinado, orçamento e vitrine
+- **Redes sociais** com ícones (`SocialIcon.astro`): rodapé, página de links e menu do celular.
+- **Visual**: saem bordas pretas grossas, sombras duras e blocos chapados. Entram fundos com luzes desfocadas, vidro, degradês nas cores da logo e botões com brilho. Tema por página (`data-theme`): inicial escura "aurora"; Noden Home clara com céu e ondas de Wi-Fi; Noden Game escura com piso neon e borda RGB animada; Noden Data escura com grade técnica e detalhes em fonte mono. Revelação suave ao rolar (decidida antes da primeira pintura, com salvaguarda de 3 s).
+- **Explorador de serviços** (`Solutions.astro`): abas acessíveis (setas, Home/End) com painel grande; em tela estreita, sem JS ou no modo de edição vira lista.
+- **Monte seu orçamento** (`Catalog.astro` + `lib/site/quote.ts`): o visitante adiciona itens, vê o total de referência ("a partir de" e itens sob consulta tratados) e envia a lista pronta no WhatsApp. A seleção sobrevive à recarga (sessionStorage).
+- **Vitrine** (`Showcase.astro`): portfólio da Noden Data (cartões em moldura de navegador, link do projeto, tecnologias) e galeria de setups da Noden Game (mosaico com ficha técnica). Visualizador com todas as imagens, setas e teclado. Cadastro no próprio site (modal com envio de imagens, descrição obrigatória, publicar/ocultar, ordenar, excluir).
+  - Requer a migração `supabase/migrations/20261105180000_showcase.sql` (tabela `showcase_items` com RLS e bucket público `showcase-media`, escrita só de admins). **Não aplicada.** Enquanto não for, a seção não aparece para visitantes e o admin vê um aviso.
+  - Testada em PGlite: `scripts/qa/showcase-database.test.mjs` (11 verificações).
+
+### Verificação
+- `npm run validate` sem erros/avisos; 48 testes unitários; 3 de rotas; 10 grupos SQL do catálogo e 11 da vitrine.
+- `public-site.cjs`: 6 tamanhos sem rolagem lateral, carregamento sem atos sobrepostos, apresentação, jornada, conversa, explorador por teclado, orçamento (soma, mensagem, recarga, limpar), vitrine oculta sem itens, movimento reduzido e sem JavaScript.
+- `inline-editor.cjs`: 16 fluxos, incluindo cadastro na vitrine com imagem.
+
+### Pendente
+- Aplicar a migração da vitrine (precisa de autorização) e cadastrar os primeiros projetos/setups com fotos reais.
+- Testar com login real de administrador (edição, publicação e envio de imagens).

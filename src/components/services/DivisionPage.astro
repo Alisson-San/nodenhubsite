@@ -8,6 +8,10 @@ import Catalog from "../site/Catalog.astro";
 import ClosingCta from "../site/ClosingCta.astro";
 import OtherDivisions from "../site/OtherDivisions.astro";
 import InlineEditor from "../editor/InlineEditor.astro";
+import Showcase from "../site/Showcase.astro";
+import { loadShowcase, type ShowcaseLoad } from "../../lib/showcase/repository";
+import { buildFixtureShowcase, devEditorFixtureEnabled } from "../../lib/site/devEditorFixture";
+import { createSupabaseRequestClient } from "../../lib/supabase/request";
 
 import { getWhatsAppUrl } from "../../config/site";
 import { divisions } from "../../lib/site/divisions";
@@ -27,6 +31,15 @@ if (!view) {
 
 const { page, site, extras, details, editor } = view;
 const editable = Boolean(editor);
+
+// Vitrine: projetos (Data) e setups montados (Game).
+const showcaseDivision = division === "home" ? null : division;
+let showcase: ShowcaseLoad = { ready: false, items: [] };
+if (showcaseDivision) {
+	if (devEditorFixtureEnabled(Astro.request)) showcase = buildFixtureShowcase(showcaseDivision);
+	else if (editable) showcase = await loadShowcase(showcaseDivision, createSupabaseRequestClient({ request: Astro.request, cookies: Astro.cookies }), true);
+	else showcase = await loadShowcase(showcaseDivision);
+}
 const meta = divisions[division];
 
 Astro.response.headers.set("X-Noden-Content-Source", view.source);
@@ -66,7 +79,11 @@ if (editable) {
 		description={page.servicesSection.description}
 		services={page.services}
 		editable={editable}
+		division={division}
+		site={site}
 	/>
+
+	{showcaseDivision && <Showcase division={showcaseDivision} items={showcase.items} ready={showcase.ready} editable={editable} />}
 
 	<Journey title="Como funciona" tone="division" steps={extras.steps} promises={extras.promises} areas={division === "data" ? undefined : site.serviceAreas} editable={editable} />
 
