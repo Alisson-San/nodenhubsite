@@ -23,6 +23,9 @@ interface Props {
 }
 
 const { division } = Astro.props;
+// Vitrine (Data/Game) carregada em paralelo com a página para visitantes.
+const publicShowcase =
+	division !== "home" && !Astro.locals.isAdmin && !devEditorFixtureEnabled(Astro.request) ? loadShowcase(division) : null;
 const view = await loadDivisionView(division, Astro);
 
 if (!view) {
@@ -38,7 +41,7 @@ let showcase: ShowcaseLoad = { ready: false, items: [] };
 if (showcaseDivision) {
 	if (devEditorFixtureEnabled(Astro.request)) showcase = buildFixtureShowcase(showcaseDivision);
 	else if (editable) showcase = await loadShowcase(showcaseDivision, createSupabaseRequestClient({ request: Astro.request, cookies: Astro.cookies }), true);
-	else showcase = await loadShowcase(showcaseDivision);
+	else showcase = await (publicShowcase ?? loadShowcase(showcaseDivision));
 }
 const meta = divisions[division];
 

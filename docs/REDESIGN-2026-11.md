@@ -106,3 +106,41 @@ Textos editáveis novos: `storyTitle` e `storyDescription` (fim da apresentaçã
 ### Pendente
 - Cadastrar os primeiros projetos/setups com fotos reais (modo de edição nas páginas Noden Data e Noden Game).
 - Testar com login real de administrador (edição, publicação e envio de imagens).
+
+## Atualização — desempenho do carregamento
+Relato do responsável: demora grande para abrir `/`, `/noden-home`, `/noden-game` e `/noden-data`, rodando localmente.
+
+### Causas confirmadas
+- **Texto principal escondido até o JavaScript.** O hero das divisões usava a revelação ao rolar (`data-reveal`): o maior conteúdo só aparecia depois de carregar e executar os scripts. Em modo de desenvolvimento (`astro dev`, 29–33 arquivos sem empacotar contra 10–11 na produção) isso pesa ainda mais.
+- **Efeitos de desfoque repetidos.** `backdrop-filter` e `filter: blur` em dezenas de cartões, luzes e painéis custam caro para a GPU/CPU, principalmente em máquinas modestas e no WSL.
+- **Consultas em sequência.** A inicial carregava as três páginas de serviço inteiras só para achar o menor preço (21 consultas em 3 ondas). As divisões faziam 11–12 consultas em 4–5 ondas.
+- **Distância entre servidor e banco.** As funções da Vercel rodavam em Washington (`iad1`) e o Supabase fica em São Paulo (`sa-east-1`): cada onda de consultas pagava a ida e volta.
+
+### Correções
+- Hero das divisões visível na primeira pintura (sem `data-reveal`); a revelação continua só nas seções abaixo.
+- Desfoque mantido apenas onde ajuda a leitura (cabeçalho, ferramentas fixas do catálogo, bandeja do orçamento e fundo do visualizador). Cartões, luzes e painéis usam degradês sem filtro.
+- Piso neon da Noden Game animado por `transform` (sem repintura). A animação dos nós só calcula quadros enquanto há rolagem ou pacotes em trânsito; parada, a "respiração" é CSS.
+- Inicial: uma consulta para os preços de entrada (`loadStartingPrices`). Divisões: detalhes dos produtos e vitrine começam em paralelo com a página.
+- `vercel.json` com `"regions": ["gru1"]` (São Paulo, junto do banco). Passa a valer no próximo deploy.
+- `npm run preview`: serve a build da Vercel localmente (`scripts/serve-production.mjs`), porque `astro preview` não funciona com o adaptador da Vercel.
+
+### Medições (sandbox, Chromium com CPU 4× mais lenta, servidor de dados simulado com 120 ms por consulta)
+| Página | Antes | Depois |
+|---|---|---|
+| LCP das divisões | ~1230 ms | 220–290 ms |
+| LCP da inicial | — | ~360 ms |
+| Consultas da inicial | 21 em 3 ondas (~390 ms) | 4 em 2 ondas (~250 ms) |
+| Ondas nas divisões | 4–5 (~500–620 ms) | 3 (~375 ms) |
+
+Os números servem para comparar antes e depois no mesmo ambiente; não são medição do site publicado.
+
+### Para medir no computador local
+- Velocidade real: `npm run build` e depois `npm run preview` (abre em `http://localhost:4321`). O `npm run dev` é feito para editar, não para medir.
+- No WSL, manter o projeto dentro do Linux (`~/...`) e não em `/mnt/c/...`: o acesso a arquivos do Windows pelo WSL é muito mais lento e afeta o servidor de desenvolvimento.
+
+### Verificação
+- `npm run validate` sem erros/avisos; testes unitários, de rotas, `public-site.cjs` e `inline-editor.cjs` (com `DEV_EDITOR_FIXTURE=true`) sem falhas.
+- `npm run preview` testado: `/` e `/noden-home` 200, `/home` 301, rota inexistente 404, arquivos estáticos 200.
+
+### Pendente
+- Conferir o tempo no site publicado depois do próximo deploy em `gru1` (Vercel Speed Insights ou DevTools).

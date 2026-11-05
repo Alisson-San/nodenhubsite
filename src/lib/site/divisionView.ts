@@ -203,6 +203,8 @@ async function loadAdminView(
 }
 
 export async function loadDivisionView(division: ServiceDivision, astro: AstroGlobal): Promise<DivisionView | null> {
+	// Tudo que não depende de outra consulta sai em paralelo.
+	const publicDetails = astro.locals.isAdmin ? null : loadProductDetails(division);
 	const [loaded, site, extrasValue] = await Promise.all([
 		loadServicePage(division),
 		loadSiteConfig(),
@@ -228,7 +230,7 @@ export async function loadDivisionView(division: ServiceDivision, astro: AstroGl
 		page: loaded.page,
 		site,
 		extras,
-		details: await loadProductDetails(division),
+		details: await (publicDetails ?? loadProductDetails(division)),
 		source: loaded.source,
 	};
 }

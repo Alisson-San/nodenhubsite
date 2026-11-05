@@ -232,8 +232,6 @@ const ask = (service: ServiceItem) =>
 		border: 1px solid var(--line);
 		border-radius: calc(var(--radius) + 6px);
 		background: var(--surface);
-		backdrop-filter: var(--glass-blur);
-		-webkit-backdrop-filter: var(--glass-blur);
 		box-shadow: var(--shadow);
 	}
 	.explorer__panel::before {
@@ -243,7 +241,6 @@ const ask = (service: ServiceItem) =>
 		width: 70%;
 		aspect-ratio: 1;
 		background: radial-gradient(circle, color-mix(in srgb, var(--accent) 35%, transparent), transparent 65%);
-		filter: blur(20px);
 		pointer-events: none;
 	}
 	.solutions--tabs .explorer__panel {

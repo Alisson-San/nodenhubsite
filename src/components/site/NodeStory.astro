@@ -527,6 +527,21 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 		border-right-color: rgb(255 255 255 / 25%);
 	}
 
+	/* Respiração da logo no topo: transform no contêiner (compositor). */
+	:global(.story--at-start) .story__scene {
+		animation: story-breathe 3.6s ease-in-out infinite;
+	}
+	@keyframes story-breathe {
+		50% {
+			transform: translateY(-8px);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		:global(.story--at-start) .story__scene {
+			animation: none;
+		}
+	}
+
 	/* ---------- Apresentação animada (ativada pelo script) ---------- */
 	:global(.story--live) {
 		height: calc(var(--story-acts, 6) * 92svh);

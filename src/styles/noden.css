@@ -368,8 +368,6 @@ p {
 	background: var(--surface);
 	color: var(--text);
 	border-color: var(--line-strong);
-	backdrop-filter: var(--glass-blur);
-	-webkit-backdrop-filter: var(--glass-blur);
 	box-shadow: none;
 }
 .btn--ghost:hover,

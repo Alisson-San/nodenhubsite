@@ -159,7 +159,6 @@ export function startNodeStory(): void {
 	const stage = root.querySelector<HTMLElement>("[data-story-stage]")!;
 	const panels = [...root.querySelectorAll<HTMLElement>("[data-act]")];
 	const railLinks = [...root.querySelectorAll<HTMLAnchorElement>("[data-story-rail] [data-story-goto]")];
-	const world = root.querySelector<SVGGElement>("[data-world]")!;
 	const frameEl = root.querySelector<SVGGElement>("[data-frame]")!;
 	const symbolEl = root.querySelector<SVGImageElement>("[data-symbol]")!;
 	const edgesEl = root.querySelector<SVGGElement>("[data-edges]")!;
@@ -245,27 +244,38 @@ export function startNodeStory(): void {
 			});
 		}
 
-		// Respiração sutil enquanto a logo está unida na abertura.
-		const idle = scene.act === 0 ? 1 - clamp(progress() * 12) : 0;
-		world.setAttribute("transform", idle > 0 ? `translate(0 ${fixed(Math.sin(time / 900) * 8 * idle, 2)})` : "");
+		// No topo, a logo "respira" por CSS (.story--at-start), sem redesenhar a cena.
+		root.classList.toggle("story--at-start", scene.act === 0 && progress() < 0.02);
 	}
 
+	// Só redesenha enquanto há rolagem recente ou pacotes circulando na rede;
+	// parada, a cena não consome processamento.
+	let lastScroll = 0;
 	function loop(time: number) {
 		const scene = sceneAt(progress());
 		setAct(scene.act);
 		paint(scene, time);
-		frame = visible && live ? requestAnimationFrame(loop) : 0;
+		const moving = time - lastScroll < 500 || scene.edges > 0.01;
+		frame = visible && live && moving ? requestAnimationFrame(loop) : 0;
 	}
 
 	function start() {
 		if (!frame && live && visible) frame = requestAnimationFrame(loop);
 	}
+	window.addEventListener(
+		"scroll",
+		() => {
+			lastScroll = performance.now();
+			start();
+		},
+		{ passive: true },
+	);
 
 	function resetStatic() {
 		currentAct = -1;
 		panels.forEach((panel) => panel.classList.remove("is-active", "is-before"));
 		paint(sceneAt(0), 0);
-		world.removeAttribute("transform");
+		root.classList.remove("story--at-start");
 	}
 
 	/** O texto de algum ato não cabe na tela fixa? Então lemos em fluxo normal. */
