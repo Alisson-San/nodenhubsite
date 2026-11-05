@@ -1,0 +1,555 @@
+---
+import WhatsAppIcon from "../common/WhatsAppIcon.astro";
+import DivisionMark from "../common/DivisionMark.astro";
+import DivisionIcon from "../common/DivisionIcon.astro";
+import { divisionOrder } from "../../lib/site/divisions";
+import { RINGS } from "../../lib/site/brand";
+import { divisions } from "../../lib/site/divisions";
+import type { DivisionExtras } from "../../lib/site/divisionContent";
+import type { ServiceDivision, ServiceItem } from "../../types/services";
+
+interface Props {
+	division: ServiceDivision;
+	eyebrow: string;
+	title: string;
+	description: string;
+	highlights: string[];
+	primaryLabel?: string;
+	primaryHref: string;
+	secondaryLabel?: string;
+	secondaryHref: string;
+	extras: DivisionExtras;
+	services: ServiceItem[];
+	areas: string[];
+}
+
+const {
+	division,
+	eyebrow,
+	title,
+	description,
+	highlights,
+	primaryLabel = "Chamar no WhatsApp",
+	primaryHref,
+	secondaryLabel = "Ver preços",
+	secondaryHref,
+	extras,
+	services,
+	areas,
+} = Astro.props;
+
+const meta = divisions[division];
+// Rótulos antigos vinham em CAIXA ALTA; exibimos em frase normal e
+// omitimos quando só repetem o nome da divisão.
+const sentence = (value: string) =>
+	value === value.toLocaleUpperCase("pt-BR") ? value.charAt(0) + value.slice(1).toLocaleLowerCase("pt-BR") : value;
+const eyebrowText = sentence(eyebrow.trim());
+const showEyebrow = eyebrowText.toLocaleLowerCase("pt-BR") !== meta.name.toLocaleLowerCase("pt-BR");
+const visibleServices = services.filter((s) => !s.inactive).slice(0, 5);
+// As outras duas divisões, ligadas à atual (a rede Noden).
+const siblingSpots: [number, number][] = [[110, 90], [560, 470]];
+const siblings = divisionOrder.filter((id) => id !== division).map((id, i): [ServiceDivision, number, number] => [id, ...siblingSpots[i]]);
+const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "Decisão com clareza"];
+---
+
+<section class="hero" aria-labelledby="hero-titulo">
+	{division === "game" && <div class="hero__floor" aria-hidden="true"></div>}
+	<div class="wrap hero__grid">
+		<div class="hero__copy">
+			<p class="hero__eyebrow">
+				<span class="hero__badge"><DivisionMark division={division} size={28} />{meta.name}</span>
+				<span class="hero__tagline" data-edit-field="hero_eyebrow" hidden={!showEyebrow}>{eyebrowText}</span>
+			</p>
+			<h1 class="display hero__title" id="hero-titulo" data-edit-field="hero_title">{title}</h1>
+			<p class="hero__lead" data-edit-field="hero_description">{description}</p>
+			<div class="hero__actions">
+				<a class="btn" href={primaryHref} target="_blank" rel="noopener">
+					<WhatsAppIcon />
+					<span data-edit-field="hero_primary_label">{primaryLabel}</span>
+				</a>
+				<a class="btn btn--ghost" href={secondaryHref}>
+					<span data-edit-field="hero_secondary_label">{secondaryLabel}</span>
+					<span aria-hidden="true">↓</span>
+				</a>
+			</div>
+			{
+				highlights.length > 0 && (
+					<ul class="hero__highlights" data-edit-field="hero_highlights" data-edit-type="list">
+						{highlights.map((item) => (
+							<li>{item}</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
+
+		<div class="hero__visual">
+			<div class="hero__glow" aria-hidden="true"></div>
+			<svg class="hero__net" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
+				<defs>
+					{divisionOrder.map((id) => (
+						<linearGradient id={`hn-${id}`} gradientUnits="userSpaceOnUse" x1={-RINGS[id].r} y1="0" x2={RINGS[id].r} y2="0">
+							<stop offset="0%" stop-color={RINGS[id].stops[0]} />
+							<stop offset="50%" stop-color={RINGS[id].stops[1]} />
+							<stop offset="100%" stop-color={RINGS[id].stops[2]} />
+						</linearGradient>
+					))}
+				</defs>
+				{division === "home" && (
+					<g class="hero__waves" transform="translate(400 160)">
+						<circle r="190" />
+						<circle r="240" />
+						<circle r="290" />
+					</g>
+				)}
+				{siblings.map(([, x, y]) => <line class="hero__edge" x1="400" y1="160" x2={x} y2={y} />)}
+				<circle class="hero__packet" r="7" />
+				{siblings.map(([id, x, y]) => (
+					<g transform={`translate(${x} ${y}) scale(0.27)`} class="hero__node">
+						<circle r={RINGS[id].r} class="hero__node-fill" />
+						<circle r={RINGS[id].r} fill="none" stroke={`url(#hn-${id})`} stroke-width={RINGS[id].width} />
+						<g class="hero__icon" stroke={`url(#hn-${id})`} style={`--icon-fill:url(#hn-${id})`}><DivisionIcon division={id} /></g>
+					</g>
+				))}
+				<g class="hero__node hero__main" transform="translate(400 160) scale(0.66)">
+					<circle r={RINGS[division].r} class="hero__node-fill" />
+					<g class="hero__main-ring"><circle r={RINGS[division].r} fill="none" stroke={`url(#hn-${division})`} stroke-width={RINGS[division].width} /></g>
+					<g class="hero__icon" stroke={`url(#hn-${division})`} style={`--icon-fill:url(#hn-${division})`}><DivisionIcon division={division} /></g>
+				</g>
+			</svg>
+
+			{
+				division === "home" && (
+					<div class="card">
+						<p class="card__label">Como funciona hoje</p>
+						<ol class="route">
+							{extras.steps.map((step) => (
+								<li>
+									<strong>{step.title}</strong>
+								</li>
+							))}
+						</ol>
+						<p class="card__foot">Buscamos e entregamos em {areas.join(", ")}.</p>
+					</div>
+				)
+			}
+
+			{
+				division === "game" && (
+					<div class="card card--rgb">
+						<p class="card__label">O que entra no seu setup</p>
+						<ul class="loadout">
+							{visibleServices.map((service, index) => (
+								<li>
+									<span class="loadout__n">{String(index + 1).padStart(2, "0")}</span>
+									<strong>{service.title}</strong>
+								</li>
+							))}
+						</ul>
+						<p class="card__foot">Busca e entrega do PC incluída na conversa.</p>
+					</div>
+				)
+			}
+
+			{
+				division === "data" && (
+					<div class="card card--mono">
+						<p class="card__label">pipeline.noden</p>
+						<ol class="pipe">
+							{pipeline.map((step, index) => (
+								<li>
+									<span>{String(index + 1).padStart(2, "0")}</span>
+									{step}
+								</li>
+							))}
+						</ol>
+					</div>
+				)
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.hero {
+		position: relative;
+		overflow: hidden;
+		color: var(--text);
+	}
+	.hero__grid {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+		gap: clamp(32px, 5vw, 72px);
+		align-items: center;
+		padding-block: clamp(40px, 7vw, 96px) clamp(56px, 8vw, 110px);
+	}
+	.hero__eyebrow {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px 14px;
+		font-weight: 700;
+		margin-bottom: 22px;
+	}
+	.hero__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 5px 14px 5px 6px;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+		background: var(--accent-soft);
+	}
+	.hero__tagline {
+		color: var(--accent-text);
+	}
+	.hero__title {
+		max-width: 14ch;
+		font-size: clamp(2.6rem, 6.4vw, 5.4rem);
+	}
+	.hero__lead {
+		margin-top: 22px;
+		max-width: 46ch;
+		font-size: clamp(1.1rem, 1.6vw, 1.28rem);
+		line-height: 1.5;
+		color: var(--text-2);
+	}
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 14px;
+		margin-top: 32px;
+	}
+	.hero__highlights {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		list-style: none;
+		margin: 28px 0 0;
+		padding: 0;
+	}
+	.hero__highlights li {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 14px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		background: var(--surface);
+		font-weight: 600;
+		font-size: 0.93rem;
+		color: var(--text);
+	}
+	.hero__highlights li::before {
+		content: "";
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--grad);
+	}
+
+	/* Visual */
+	.hero__visual {
+		position: relative;
+		min-height: 600px;
+		display: grid;
+		align-items: end;
+		justify-items: start;
+	}
+	.hero__glow {
+		position: absolute;
+		top: -4%;
+		right: -6%;
+		width: 80%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 65%);
+		opacity: 0.7;
+		pointer-events: none;
+	}
+	.hero__net {
+		position: absolute;
+		top: -6%;
+		right: -10%;
+		width: 112%;
+		height: auto;
+		aspect-ratio: 1;
+		pointer-events: none;
+		overflow: visible;
+	}
+	.hero__waves circle {
+		fill: none;
+		stroke: var(--accent-2);
+		stroke-width: 2;
+		opacity: 0.25;
+		transform-origin: 0 0;
+		animation: wave 4.5s ease-out infinite;
+	}
+	.hero__waves circle:nth-child(2) {
+		animation-delay: 1.5s;
+	}
+	.hero__waves circle:nth-child(3) {
+		animation-delay: 3s;
+	}
+	@keyframes wave {
+		0% {
+			transform: scale(0.75);
+			opacity: 0;
+		}
+		30% {
+			opacity: 0.35;
+		}
+		100% {
+			transform: scale(1.15);
+			opacity: 0;
+		}
+	}
+	.hero__edge {
+		stroke: var(--text-2);
+		stroke-width: 2;
+		stroke-dasharray: 2 10;
+		stroke-linecap: round;
+		opacity: 0.6;
+	}
+	.hero__packet {
+		fill: var(--accent);
+		offset-path: path("M 110 90 L 400 160 L 560 470");
+		animation: hero-packet 5s ease-in-out infinite alternate;
+		filter: drop-shadow(0 0 6px var(--accent));
+	}
+	@keyframes hero-packet {
+		from {
+			offset-distance: 0%;
+		}
+		to {
+			offset-distance: 100%;
+		}
+	}
+	.hero__icon {
+		fill: none;
+		stroke-width: 24;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.hero__icon :global(.fill) {
+		fill: var(--icon-fill);
+		stroke: none;
+	}
+	.hero__node-fill {
+		fill: #120d2e;
+	}
+	:global([data-theme="home"]) .hero__node-fill {
+		fill: #ffffff;
+	}
+	.hero__main-ring {
+		transform-origin: 0 0;
+		animation: hero-spin 30s linear infinite;
+	}
+	@keyframes hero-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	/* Piso neon (Game) */
+	.hero__floor {
+		position: absolute;
+		left: -20%;
+		right: -20%;
+		bottom: -2px;
+		height: 46%;
+		overflow: hidden;
+		transform: perspective(380px) rotateX(62deg);
+		transform-origin: bottom;
+		mask-image: linear-gradient(to top, #000 10%, transparent 90%);
+		-webkit-mask-image: linear-gradient(to top, #000 10%, transparent 90%);
+		pointer-events: none;
+	}
+	/* A grade se move por transform (compositor), sem redesenhar o fundo. */
+	.hero__floor::before {
+		content: "";
+		position: absolute;
+		inset: -44px 0 0;
+		background:
+			linear-gradient(rgb(178 49 251 / 55%) 1px, transparent 1px) 0 0 / 100% 44px,
+			linear-gradient(90deg, rgb(69 70 251 / 45%) 1px, transparent 1px) 0 0 / 60px 100%;
+		animation: floor 2.4s linear infinite;
+		will-change: transform;
+	}
+	@keyframes floor {
+		to {
+			transform: translateY(44px);
+		}
+	}
+
+	.card {
+		position: relative;
+		width: min(100%, 380px);
+		padding: 24px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		box-shadow: var(--shadow);
+		color: var(--text);
+	}
+	.card__label {
+		font-weight: 700;
+		font-size: 0.9rem;
+		color: var(--text-2);
+		margin-bottom: 12px;
+	}
+	.card__foot {
+		margin-top: 14px;
+		font-size: 0.9rem;
+		color: var(--text-2);
+	}
+	/* Borda RGB girando (Game) */
+	.card--rgb {
+		border-color: transparent;
+		background:
+			linear-gradient(var(--bg-2), var(--bg-2)) padding-box,
+			conic-gradient(from var(--angle, 0deg), #b231fb, #4546fb, #01ccfe, #ff2ea0, #b231fb) border-box;
+		border: 1.5px solid transparent;
+		animation: rgb 6s linear infinite;
+	}
+	@keyframes rgb {
+		to {
+			--angle: 360deg;
+		}
+	}
+	.card--mono .card__label {
+		font-family: var(--font-mono);
+		color: var(--accent-text);
+	}
+
+	.route {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		counter-reset: step;
+	}
+	.route li {
+		position: relative;
+		counter-increment: step;
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding-block: 9px;
+		font-family: var(--font-display);
+		font-size: 1.2rem;
+	}
+	.route li::before {
+		content: counter(step);
+		width: 32px;
+		height: 32px;
+		flex: none;
+		display: grid;
+		place-items: center;
+		border-radius: 50%;
+		background: var(--grad-button);
+		color: var(--white);
+		font-size: 0.95rem;
+		font-weight: 800;
+	}
+	.route li:not(:last-child)::after {
+		content: "";
+		position: absolute;
+		left: 15px;
+		top: 41px;
+		height: calc(100% - 32px);
+		border-left: 2px dotted var(--line-strong);
+	}
+	.loadout {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.loadout li {
+		display: flex;
+		align-items: baseline;
+		gap: 14px;
+		padding-block: 9px;
+		border-bottom: 1px solid var(--line);
+		font-family: var(--font-display);
+		font-size: 1.1rem;
+	}
+	.loadout__n {
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+		color: var(--accent-text);
+	}
+	.pipe {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 10px;
+	}
+	.pipe li {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 11px 14px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-sm);
+		background: var(--surface);
+		font-weight: 700;
+	}
+	.pipe li span {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		color: var(--accent-text);
+	}
+	.pipe li:last-child {
+		background: var(--grad-button);
+		border-color: transparent;
+		color: var(--white);
+	}
+	.pipe li:last-child span {
+		color: rgb(255 255 255 / 80%);
+	}
+	.pipe li:not(:last-child)::after {
+		content: "";
+		position: absolute;
+		left: 26px;
+		bottom: -11px;
+		width: 2px;
+		height: 10px;
+		background: var(--grad);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero__packet,
+		.hero__main-ring,
+		.hero__waves circle,
+		.hero__floor::before,
+		.card--rgb {
+			animation: none;
+		}
+	}
+	@media (max-width: 900px) {
+		.hero__grid {
+			grid-template-columns: 1fr;
+		}
+		.hero__visual {
+			min-height: 0;
+			padding-block: 8px;
+			justify-items: stretch;
+		}
+		.hero__net,
+		.hero__glow {
+			display: none;
+		}
+		.card {
+			width: 100%;
+		}
+	}
+	@media (max-width: 520px) {
+		.hero__actions .btn {
+			width: 100%;
+		}
+	}
+</style>

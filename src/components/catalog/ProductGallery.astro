@@ -1,0 +1,15 @@
+---
+import type {ProductMedia} from '../../lib/catalog/editorTypes';
+import {videoEmbedUrl} from '../../lib/catalog/media';
+interface Props {media:ProductMedia[]}
+const {media}=Astro.props;
+---
+{media.length>0&&<div class="product-gallery" aria-label="Imagens e demonstrações">{media.map(m=><figure>
+{m.type==='image'? <img src={m.url.startsWith('https://')?m.url:undefined} alt={m.alt} width={m.width||1200} height={m.height||750} loading="lazy" decoding="async"/>:videoEmbedUrl(m.url)&&<div class="video-demo"><button type="button" data-video-url={videoEmbedUrl(m.url)} data-video-title={m.alt}>▶ Assistir: {m.alt||'demonstração'}</button><a href={m.url} target="_blank" rel="noopener noreferrer">Abrir vídeo no provedor ↗</a></div>}
+{m.caption&&<figcaption>{m.caption}</figcaption>}</figure>)}</div>}
+<script>
+document.addEventListener('click',event=>{const button=(event.target as Element).closest<HTMLButtonElement>('[data-video-url]');if(!button)return;const frame=document.createElement('iframe');frame.src=button.dataset.videoUrl!;frame.title=button.dataset.videoTitle||'Demonstração';frame.allow='fullscreen; picture-in-picture';frame.referrerPolicy='strict-origin-when-cross-origin';frame.setAttribute('allowfullscreen','');button.replaceWith(frame);});
+</script>
+<style>
+.product-gallery{display:grid;gap:1rem;min-width:0}.product-gallery figure{margin:0;border:var(--border);border-radius:var(--radius);overflow:hidden;background:var(--white)}.product-gallery img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:contain}.product-gallery figcaption{padding:12px 18px;color:var(--muted);font-size:.95rem;border-top:var(--border)}.video-demo{display:grid;gap:12px;padding:22px;aspect-ratio:16/10;align-content:center}.video-demo button{min-height:56px;padding:20px;border:var(--border);border-radius:var(--radius-sm);background:var(--ink);color:var(--white);font:700 1rem var(--font-body);cursor:pointer}.video-demo a{font-weight:700}.video-demo :global(iframe){width:100%;aspect-ratio:16/9;border:0}
+</style>

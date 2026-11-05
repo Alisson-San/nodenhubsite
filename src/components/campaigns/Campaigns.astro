@@ -1,0 +1,35 @@
+---
+import {loadCampaigns} from '../../lib/campaigns/repository';
+import CampaignBanner from './CampaignBanner.astro';
+import CampaignDialog from './CampaignDialog.astro';
+interface Props {page:string}
+const campaigns=await loadCampaigns(Astro.props.page);
+// No response cache: stock or schedule changes must be reflected on the next load.
+Astro.response.headers.set('Cache-Control','no-store');
+---
+{campaigns.filter(c=>c.format!=='dialog').slice(0,1).map(c=><CampaignBanner campaign={c}/>)}
+{!campaigns.some(c=>c.format!=='dialog') && campaigns.slice(0,1).map(c=><div data-campaign-fallback hidden><CampaignBanner campaign={c}/></div>)}
+{campaigns.filter(c=>c.format!=='banner').map(c=><CampaignDialog campaign={c}/>)}
+<script>
+import {mayDisplay,markDisplayed} from '../../lib/campaigns/frequency';
+import type {Campaign} from '../../lib/campaigns/types';
+let opened=false;
+for(const dialog of document.querySelectorAll<HTMLDialogElement>('dialog[data-campaign]')){
+ if(opened)break;
+ const campaign=JSON.parse(dialog.dataset.campaign!) as Campaign;
+ let storage:Storage|null=null;
+ try{storage=campaign.frequency==='session'?sessionStorage:localStorage;storage.setItem('noden:campaign:probe','1')}catch{storage=null}
+ if(!storage){document.querySelector<HTMLElement>('[data-campaign-fallback]')?.removeAttribute('hidden');continue}
+ if(!mayDisplay(campaign,storage)||!storage)continue;
+ // Avoid a second simultaneous dialog; frequency history changes only for an actual opening.
+ if(document.querySelector('dialog[open]'))break;
+ const previous=document.activeElement instanceof HTMLElement?document.activeElement:null;
+ dialog.showModal();
+ if(!markDisplayed(campaign,storage)){dialog.close();continue}
+ opened=true;
+ dialog.querySelector<HTMLButtonElement>('[data-campaign-close]')?.focus();
+ dialog.querySelector('[data-campaign-close]')?.addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close()}});
+ dialog.addEventListener('close',()=>previous?.focus());
+}
+</script>

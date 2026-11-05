@@ -20,6 +20,7 @@ interface ImportMetaEnv {
 	readonly DEV_ADMIN_BYPASS?: string;
 	readonly DEV_ADMIN_USER_ID?: string;
 	readonly DEV_ADMIN_EMAIL?: string;
+	readonly DEV_EDITOR_FIXTURE?: string;
 }
 
 interface ImportMeta {

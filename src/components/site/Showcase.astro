@@ -1,0 +1,663 @@
+---
+/**
+ * Vitrine pública: portfólio da Noden Data (moldura de navegador) e galeria
+ * de setups da Noden Game (mosaico com ficha técnica). Clique abre um
+ * visualizador com todas as imagens. Para o admin, mostra rascunhos e
+ * ferramentas de edição (lib/showcase/editor.ts).
+ */
+import type { ShowcaseDivision, ShowcaseItem } from "../../lib/showcase/types";
+
+interface Props {
+	division: ShowcaseDivision;
+	items: ShowcaseItem[];
+	ready: boolean;
+	editable?: boolean;
+}
+
+const { division, items, ready, editable = false } = Astro.props;
+const visible = editable ? items : items.filter((item) => item.isPublished);
+const copy = {
+	data: {
+		kicker: "Portfólio",
+		title: "Projetos que já estão rodando.",
+		lead: "Sites, sistemas, dashboards e automações entregues pela Noden Data.",
+		empty: "Nenhum projeto publicado ainda.",
+		add: "+ Novo projeto",
+	},
+	game: {
+		kicker: "Galeria",
+		title: "Setups montados pela Noden.",
+		lead: "PCs que passaram pela nossa bancada: montagem, cabos, refrigeração e testes.",
+		empty: "Nenhum setup publicado ainda.",
+		add: "+ Novo setup",
+	},
+}[division];
+const categories = [...new Set(visible.map((item) => item.category).filter(Boolean))];
+const host = (url: string | null) => {
+	try {
+		return url ? new URL(url).hostname.replace(/^www\./, "") : "";
+	} catch {
+		return "";
+	}
+};
+const payload = JSON.stringify(visible).replace(/</g, "\\u003c");
+---
+
+{
+	(visible.length > 0 || editable) && (
+		<section
+			class:list={["showcase", `showcase--${division}`]}
+			id={division === "data" ? "portfolio" : "galeria"}
+			aria-labelledby={`showcase-${division}-titulo`}
+			data-showcase={division}
+			data-editable={editable ? "true" : undefined}
+			data-ready={ready ? "true" : "false"}
+		>
+			<script is:inline type="application/json" data-showcase-items set:html={payload} />
+			<div class="wrap">
+				<header class="showcase__head" data-reveal>
+					<p class="kicker">{copy.kicker}</p>
+					<h2 class="h2" id={`showcase-${division}-titulo`}>
+						{copy.title}
+					</h2>
+					<p class="lead">{copy.lead}</p>
+				</header>
+
+				{editable && !ready && (
+					<p class="showcase__notice">
+						A vitrine ainda não foi ativada no banco (migração <code>20261105185813_showcase.sql</code> pendente). Depois de aplicada, os cadastros aparecem aqui.
+					</p>
+				)}
+
+				{categories.length > 1 && (
+					<div class="showcase__filters" role="group" aria-label="Filtrar por tipo">
+						<button type="button" aria-pressed="true" data-sc-filter="">
+							Todos
+						</button>
+						{categories.map((category) => (
+							<button type="button" aria-pressed="false" data-sc-filter={category}>
+								{category}
+							</button>
+						))}
+					</div>
+				)}
+
+				<ul class="showcase__grid" role="list" data-sc-grid>
+					{visible.map((item) => {
+						const cover = item.media[0];
+						return (
+							<li class:list={["sc-card", { "sc-card--draft": !item.isPublished }]} data-sc-id={item.id} data-sc-category={item.category} data-reveal>
+								{!item.isPublished && <span class="sc-card__draft">Rascunho · oculto do público</span>}
+								<button type="button" class="sc-card__open" data-sc-open={item.id} aria-label={`Ver ${item.title}`}>
+									{division === "data" ? (
+										<span class="sc-browser" aria-hidden="true">
+											<span class="sc-browser__bar">
+												<span />
+												<span />
+												<span />
+												<em>{host(item.linkUrl) || item.category || "projeto"}</em>
+											</span>
+											{cover ? <img src={cover.url} alt="" loading="lazy" width="800" height="500" /> : <span class="sc-browser__empty" />}
+										</span>
+									) : cover ? (
+										<img class="sc-photo" src={cover.url} alt="" loading="lazy" width="800" height="1000" />
+									) : (
+										<span class="sc-photo sc-photo--empty" />
+									)}
+								</button>
+								<div class="sc-card__body">
+									{item.category && <span class="sc-card__category">{item.category}</span>}
+									<h3>{item.title}</h3>
+									{item.summary && <p>{item.summary}</p>}
+									{division === "game" && item.specs.length > 0 && (
+										<ul class="sc-card__specs" aria-label="Destaques do setup">
+											{item.specs.slice(0, 3).map((spec) => (
+												<li>
+													<small>{spec.label}</small>
+													{spec.value}
+												</li>
+											))}
+										</ul>
+									)}
+									{division === "data" && item.tags.length > 0 && (
+										<ul class="sc-card__tags" aria-label="Tecnologias">
+											{item.tags.map((tag) => (
+												<li>{tag}</li>
+											))}
+										</ul>
+									)}
+								</div>
+							</li>
+						);
+					})}
+				</ul>
+				{editable && ready && visible.length === 0 && <p class="showcase__notice">{copy.empty} Use o botão abaixo para cadastrar o primeiro.</p>}
+				{editable && ready && (
+					<button type="button" class="showcase__add" data-sc-add>
+						{copy.add}
+					</button>
+				)}
+			</div>
+
+			<dialog class="sc-viewer" aria-labelledby={`sc-viewer-${division}`} data-sc-viewer>
+				<div class="sc-viewer__media">
+					<img data-sc-image alt="" />
+					<button type="button" class="sc-viewer__nav sc-viewer__nav--prev" aria-label="Imagem anterior" data-sc-prev>‹</button>
+					<button type="button" class="sc-viewer__nav sc-viewer__nav--next" aria-label="Próxima imagem" data-sc-next>›</button>
+					<p class="sc-viewer__counter" data-sc-counter></p>
+				</div>
+				<div class="sc-viewer__info">
+					<button type="button" class="sc-viewer__close" aria-label="Fechar" data-sc-close>✕</button>
+					<p class="sc-viewer__category" data-sc-category></p>
+					<h3 id={`sc-viewer-${division}`} data-sc-title></h3>
+					<p class="sc-viewer__summary" data-sc-summary></p>
+					<dl class="sc-viewer__specs" data-sc-specs></dl>
+					<ul class="sc-viewer__tags" data-sc-tags></ul>
+					<a class="btn btn--sm" target="_blank" rel="noopener" data-sc-link hidden>
+						Visitar projeto ↗
+					</a>
+				</div>
+			</dialog>
+		</section>
+	)
+}
+
+<script>
+	import type { ShowcaseItem } from "../../lib/showcase/types";
+
+	for (const root of document.querySelectorAll<HTMLElement>("[data-showcase]")) {
+		const items = JSON.parse(root.querySelector("[data-showcase-items]")?.textContent || "[]") as ShowcaseItem[];
+		const viewer = root.querySelector<HTMLDialogElement>("[data-sc-viewer]")!;
+		const q = <T extends Element>(selector: string) => viewer.querySelector<T>(selector)!;
+		let current: ShowcaseItem | null = null;
+		let index = 0;
+		let opener: HTMLElement | null = null;
+
+		const showImage = () => {
+			if (!current) return;
+			const media = current.media[index];
+			const img = q<HTMLImageElement>("[data-sc-image]");
+			img.hidden = !media;
+			if (media) {
+				img.src = media.url ?? "";
+				img.alt = media.alt;
+			}
+			const many = current.media.length > 1;
+			q<HTMLElement>("[data-sc-prev]").hidden = !many;
+			q<HTMLElement>("[data-sc-next]").hidden = !many;
+			q<HTMLElement>("[data-sc-counter]").textContent = many ? `${index + 1} de ${current.media.length}` : "";
+		};
+
+		const open = (id: string, from: HTMLElement) => {
+			current = items.find((item) => item.id === id) ?? null;
+			if (!current) return;
+			opener = from;
+			index = 0;
+			q<HTMLElement>("[data-sc-title]").textContent = current.title;
+			q<HTMLElement>("[data-sc-category]").textContent = current.category;
+			q<HTMLElement>("[data-sc-summary]").textContent = current.summary;
+			const specs = q<HTMLElement>("[data-sc-specs]");
+			specs.replaceChildren(
+				...current.specs.flatMap((spec) => {
+					const dt = document.createElement("dt");
+					dt.textContent = spec.label;
+					const dd = document.createElement("dd");
+					dd.textContent = spec.value;
+					return [dt, dd];
+				}),
+			);
+			specs.hidden = current.specs.length === 0;
+			const tags = q<HTMLElement>("[data-sc-tags]");
+			tags.replaceChildren(
+				...current.tags.map((tag) => {
+					const li = document.createElement("li");
+					li.textContent = tag;
+					return li;
+				}),
+			);
+			const link = q<HTMLAnchorElement>("[data-sc-link]");
+			link.hidden = !current.linkUrl;
+			if (current.linkUrl) link.href = current.linkUrl;
+			showImage();
+			viewer.showModal();
+		};
+
+		const step = (delta: number) => {
+			if (!current || current.media.length < 2) return;
+			index = (index + delta + current.media.length) % current.media.length;
+			showImage();
+		};
+
+		root.querySelectorAll<HTMLButtonElement>("[data-sc-open]").forEach((button) => {
+			button.addEventListener("click", () => open(button.dataset.scOpen!, button));
+		});
+		q("[data-sc-prev]").addEventListener("click", () => step(-1));
+		q("[data-sc-next]").addEventListener("click", () => step(1));
+		q("[data-sc-close]").addEventListener("click", () => viewer.close());
+		viewer.addEventListener("keydown", (event) => {
+			if (event.key === "ArrowRight") step(1);
+			if (event.key === "ArrowLeft") step(-1);
+		});
+		viewer.addEventListener("click", (event) => {
+			if (event.target === viewer) viewer.close();
+		});
+		viewer.addEventListener("close", () => opener?.focus());
+
+		// Filtro por tipo
+		const filters = [...root.querySelectorAll<HTMLButtonElement>("[data-sc-filter]")];
+		filters.forEach((button) => {
+			button.addEventListener("click", () => {
+				const value = button.dataset.scFilter ?? "";
+				filters.forEach((other) => other.setAttribute("aria-pressed", String(other === button)));
+				root.querySelectorAll<HTMLElement>("[data-sc-id]").forEach((card) => {
+					card.hidden = Boolean(value) && card.dataset.scCategory !== value;
+				});
+			});
+		});
+
+		if (root.dataset.editable === "true") {
+			import("../../lib/showcase/editor").then(({ startShowcaseEditor }) => startShowcaseEditor(root, items));
+		}
+	}
+</script>
+
+<style>
+	.showcase {
+		position: relative;
+		padding-block: clamp(64px, 9vw, 120px);
+	}
+	.showcase__head {
+		display: grid;
+		gap: 14px;
+		max-width: 760px;
+		margin-bottom: clamp(28px, 4vw, 48px);
+	}
+	.showcase__notice {
+		margin-bottom: 24px;
+		padding: 14px 18px;
+		border: 1px dashed var(--line-strong);
+		border-radius: 14px;
+		background: var(--surface);
+		color: var(--text-2);
+	}
+	.showcase__filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-bottom: 24px;
+	}
+	.showcase__filters button {
+		min-height: 42px;
+		padding: 0 16px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		background: var(--surface);
+		color: var(--text-2);
+		font: 600 0.95rem var(--font-body);
+		cursor: pointer;
+	}
+	.showcase__filters button[aria-pressed="true"] {
+		background: var(--grad-button);
+		border-color: transparent;
+		color: var(--white);
+	}
+	.showcase__grid {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.showcase--data .showcase__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+		gap: 22px;
+	}
+	.showcase--game .showcase__grid {
+		columns: 3 280px;
+		column-gap: 18px;
+	}
+	.sc-card {
+		position: relative;
+		display: grid;
+		gap: 0;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		overflow: hidden;
+		transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+	}
+	.sc-card[hidden] {
+		display: none;
+	}
+	.showcase--game .sc-card {
+		break-inside: avoid;
+		margin-bottom: 18px;
+	}
+	.sc-card:hover {
+		transform: translateY(-4px);
+		border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+		box-shadow: 0 28px 60px -30px var(--accent);
+	}
+	.sc-card--draft {
+		border-style: dashed;
+	}
+	.sc-card__draft {
+		position: absolute;
+		top: 10px;
+		left: 10px;
+		z-index: 2;
+		padding: 4px 10px;
+		border-radius: 8px;
+		background: rgb(0 0 0 / 70%);
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 700;
+	}
+	.sc-card__open {
+		display: block;
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: zoom-in;
+		color: inherit;
+	}
+	.sc-browser {
+		display: block;
+		margin: 14px 14px 0;
+		border: 1px solid var(--line);
+		border-radius: 12px;
+		overflow: hidden;
+		background: var(--bg-2);
+	}
+	.sc-browser__bar {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 12px;
+		border-bottom: 1px solid var(--line);
+	}
+	.sc-browser__bar span {
+		width: 9px;
+		height: 9px;
+		border-radius: 50%;
+		background: var(--line-strong);
+	}
+	.sc-browser__bar em {
+		margin-left: 8px;
+		flex: 1;
+		padding: 2px 10px;
+		border-radius: 6px;
+		background: var(--surface);
+		font: 500 0.78rem var(--font-mono);
+		font-style: normal;
+		color: var(--text-2);
+		text-align: left;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.sc-browser img,
+	.sc-browser__empty {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 16 / 10;
+		object-fit: cover;
+		object-position: top;
+		transition: transform 0.6s ease;
+	}
+	.sc-browser__empty,
+	.sc-photo--empty {
+		background: var(--grad);
+		opacity: 0.35;
+	}
+	.sc-card:hover .sc-browser img {
+		transform: scale(1.03);
+	}
+	.sc-photo {
+		display: block;
+		width: 100%;
+		height: auto;
+		transition: transform 0.6s ease;
+	}
+	.sc-photo--empty {
+		aspect-ratio: 4 / 5;
+	}
+	.sc-card:hover .sc-photo {
+		transform: scale(1.03);
+	}
+	.sc-card__body {
+		display: grid;
+		gap: 8px;
+		padding: 18px 20px 22px;
+	}
+	.sc-card__body h3 {
+		font-size: 1.3rem;
+		letter-spacing: -0.02em;
+	}
+	.sc-card__body p {
+		color: var(--text-2);
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.sc-card__category {
+		justify-self: start;
+		padding: 2px 10px;
+		border-radius: 999px;
+		background: var(--accent-soft);
+		color: var(--accent-text);
+		font-size: 0.8rem;
+		font-weight: 700;
+	}
+	.sc-card__tags,
+	.sc-card__specs {
+		list-style: none;
+		margin: 4px 0 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.sc-card__tags li {
+		padding: 2px 10px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		font: 500 0.8rem var(--font-mono);
+		color: var(--text-2);
+	}
+	.sc-card__specs li {
+		display: grid;
+		padding: 6px 10px;
+		border-radius: 10px;
+		background: var(--surface-2);
+		font-weight: 700;
+		font-size: 0.88rem;
+	}
+	.sc-card__specs small {
+		font: 500 0.7rem var(--font-mono);
+		color: var(--accent-text);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+	/* Borda RGB nos setups */
+	.showcase--game .sc-card:hover {
+		border-color: transparent;
+		background:
+			linear-gradient(var(--bg-2), var(--bg-2)) padding-box,
+			linear-gradient(120deg, #b231fb, #4546fb, #01ccfe, #ff2ea0) border-box;
+	}
+	.showcase__add {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		min-height: 72px;
+		margin-top: 18px;
+		border: 1px dashed var(--line-strong);
+		border-radius: var(--radius);
+		background: var(--surface);
+		color: var(--text);
+		font: 700 1rem var(--font-body);
+		cursor: pointer;
+	}
+
+	/* Visualizador */
+	.sc-viewer {
+		width: min(calc(100% - 24px), 1100px);
+		max-height: calc(100dvh - 32px);
+		padding: 0;
+		border: 1px solid rgb(255 255 255 / 15%);
+		border-radius: 24px;
+		background: #0c0a1f;
+		color: #f4f2ff;
+		overflow: hidden;
+	}
+	.sc-viewer[open] {
+		display: grid;
+		grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+	}
+	.sc-viewer::backdrop {
+		background: rgb(5 4 15 / 75%);
+		backdrop-filter: blur(8px);
+	}
+	.sc-viewer__media {
+		position: relative;
+		display: grid;
+		place-items: center;
+		min-height: 320px;
+		background: #000;
+	}
+	.sc-viewer__media img {
+		width: 100%;
+		max-height: calc(100dvh - 34px);
+		object-fit: contain;
+	}
+	.sc-viewer__nav {
+		position: absolute;
+		top: 50%;
+		width: 46px;
+		height: 46px;
+		margin-top: -23px;
+		border: 1px solid rgb(255 255 255 / 30%);
+		border-radius: 50%;
+		background: rgb(0 0 0 / 50%);
+		color: #fff;
+		font-size: 1.6rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.sc-viewer__nav--prev {
+		left: 12px;
+	}
+	.sc-viewer__nav--next {
+		right: 12px;
+	}
+	.sc-viewer__nav[hidden] {
+		display: none;
+	}
+	.sc-viewer__counter {
+		position: absolute;
+		bottom: 12px;
+		left: 50%;
+		transform: translateX(-50%);
+		padding: 2px 10px;
+		border-radius: 999px;
+		background: rgb(0 0 0 / 55%);
+		font-size: 0.85rem;
+	}
+	.sc-viewer__counter:empty {
+		display: none;
+	}
+	.sc-viewer__info {
+		position: relative;
+		display: grid;
+		gap: 12px;
+		align-content: start;
+		padding: 28px;
+		overflow-y: auto;
+	}
+	.sc-viewer__close {
+		justify-self: end;
+		width: 44px;
+		height: 44px;
+		border: 1px solid rgb(255 255 255 / 25%);
+		border-radius: 50%;
+		background: transparent;
+		color: #fff;
+		cursor: pointer;
+	}
+	.sc-viewer__category {
+		color: #a9b1ff;
+		font-weight: 700;
+	}
+	.sc-viewer__category:empty {
+		display: none;
+	}
+	.sc-viewer h3 {
+		font-size: 1.8rem;
+	}
+	.sc-viewer__summary {
+		color: #c9c3e6;
+		white-space: pre-line;
+	}
+	.sc-viewer__specs {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 6px 14px;
+		margin: 4px 0;
+		padding: 14px;
+		border-radius: 14px;
+		background: rgb(255 255 255 / 5%);
+		border: 1px solid rgb(255 255 255 / 10%);
+	}
+	.sc-viewer__specs[hidden] {
+		display: none;
+	}
+	.sc-viewer__specs :global(dt) {
+		font: 500 0.78rem var(--font-mono);
+		color: #c49bff;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		align-self: center;
+	}
+	.sc-viewer__specs :global(dd) {
+		margin: 0;
+		font-weight: 700;
+	}
+	.sc-viewer__tags {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.sc-viewer__tags :global(li) {
+		padding: 2px 10px;
+		border: 1px solid rgb(255 255 255 / 20%);
+		border-radius: 999px;
+		font: 500 0.8rem var(--font-mono);
+	}
+	.sc-viewer [data-sc-link][hidden] {
+		display: none;
+	}
+	.sc-viewer :focus-visible {
+		outline-color: #fff;
+	}
+	@media (max-width: 760px) {
+		.sc-viewer[open] {
+			grid-template-columns: 1fr;
+			overflow-y: auto;
+		}
+		.sc-viewer__media img {
+			max-height: 55dvh;
+		}
+		.sc-viewer__close {
+			position: absolute;
+			top: 12px;
+			right: 12px;
+		}
+	}
+</style>

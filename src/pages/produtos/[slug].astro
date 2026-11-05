@@ -1,0 +1,50 @@
+---
+export const prerender = false;
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import ProductDetails from "../../components/catalog/ProductDetails.astro";
+import { loadSiteConfig } from "../../lib/site/siteRepository";
+import { loadProductBySlug } from "../../lib/catalog/productRepository";
+import { divisionPath, divisions } from "../../lib/site/divisions";
+
+const site = await loadSiteConfig();
+const product = await loadProductBySlug(Astro.params.slug || "");
+Astro.response.headers.set("Cache-Control", "no-store");
+if (!product) Astro.response.status = 404;
+---
+
+{
+	product ? (
+		<PublicLayout
+			site={site}
+			title={`${product.item.name} | ${divisions[product.page.division].name}`}
+			description={product.detail.summary || product.item.description}
+			canonical={`/produtos/${product.detail.slug}`}
+			division={product.page.division}
+			whatsappMessage={product.item.ctaMessage ?? `Olá! Vim pelo site e quero saber sobre: ${product.item.name}.`}
+		>
+			<div class="wrap product-page">
+				<a class="link-arrow" href={divisionPath(product.page.division, "#precos")}>
+					← Voltar para {divisions[product.page.division].name}
+				</a>
+				<ProductDetails site={site} item={product.item} detail={product.detail} division={product.page.division} headingLevel="h1" />
+			</div>
+		</PublicLayout>
+	) : (
+		<PublicLayout site={site} title="Produto não encontrado | Noden" description="Este produto não está disponível." canonical="/produtos" noindex>
+			<div class="wrap product-page">
+				<h1 class="h2">Produto não encontrado</h1>
+				<p class="lead">Este endereço não está disponível ou o produto ainda não foi publicado.</p>
+				<a class="btn" href="/">Voltar ao início</a>
+			</div>
+		</PublicLayout>
+	)
+}
+
+<style>
+	.product-page {
+		display: grid;
+		gap: 28px;
+		justify-items: start;
+		padding-block: clamp(32px, 6vw, 72px) clamp(64px, 9vw, 110px);
+	}
+</style>

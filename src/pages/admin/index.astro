@@ -9,6 +9,22 @@ import AdminLayout
 	title="Visão geral"
 	description="Gerencie o conteúdo e as configurações públicas da Noden."
 >
+	<section class="edit-on-site" aria-labelledby="editar-no-site">
+		<h2 id="editar-no-site">Editar direto no site</h2>
+		<p>
+			Logado como administrador, abra uma página pública: textos ficam
+			editáveis no lugar e cada card ganha botões para editar, mover,
+			ocultar ou excluir. Tudo vai para um rascunho até você clicar em
+			Publicar.
+		</p>
+		<div class="edit-on-site__links">
+			<a href="/" target="_blank" rel="noopener">Página inicial ↗</a>
+			<a href="/noden-home" target="_blank" rel="noopener">Noden Home ↗</a>
+			<a href="/noden-game" target="_blank" rel="noopener">Noden Game ↗</a>
+			<a href="/noden-data" target="_blank" rel="noopener">Noden Data ↗</a>
+		</div>
+	</section>
+
 	<section class="grid">
 		<a
 			class="card"
@@ -63,6 +79,37 @@ import AdminLayout
 </AdminLayout>
 
 <style>
+	.edit-on-site {
+		margin-bottom: 18px;
+		padding: 22px;
+		border: 1px solid rgba(124, 92, 255, 0.45);
+		border-radius: 18px;
+		background: rgba(124, 92, 255, 0.1);
+	}
+	.edit-on-site h2 {
+		margin: 0 0 8px;
+	}
+	.edit-on-site p {
+		margin: 0 0 14px;
+		max-width: 70ch;
+		line-height: 1.6;
+	}
+	.edit-on-site__links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+	.edit-on-site__links a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		padding: 0 16px;
+		border: 1px solid currentColor;
+		border-radius: 999px;
+		color: inherit;
+		font-weight: 700;
+		text-decoration: none;
+	}
 	.grid {
 		display: grid;
 		grid-template-columns:

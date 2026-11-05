@@ -1,0 +1,103 @@
+---
+export const prerender=false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import {createSupabaseRequestClient} from '../../../lib/supabase/request';
+import {loadCampaignDrafts} from '../../../lib/campaigns/repository';
+import {campaignPageLabels} from '../../../lib/campaigns/types';
+import type {SupabaseClient} from '@supabase/supabase-js';
+const client=createSupabaseRequestClient(Astro) as SupabaseClient;
+const {drafts,ready}=await loadCampaignDrafts(client);
+const {data:products}=await client.from('pricing_items').select('id,name').eq('is_active',true).order('name');
+---
+<AdminLayout title="Destaques e campanhas" description="Prepare uma novidade, confira a prévia e publique quando estiver pronta.">
+ {!ready&&<p class="notice" role="status">A estrutura de campanhas ainda não está instalada neste ambiente. É possível explorar a edição e a prévia; salvar e publicar ficam disponíveis após aplicar as migrações revisadas.</p>}
+ <div id="campaign-editor" data-ready={String(ready)} data-drafts={JSON.stringify(drafts)}>
+  <div class="toolbar"><label>Campanha <select id="campaign-select"><option value="">Nova campanha</option>{drafts.map(d=><option value={d.id}>{d.content.title} {d.published?'(publicada)':'(rascunho)'}</option>)}</select></label><button type="button" id="new-campaign">Nova campanha</button><span id="campaign-state">Rascunho novo</span></div>
+  <div class="workspace">
+   <section class="preview" aria-label="Prévia do destaque"><span class="preview-label">Prévia • clique no texto para editar</span><article><img id="preview-image" hidden alt="" /><span class="eyebrow">Em destaque</span><h2 id="preview-title" contenteditable="plaintext-only" role="textbox" aria-label="Título do destaque" data-placeholder="Título da novidade"></h2><p id="preview-description" contenteditable="plaintext-only" role="textbox" aria-label="Descrição do destaque" data-placeholder="O que torna essa novidade especial?"></p><span id="preview-button">Saiba mais ↗</span></article><p class="hint">A prévia não abre links. Nenhuma alteração aparece no site antes de publicar.</p></section>
+   <form id="campaign-form">
+    <label>Texto do botão <input name="buttonLabel" maxlength="80" required value="Saiba mais"/></label>
+    <label>Destino do botão <input name="href" placeholder="https://... ou /produtos/..." required/></label>
+    <label>Produto associado <select name="productId"><option value="">Campanha independente</option>{(products??[]).map(p=><option value={p.id}>{p.name}</option>)}</select></label>
+    <p class="hint">Produtos vendidos, reservados, indisponíveis ou despublicados não exibem a campanha.</p>
+    <label>Imagem (HTTPS) <input name="imageUrl" type="url" placeholder="https://..."/></label>
+    <label>Descrição da imagem <input name="imageAlt" maxlength="300"/></label>
+    <fieldset><legend>Exibir em</legend>{Object.entries(campaignPageLabels).map(([value,label])=><label class="check"><input type="checkbox" name="pages" value={value} checked={value==='/noden-data'}/>{label}</label>)}</fieldset>
+    <label>Apresentação <select name="format"><option value="banner">Destaque na página</option><option value="dialog">Aviso ao entrar</option><option value="both">Destaque e aviso</option></select></label>
+    <label>Frequência do aviso <select name="frequency"><option value="campaign">Uma vez por campanha</option><option value="session">Uma vez por sessão</option><option value="visit">A cada visita à página</option><option value="days">Intervalo em dias</option></select></label>
+    <label>Intervalo em dias <input name="intervalDays" type="number" min="1" max="365" value="7"/></label>
+    <label>Prioridade (maior aparece primeiro) <input name="priority" type="number" min="-1000" max="1000" value="0"/></label>
+    <p class="hint">Horários de São Paulo (UTC−03). Campos vazios não limitam o período.</p>
+    <label>Início <input name="startsAt" type="datetime-local"/></label><label>Fim <input name="endsAt" type="datetime-local"/></label>
+    <label class="check"><input name="active" type="checkbox"/>Campanha ativa ao publicar</label>
+   </form>
+  </div>
+  <div class="actions"><button id="save-campaign" disabled={!ready}>Salvar rascunho</button><button id="publish-campaign" disabled={!ready}>Publicar rascunho salvo</button><button id="unpublish-campaign" disabled={!ready}>Retirar do site</button><button id="reset-campaign" disabled={!ready}>Reiniciar exibição</button></div>
+  <p class="hint">Editar não reinicia a frequência. “Reiniciar exibição” prepara uma nova versão; publique o rascunho para mostrá-la novamente.</p>
+  <p id="campaign-feedback" role="status" aria-live="polite"></p>
+ </div>
+</AdminLayout>
+<script>
+import {emptyCampaign,normalizeCampaignPages,type CampaignDraft} from '../../../lib/campaigns/types';
+import {validateCampaign,saoPauloToUTC,utcToSaoPaulo} from '../../../lib/campaigns/validation';
+const root=document.querySelector<HTMLElement>('#campaign-editor')!;
+const form=document.querySelector<HTMLFormElement>('#campaign-form')!;
+const selector=document.querySelector<HTMLSelectElement>('#campaign-select')!;
+const title=document.querySelector<HTMLElement>('#preview-title')!;
+const description=document.querySelector<HTMLElement>('#preview-description')!;
+const image=document.querySelector<HTMLImageElement>('#preview-image')!;
+const feedback=document.querySelector<HTMLElement>('#campaign-feedback')!;
+let drafts=JSON.parse(root.dataset.drafts!) as CampaignDraft[];
+let current=emptyCampaign();let revision=0;let dirty=false;let busy=false;
+function field(name:string){return form.elements.namedItem(name) as HTMLInputElement}
+function message(text:string){feedback.textContent=text}
+function read(){
+ current={...current,title:title.textContent?.trim()??'',description:description.innerText.trim(),buttonLabel:field('buttonLabel').value,href:field('href').value.trim(),productId:field('productId').value||null,imageUrl:field('imageUrl').value.trim(),imageAlt:field('imageAlt').value.trim(),pages:Array.from(form.querySelectorAll<HTMLInputElement>('[name=pages]:checked')).map(x=>x.value),format:field('format').value as typeof current.format,frequency:field('frequency').value as typeof current.frequency,intervalDays:Number(field('intervalDays').value),priority:Number(field('priority').value),active:field('active').checked,startsAt:saoPauloToUTC(field('startsAt').value),endsAt:saoPauloToUTC(field('endsAt').value)};
+ return current;
+}
+function preview(){
+ const url=field('imageUrl').value.trim();image.hidden=!url.startsWith('https://');if(!image.hidden)image.src=url;image.alt=field('imageAlt').value;
+ document.querySelector('#preview-button')!.textContent=field('buttonLabel').value+' ↗';
+}
+function load(id:string){
+ const d=drafts.find(x=>x.id===id);current=d?structuredClone(d.content):emptyCampaign();revision=d?.revision??0;
+ title.textContent=current.title;description.textContent=current.description;
+ for(const name of ['buttonLabel','href','productId','imageUrl','imageAlt','format','frequency','intervalDays','priority'])field(name).value=String(current[name as keyof typeof current]??'');
+ field('active').checked=current.active;field('startsAt').value=utcToSaoPaulo(current.startsAt);field('endsAt').value=utcToSaoPaulo(current.endsAt);
+ form.querySelectorAll<HTMLInputElement>('[name=pages]').forEach(el=>el.checked=normalizeCampaignPages(current.pages).includes(el.value));
+ document.querySelector('#campaign-state')!.textContent=d?(d.published?'Publicada • edição em rascunho':'Rascunho salvo'):'Rascunho novo';
+ dirty=false;preview();message('');
+}
+function change(){dirty=true;document.querySelector('#campaign-state')!.textContent='Alterações não salvas';preview()}
+form.addEventListener('input',change);title.addEventListener('input',change);description.addEventListener('input',change);
+selector.addEventListener('change',()=>{if(dirty&&!confirm('Descartar alterações não salvas?')){selector.value=revision?current.id:'';return}load(selector.value)});
+document.querySelector('#new-campaign')!.addEventListener('click',()=>{if(busy)return;if(dirty&&!confirm('Descartar alterações não salvas?'))return;selector.value='';load('')});
+window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault()}});
+async function action(kind:string){
+ if(busy)return;
+ if(root.dataset.ready!=='true'){message('Instale as migrações para salvar e publicar.');return}
+ if(kind!=='save'&&(!revision||dirty)){message('Salve o rascunho antes desta ação.');return}
+ if(kind==='reset'&&!confirm('Preparar nova exibição desta campanha para visitantes que já a viram? A mudança só terá efeito depois de publicar.'))return;
+ if(kind==='publish'&&!confirm('Publicar este rascunho no site?'))return;
+ if(kind==='unpublish'&&!confirm('Retirar esta campanha do site agora?'))return;
+ try{
+  if(kind==='save'){read();const errors=validateCampaign(current);if(errors.length){message(errors.join(' '));return}}
+  busy=true;form.inert=true;title.contentEditable='false';description.contentEditable='false';selector.disabled=true;message('Salvando…');root.querySelectorAll<HTMLButtonElement>('.actions button').forEach(b=>b.disabled=true);
+  const response=await fetch('/api/admin/campaigns',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:current.id,revision,action:kind,content:current})});
+  const result=await response.json();if(!response.ok)throw new Error(result.error||'Falha ao salvar.');
+  revision=result.revision;if(kind==='reset')current.displayVersion++;
+  const previous=drafts.find(x=>x.id===current.id);const draft={id:current.id,revision,content:structuredClone(current),published:kind==='publish'?true:kind==='unpublish'?false:previous?.published??false};
+  drafts=drafts.filter(x=>x.id!==current.id).concat(draft);
+  let option=Array.from(selector.options).find(o=>o.value===current.id);if(!option){option=new Option('',current.id);selector.add(option)}
+  option.textContent=current.title+(draft.published?' (publicada)':' (rascunho)');selector.value=current.id;dirty=false;
+  document.querySelector('#campaign-state')!.textContent=draft.published?'Publicada • edição em rascunho':'Rascunho salvo';
+  message(kind==='publish'?'Campanha publicada.':kind==='unpublish'?'Campanha retirada do site.':kind==='reset'?'Nova versão preparada. Publique para reiniciar a exibição.':'Rascunho salvo. O site permanece como estava.');
+ }catch(error){message(error instanceof Error?error.message:'Falha de rede. Suas alterações foram mantidas.')}
+ finally{busy=false;form.inert=false;title.contentEditable='plaintext-only';description.contentEditable='plaintext-only';selector.disabled=false;root.querySelectorAll<HTMLButtonElement>('.actions button').forEach(b=>b.disabled=false)}
+}
+for(const [id,kind]of [['save','save'],['publish','publish'],['unpublish','unpublish'],['reset','reset']])document.querySelector('#'+id+'-campaign')!.addEventListener('click',()=>action(kind));
+load('');
+</script>
+<style>
+.notice{padding:1rem;border:1px solid #bb9b45;border-radius:12px;color:#f4deb0}.toolbar,.actions{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}.toolbar{margin-bottom:1.5rem}.workspace{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,1fr);gap:1.5rem}.preview{min-width:0;position:sticky;top:1rem;align-self:start}.preview article{padding:2rem;border:1px solid #716ab4;border-radius:24px;background:linear-gradient(130deg,#211d3e,#112830);overflow-wrap:anywhere}.preview img{width:100%;max-height:260px;object-fit:cover;border-radius:12px}.preview h2{font-size:clamp(1.4rem,3vw,2.5rem);line-height:1.2}.preview p{line-height:1.7;white-space:pre-line}.preview [contenteditable]{min-height:1.5em;border:1px dashed #8279ab66;border-radius:6px;padding:.25rem}.preview [contenteditable]:empty:before{content:attr(data-placeholder);color:#aeb0c3}.preview [contenteditable]:focus{outline:2px solid #b9b6ff}.preview-label,.eyebrow{color:#b9cdf6;font-size:.8rem}.preview-label{display:block;margin-bottom:.7rem}#preview-button{display:inline-block;padding:.8rem 1rem;background:#c7ccff;color:#17182c;border-radius:12px;font-weight:700}form{display:grid;gap:1rem}label{display:grid;gap:.5rem;font-size:.9rem}input,select{box-sizing:border-box;min-width:0;width:100%;padding:.75rem;border:1px solid #4a4f65;border-radius:9px;background:#121624;color:#f3f4fa;font:inherit}.check{display:flex;align-items:center;gap:.5rem;min-height:36px}.check input{width:auto}fieldset{border:1px solid #4a4f65;border-radius:10px;padding:.7rem;display:flex;flex-wrap:wrap;gap:.7rem}.hint{font-size:.85rem;line-height:1.55;color:#b8bfd0;margin:.4rem 0}button{min-height:44px;padding:.65rem 1rem;border:1px solid #6e71a7;border-radius:10px;background:#29294b;color:#fff;font:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.actions{margin-top:1.5rem}#campaign-feedback{min-height:1.5em;color:#d5d6ff}button:focus-visible{outline:3px solid #b9b6ff;outline-offset:3px}@media(max-width:800px){.workspace{grid-template-columns:1fr}.preview{position:static}.preview article{padding:1.2rem}}
+</style>
