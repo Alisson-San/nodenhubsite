@@ -42,3 +42,15 @@ Não usa credenciais nem o banco real.
 
 ## Atualização — 26/09/2026
 Migrações aplicadas com autorização explícita. As pendências de instalação descritas acima são históricas. Ver docs/ATIVACAO-CATALOGO-2026-09-26.md para testes remotos e limites atuais.
+
+## Integração na develop — 05/11/2026
+Branches feature/site-review-agent e feature/visual-catalog-editor integradas na develop (histórico linear: a segunda já continha a primeira).
+- `npm audit fix` sem `--force`: astro 7.4.5, @astrojs/vercel 11.0.18, sharp 0.35.5, vite 8.3.6, undici, source-map-js e smol-toml corrigidos. Restam 4 moderados (glob/minimatch via @vercel/nft, apenas em build); a correção forçada rebaixaria o adaptador para 8.x e não foi aplicada.
+- O adaptador 11.0.18 deixou de marcar a rota final `^/.*$` com status 404; o Astro passa a responder 404 em tempo de execução. Conferido no build com função local: caminho inexistente e `/produtos/nao-existe` → 404; `/home`, `/game`, `/data`, `/links` → 200; `/admin` e subcaminhos sem sessão → 303; `/api/admin/*` sem sessão → 401. `scripts/qa/routing.test.mjs` ajustado para exigir que só o catch-all final capture caminhos desconhecidos.
+- Verificação: `npm run validate` sem erros/avisos; 25 testes unitários; 2 testes de rotas; 10 grupos SQL PGlite; `git diff --check`.
+
+### Ainda em aberto (exige navegador com sessão admin real)
+- Gesto real de arraste em /admin/editor, salvar/reabrir/publicar item inativo de teste e upload de mídia pela sessão HTTP.
+- Campanhas no navegador: agendamento, frequência e encerramento.
+- Etapa 5: passada visual nas larguras 320, 390, 768, 910, 1440 e paisagem.
+- Supabase: alertas anteriores de `write_audit_log` e proteção de senhas vazadas.

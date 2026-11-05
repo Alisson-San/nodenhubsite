@@ -27,5 +27,9 @@ test('generated server routes retain public, admin and dynamic destinations', as
   for (const path of ['/', '/mobile', '/home', '/game', '/data', '/links', '/admin', '/admin/settings', '/admin/pages/home', '/admin/catalog/game/prices', '/api/admin/pages/data']) {
     assert(rendered.some(route => new RegExp(route.src).test(path)), path);
   }
-  assert(!rendered.some(route => new RegExp(route.src).test('/not-a-noden-page')));
+  // @astrojs/vercel >= 11.0.18 sends unknown paths to the final catch-all without a
+  // routing-level status; Astro answers 404 at runtime. Only that catch-all may match.
+  const unknown = rendered.filter(route => new RegExp(route.src).test('/not-a-noden-page'));
+  assert(unknown.every(route => route.src === '^/.*$'), JSON.stringify(unknown));
+  assert.equal(build.routes.at(-1).src, '^/.*$');
 });
