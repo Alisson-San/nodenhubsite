@@ -14,7 +14,10 @@ interface Props {
 const { site = siteConfig } = Astro.props;
 const year = new Date().getFullYear();
 const socials = site.socialLinks.filter((link) => link.isActive && link.platform !== "website");
-const phoneHref = site.phone ? `tel:${site.phone.replace(/[^\d+]/g, "")}` : "";
+const digits = (value?: string | null) => (value ?? "").replace(/\D/g, "");
+// O telefone só aparece separado se não for o mesmo número do WhatsApp listado.
+const phoneHref =
+	site.phone && !socials.some((link) => digits(link.username) === digits(site.phone)) ? `tel:${site.phone.replace(/[^\d+]/g, "")}` : "";
 ---
 
 <footer class="site-footer">
