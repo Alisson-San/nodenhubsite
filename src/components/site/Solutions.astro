@@ -246,6 +246,33 @@ const ask = (service: ServiceItem) =>
 	.solutions--tabs .explorer__panel {
 		min-height: 420px;
 	}
+	/* Game: cantos de mira (HUD) no painel */
+	:global([data-theme="game"]) .explorer__panel::after {
+		content: "";
+		position: absolute;
+		inset: 12px;
+		pointer-events: none;
+		background:
+			linear-gradient(var(--accent), var(--accent)) top left / 22px 2px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) top left / 2px 22px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) top right / 22px 2px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) top right / 2px 22px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) bottom left / 22px 2px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) bottom left / 2px 22px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) bottom right / 22px 2px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) bottom right / 2px 22px no-repeat;
+		opacity: 0.6;
+	}
+	/* Data: numeração em fonte de código */
+	:global([data-theme="data"]) .explorer__big {
+		font-family: var(--font-mono);
+		font-weight: 700;
+		letter-spacing: -0.06em;
+	}
+	:global([data-theme="data"]) .explorer__big::before {
+		content: "#";
+		opacity: 0.5;
+	}
 	.explorer__panel[hidden] {
 		display: none;
 	}

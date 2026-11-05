@@ -309,6 +309,27 @@ const VISIBLE_FEATURES = 4;
 			search?.focus();
 		});
 
+		// Fundo da busca só quando ela fica presa sob o cabeçalho
+		const tools = root.querySelector<HTMLElement>(".catalog__tools");
+		if (tools) {
+			let queued = false;
+			const stick = () => {
+				queued = false;
+				const top = parseFloat(getComputedStyle(tools).top) || 0;
+				const box = root.getBoundingClientRect();
+				tools.classList.toggle("is-stuck", tools.getBoundingClientRect().top <= top + 1 && box.top < top && box.bottom > top);
+			};
+			window.addEventListener(
+				"scroll",
+				() => {
+					if (!queued) requestAnimationFrame(stick);
+					queued = true;
+				},
+				{ passive: true },
+			);
+			stick();
+		}
+
 		// ---------- Monte seu orçamento ----------
 		const tray = root.querySelector<HTMLElement>("[data-quote]");
 		if (!tray) continue;
@@ -479,9 +500,12 @@ const VISIBLE_FEATURES = 4;
 		top: var(--header-h);
 		z-index: 5;
 		padding-block: 12px;
-		background: color-mix(in srgb, var(--bg) 78%, transparent);
-		backdrop-filter: blur(16px);
-		-webkit-backdrop-filter: blur(16px);
+	}
+	/* Presa sob o cabeçalho: faixa de ponta a ponta (antes era um retângulo
+	   do tamanho do conteúdo, visível mesmo parado). */
+	.catalog__tools.is-stuck {
+		border-image: linear-gradient(color-mix(in srgb, var(--bg) 96%, transparent), color-mix(in srgb, var(--bg) 96%, transparent)) fill 0 / 0 / 0 100vmax;
+		clip-path: inset(0 -100vmax);
 	}
 	.catalog__search {
 		display: flex;
@@ -492,7 +516,8 @@ const VISIBLE_FEATURES = 4;
 		padding: 0 18px;
 		border: 1px solid var(--line-strong);
 		border-radius: 999px;
-		background: var(--surface-2);
+		/* Opaco: o conteúdo que passa por baixo não aparece através do campo */
+		background: linear-gradient(var(--surface-2), var(--surface-2)), var(--bg);
 		color: var(--text-2);
 	}
 	.catalog__search svg {
@@ -611,17 +636,63 @@ const VISIBLE_FEATURES = 4;
 		border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
 		box-shadow: 0 24px 50px -26px var(--accent);
 	}
+	/* Destaque: fundo OPACO por baixo da borda em degradê. Com fundo
+	   translúcido o degradê vazava para dentro do cartão e o preço sumia. */
 	.offer--featured {
-		border-color: transparent;
-		background:
-			linear-gradient(var(--surface-2), var(--surface-2)) padding-box,
-			var(--grad) border-box;
+		--featured-bg: var(--card-solid, color-mix(in srgb, var(--accent) 12%, var(--bg-2)));
 		border: 1.5px solid transparent;
+		background:
+			linear-gradient(var(--featured-bg), var(--featured-bg)) padding-box,
+			var(--grad) border-box;
 		box-shadow: 0 24px 60px -30px var(--accent);
+	}
+	/* Game: borda RGB girando, como num gabinete */
+	:global([data-theme="game"]) .offer--featured {
+		background:
+			linear-gradient(var(--featured-bg), var(--featured-bg)) padding-box,
+			conic-gradient(from var(--angle, 0deg), #b231fb, #4546fb, #01ccfe, #ff2ea0, #b231fb) border-box;
+		animation: offer-rgb 6s linear infinite;
+	}
+	@keyframes offer-rgb {
+		to {
+			--angle: 360deg;
+		}
+	}
+	/* Game: cantos de mira (HUD) nos cartões */
+	:global([data-theme="game"]) .offer::after {
+		content: "";
+		position: absolute;
+		inset: 8px;
+		pointer-events: none;
+		background:
+			linear-gradient(var(--accent), var(--accent)) top left / 14px 2px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) top left / 2px 14px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) bottom right / 14px 2px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) bottom right / 2px 14px no-repeat;
+		opacity: 0.55;
+		transition: opacity 0.3s ease, inset 0.3s ease;
+	}
+	:global([data-theme="game"]) .offer:hover::after {
+		opacity: 1;
+		inset: 5px;
+	}
+	/* Data: faixa superior como uma linha selecionada */
+	:global([data-theme="data"]) .offer--featured::before {
+		content: "";
+		position: absolute;
+		inset: 0 24px auto;
+		height: 3px;
+		border-radius: 0 0 3px 3px;
+		background: var(--grad);
 	}
 	.offer.is-selected {
 		border-color: var(--accent);
 		box-shadow: 0 0 0 3px var(--accent-soft), 0 24px 50px -26px var(--accent);
+	}
+	/* O destaque mantém a borda em degradê no hover e quando selecionado */
+	.offer--featured:hover,
+	.offer--featured.is-selected {
+		border-color: transparent;
 	}
 	.offer--inactive {
 		opacity: 0.6;
@@ -683,14 +754,20 @@ const VISIBLE_FEATURES = 4;
 		font-weight: 800;
 		letter-spacing: -0.03em;
 		line-height: 1;
-		background: var(--grad);
-		-webkit-background-clip: text;
-		background-clip: text;
-		color: transparent;
+		font-variant-numeric: tabular-nums;
+		color: var(--price);
+	}
+	:global([data-theme="data"]) .offer__price strong {
+		letter-spacing: -0.02em;
 	}
 	.offer__price small {
 		font-weight: 600;
 		color: var(--text-2);
+	}
+	:global([data-theme="data"]) .offer__price small {
+		font-family: var(--font-mono);
+		font-size: 0.82rem;
+		font-weight: 500;
 	}
 	.offer__price del {
 		width: 100%;

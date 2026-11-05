@@ -63,6 +63,10 @@
 	--grad: linear-gradient(110deg, #b231fb, #2d2ffc 55%, #01ccfe);
 	--grad-button: linear-gradient(110deg, #9338fb, #2d2ffc 55%, #0767cf);
 	--on-accent: var(--white);
+	/* Preços e números importantes: sempre cor sólida (nunca texto em degradê) */
+	--price: #e7e4ff;
+	/* --card-solid (opcional): fundo opaco dos cartões em destaque. Sem ele,
+	   os componentes misturam o acento da divisão ao --bg-2 do tema. */
 
 	/* Compatibilidade com componentes antigos */
 	--paper: var(--bg);
@@ -80,6 +84,7 @@
 	--accent-soft: rgb(34 195 238 / 14%);
 	--grad: linear-gradient(110deg, #2d2ffc, #0d7dfc 50%, #01ccfe);
 	--grad-button: linear-gradient(110deg, #2d2ffc, #0767cf);
+	--price: #9eeaff;
 }
 [data-division="game"] {
 	--accent: #b46bff;
@@ -88,6 +93,7 @@
 	--accent-soft: rgb(178 49 251 / 16%);
 	--grad: linear-gradient(110deg, #b231fb, #9338fb 50%, #4546fb);
 	--grad-button: linear-gradient(110deg, #9338fb, #4546fb);
+	--price: #e6ccff;
 }
 [data-division="data"] {
 	--accent: #4d8dff;
@@ -96,6 +102,7 @@
 	--accent-soft: rgb(62 74 252 / 16%);
 	--grad: linear-gradient(110deg, #3e4afc, #089efd 50%, #01d4fe);
 	--grad-button: linear-gradient(110deg, #3e4afc, #0a63c4);
+	--price: #8fe3ff;
 }
 
 /* Tema claro (Noden Home) */
@@ -110,25 +117,70 @@
 	--text-2: #4f5a78;
 	--muted: #4f5a78;
 	--shadow: 0 24px 50px -28px rgb(15 40 90 / 35%);
+	/* Casa: cantos bem arredondados, macio */
+	--radius: 26px;
 }
 [data-theme="home"] [data-division="home"],
 [data-theme="home"][data-division="home"] {
 	--accent-text: #006a8c;
 	--accent-soft: rgb(34 195 238 / 16%);
+	--price: #1f2fd6;
+	--card-solid: #ffffff;
 }
 [data-theme="home"] [data-division="game"] {
 	--accent-text: #8a1fe0;
+	--price: #8a1fe0;
 }
 [data-theme="home"] [data-division="data"] {
 	--accent-text: #2633e8;
+	--price: #2633e8;
 }
+/* Game: preto de setup, cantos mais secos */
 [data-theme="game"] {
 	--bg: #06050d;
 	--bg-2: #110a22;
+	--radius: 14px;
+	--radius-sm: 8px;
 }
+/* Data: azul-marinho técnico */
 [data-theme="data"] {
 	--bg: #050b1a;
 	--bg-2: #0a1530;
+	--radius: 16px;
+	--radius-sm: 10px;
+}
+/* Data: rótulos com cara de código */
+[data-theme="data"] .kicker {
+	font-family: var(--font-mono);
+	font-size: 0.88rem;
+	letter-spacing: 0.02em;
+}
+[data-theme="data"] .kicker::before {
+	content: "//";
+	width: auto;
+	height: auto;
+	background: none;
+	color: var(--accent-2);
+}
+/* Game: rótulos como HUD */
+[data-theme="game"] .kicker {
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	font-size: 0.82rem;
+}
+[data-theme="game"] .kicker::before {
+	width: 10px;
+	height: 10px;
+	border-radius: 2px;
+	transform: rotate(45deg);
+	box-shadow: 0 0 12px var(--accent);
+}
+
+/* Ângulo usado pelas bordas RGB animadas (Game) */
+@property --angle {
+	syntax: "<angle>";
+	initial-value: 0deg;
+	inherits: false;
 }
 
 *,

@@ -144,3 +144,34 @@ Os números servem para comparar antes e depois no mesmo ambiente; não são med
 
 ### Pendente
 - Conferir o tempo no site publicado depois do próximo deploy em `gru1` (Vercel Speed Insights ou DevTools).
+
+## Atualização — cores e identidade de cada área
+Relato do responsável: no serviço em destaque quase não dava para ler o preço; cores bagunçadas; revisar o tema de cada área.
+
+### Causas confirmadas
+- **Destaque ilegível (Game e Data):** o cartão usava fundo translúcido (`--surface-2`, 9% de branco) por cima da borda em degradê. O degradê vazava para dentro do cartão inteiro, e o preço — também em texto com degradê — sumia sobre ele.
+- **Preço em degradê:** mesmo nos cartões comuns, a ponta clara do degradê perdia contraste (na Home, ciano sobre branco ≈ 1,9:1).
+- **Chamada final igual em todas as áreas:** fundo roxo fixo (`#0b0820`), inclusive na Noden Home (clara), e conversa em bege/verde-claro destoando dos temas escuros.
+- **Busca do catálogo:** a faixa fixa tinha fundo só na largura do conteúdo, formando um retângulo visível mesmo parado, e o título aparecia por trás do campo.
+
+### Correções
+- Novo token `--price` (cor sólida por área) e `--card-solid` opcional; o destaque usa fundo **opaco** com a borda em degradê por fora.
+- Destaque por área: Home com borda azul suave; Game com borda RGB girando e cantos de mira (HUD) nos cartões; Data com faixa superior de "linha selecionada".
+- Identidade: Home com cantos mais arredondados; Game com cantos mais secos e rótulos em caixa-alta tipo HUD; Data com rótulos `// em fonte de código`, numeração `#01` e prefixo de preço em fonte mono.
+- Chamada final por tema: Home em bloco azul da divisão com conversa no modo claro; Game/Data/inicial escuras com conversa no modo escuro do WhatsApp; Data com a grade técnica.
+- Busca do catálogo: fundo de ponta a ponta só quando presa sob o cabeçalho (`is-stuck`), campo opaco.
+
+### Contraste calculado (WCAG, texto normal ≥ 4,5:1)
+| Par | Contraste |
+|---|---|
+| Home · preço no cartão / destaque | 8,5 / 8,6 |
+| Game · preço no cartão / destaque | 12,8 / 11,5 |
+| Data · preço no cartão / destaque | 12,4 / 10,7 |
+| Conversa escura · cliente / Noden | 6,8 / 12,1 |
+| Home final · título / texto (ponto mais claro) | 6,4 / 5,2 |
+| Home conversa · cabeçalho | 4,9 |
+| Rótulos Data / Game | 9,2 / 10,1 |
+
+### Verificação
+- `npm run validate` sem erros/avisos; testes unitários, de rotas, `public-site.cjs` e `inline-editor.cjs` sem falhas.
+- Capturas em 1440×900 e 390×844 das três divisões (catálogo, destaque, explorador, chamada final, busca presa e parada).
