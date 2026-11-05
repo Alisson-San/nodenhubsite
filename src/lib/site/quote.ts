@@ -1,7 +1,7 @@
 /**
  * "Monte seu orçamento": soma de referência dos itens escolhidos no catálogo
- * e mensagem pronta para o WhatsApp. Valores são de referência; itens sem
- * valor (sob consulta, gratuitos) não entram na soma.
+ * e mensagem pronta para o WhatsApp. Valores são de referência. Itens
+ * gratuitos somam zero; só itens sob consulta ficam fora do total.
  */
 export interface QuoteItem {
 	id: string;
@@ -12,13 +12,15 @@ export interface QuoteItem {
 	startingAt: boolean;
 	/** Texto do preço como aparece no site (ex.: "Sob consulta"). */
 	priceText: string;
+	/** Item gratuito: soma zero e não conta como "sob consulta". */
+	free?: boolean;
 }
 
 export interface QuoteSummary {
 	count: number;
 	total: number;
 	startingAt: boolean;
-	/** Itens sem valor na soma (sob consulta, gratuitos, rótulos). */
+	/** Itens sob consulta (sem valor na soma). Gratuitos não contam aqui. */
 	withoutPrice: number;
 }
 
@@ -27,6 +29,7 @@ export function summarizeQuote(items: QuoteItem[]): QuoteSummary {
 	let startingAt = false;
 	let withoutPrice = 0;
 	for (const item of items) {
+		if (item.free) continue;
 		if (typeof item.price === "number" && Number.isFinite(item.price)) {
 			total += item.price;
 			if (item.startingAt) startingAt = true;
@@ -39,7 +42,7 @@ const brl = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency
 
 export function quoteTotalText(summary: QuoteSummary): string {
 	if (!summary.count) return "";
-	if (summary.total <= 0) return "Sob consulta";
+	if (summary.total <= 0) return summary.withoutPrice ? "Sob consulta" : "Sem custo";
 	const base = `${summary.startingAt ? "a partir de " : ""}${brl(summary.total)}`;
 	return summary.withoutPrice ? `${base} + ${summary.withoutPrice} sob consulta` : base;
 }

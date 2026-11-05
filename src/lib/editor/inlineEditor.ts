@@ -106,13 +106,18 @@ export function startInlineEditor(): void {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
 		});
-		let result: { error?: string; errors?: Record<string, string>; warning?: string; revision?: number } = {};
+		let result: { error?: string; errors?: Record<string, string>; warning?: string; revision?: number; baseRevision?: number; partial?: boolean } = {};
 		try {
 			result = await response.json();
 		} catch {
 			/* resposta vazia */
 		}
 		if (!response.ok) {
+			// Publicação parcial: o banco já avançou a revisão do rascunho.
+			if (result.partial && typeof result.revision === "number") {
+				state.revision = result.revision;
+				if (typeof result.baseRevision === "number") state.baseRevision = result.baseRevision;
+			}
 			const details = result.errors ? Object.values(result.errors).join("\n") : "";
 			throw new Error([result.error || "Não foi possível concluir.", details].filter(Boolean).join("\n"));
 		}

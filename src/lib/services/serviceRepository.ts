@@ -384,6 +384,8 @@ function mapPricing(
 				row,
 			),
 
+		priceType: row.price_type ?? undefined,
+
 		priceSuffix:
 			optionalString(
 				row.price_suffix,

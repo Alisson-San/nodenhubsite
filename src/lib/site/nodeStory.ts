@@ -339,6 +339,8 @@ export function startNodeStory(): void {
 	reduced.addEventListener("change", evaluate);
 
 	evaluate();
+	// Avisa o script inline (NodeStory.astro) que o controlador assumiu.
+	root.dataset.storyStarted = "";
 	document.fonts?.ready.then(evaluate);
 
 	const target = location.hash ? panels.findIndex((panel) => `#${panel.id}` === location.hash) : -1;

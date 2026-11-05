@@ -20,6 +20,8 @@ export const prerender = false;
  *    de origem da divisão (gatilho catalog_touch_source).
  * 4. Remove o rascunho: a próxima edição parte da versão publicada.
  * Se 2 ou 3 falharem, o rascunho permanece e uma nova tentativa reaplica tudo.
+ * O passo 1 já avançou a revisão do rascunho, então a resposta de falha
+ * parcial devolve a revisão nova: sem ela a nova tentativa daria conflito.
  */
 export const POST: APIRoute = async (context) => {
 	if (!context.locals.user || !context.locals.isAdmin) return json({ error: "Acesso negado." }, 403);
@@ -48,6 +50,8 @@ export const POST: APIRoute = async (context) => {
 
 		const published = await publishCatalogDraft(client, division, body.expectedRevision);
 		const userId = context.locals.user.id;
+		const partial = (error: string) =>
+			json({ error, partial: true, revision: published.revision, baseRevision: published.sourceRevision }, 500);
 
 		if (document.extras) {
 			try {
@@ -60,7 +64,7 @@ export const POST: APIRoute = async (context) => {
 				});
 			} catch (error) {
 				console.error("[Noden] Falha ao publicar promessas e etapas.", error);
-				return json({ error: "Catálogo publicado, mas promessas/etapas não. Tente publicar de novo." }, 500);
+				return partial("Catálogo publicado, mas promessas/etapas não. Tente publicar de novo.");
 			}
 		}
 
@@ -68,7 +72,7 @@ export const POST: APIRoute = async (context) => {
 			const { error } = await client.from("service_pages").update(pageTextsToUpdate(document.page, userId)).eq("division", division);
 			if (error) {
 				console.error("[Noden] Falha ao publicar textos da página.", error);
-				return json({ error: "Catálogo e promessas publicados, mas os textos da página não. Tente publicar de novo." }, 500);
+				return partial("Catálogo e promessas publicados, mas os textos da página não. Tente publicar de novo.");
 			}
 		}
 

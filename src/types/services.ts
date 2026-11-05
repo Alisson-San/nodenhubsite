@@ -61,6 +61,8 @@ export interface PricingItem {
 
 	pricePrefix?: string;
 	priceLabel?: string;
+	/** Tipo de preço gravado no banco (fixed, starting_at, free, consultation). */
+	priceType?: string;
 	priceSuffix?: string;
 
 	features?: string[];

@@ -31,3 +31,11 @@ test("mensagem lista os itens e o total de referência", () => {
 	assert.match(message, /• Wi-Fi \(Sob consulta\)/);
 	assert.match(message, /Total de referência: a partir de R\$\s?90,00 \+ 1 sob consulta\./);
 });
+
+test("gratuito soma zero e não vira 'sob consulta'", () => {
+	const free = { ...item("Análise", null, false, "Sem custo"), free: true };
+	assert.equal(quoteTotalText(summarizeQuote([free])), "Sem custo");
+	assert.match(quoteTotalText(summarizeQuote([free, item("A", 90)])), /^R\$\s?90,00$/);
+	assert.equal(summarizeQuote([free, item("C", null)]).withoutPrice, 1);
+	assert.equal(quoteTotalText(summarizeQuote([free, item("C", null)])), "Sob consulta");
+});

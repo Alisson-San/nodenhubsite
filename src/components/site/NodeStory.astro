@@ -50,6 +50,13 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 			if (!calm && !root.hasAttribute("data-story-editing") && window.innerWidth >= 360 && window.innerHeight >= 600) {
 				root.classList.add("story--live");
 				root.style.setProperty("--story-acts", "6");
+				// Se o módulo da animação não carregar (rede lenta, erro), volta
+				// à leitura normal: sem isso só a abertura ficava visível.
+				setTimeout(function () {
+					if (root.hasAttribute("data-story-started")) return;
+					root.classList.remove("story--live", "story--ready");
+					root.style.removeProperty("--story-acts");
+				}, 4000);
 			}
 		})();
 	</script>

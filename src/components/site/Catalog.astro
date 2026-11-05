@@ -50,6 +50,9 @@ for (const item of items) {
 	group.items.push(item);
 }
 
+/** Gratuito pelo tipo gravado; no conteúdo de reserva, pelo rótulo. */
+const isFree = (item: PricingItem) =>
+	item.priceType ? item.priceType === "free" : /^(sem custo|gr[aá]tis|gratuit)/i.test(item.priceLabel ?? "");
 const priceText = (item: PricingItem) => {
 	if (item.priceLabel) return { main: item.priceLabel };
 	if (typeof item.price === "number") {
@@ -158,6 +161,7 @@ const VISIBLE_FEATURES = 4;
 									data-quote-name={item.name}
 									data-quote-price={typeof item.price === "number" && !item.priceLabel ? item.price : ""}
 									data-quote-starting={price.prefix ? "1" : ""}
+									data-quote-free={isFree(item) ? "1" : undefined}
 									data-quote-text={fullPriceText(item)}
 								>
 									{item.inactive && <span class="offer__hidden-tag">Oculto do público</span>}
@@ -362,6 +366,7 @@ const VISIBLE_FEATURES = 4;
 						price: raw ? Number(raw) : null,
 						startingAt: card.dataset.quoteStarting === "1",
 						priceText: card.dataset.quoteText ?? "",
+						free: card.dataset.quoteFree === "1",
 					});
 				}
 				render(selected.has(id) ? `${card.dataset.quoteName} adicionado ao orçamento.` : `${card.dataset.quoteName} removido do orçamento.`);

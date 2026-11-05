@@ -76,6 +76,7 @@ export function documentToPage(
 				pricePrefix: x.price_prefix ?? (x.price_type === "starting_at" ? "A partir de" : undefined),
 				priceLabel: x.price_label ?? (x.price_type === "free" ? "Sem custo" : x.price_type === "consultation" ? "Sob consulta" : undefined),
 				priceSuffix: x.price_suffix ?? undefined,
+				priceType: x.price_type,
 				features: strings(x.features),
 				category: category
 					? {

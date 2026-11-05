@@ -37,7 +37,10 @@ export function startEditor(){
  }
  async function request(path:string,payload?:unknown){
   const res=await fetch(path,{method:payload?'POST':'GET',headers:payload?{'Content-Type':'application/json'}:{},body:payload?JSON.stringify(payload):undefined});
-  const result=await res.json();if(!res.ok&&!(res.status===503&&result.published))throw new Error(res.status===409?'Outra edição modificou esta divisão. Seu trabalho continua aqui; copie as alterações importantes e recarregue antes de publicar.':formatError(result));
+  const result=await res.json();
+  // Publicação parcial: o banco já avançou a revisão do rascunho.
+  if(!res.ok&&result.partial&&typeof result.revision==='number'){revision=result.revision;if(typeof result.baseRevision==='number')baseRevision=result.baseRevision;}
+  if(!res.ok&&!(res.status===503&&result.published))throw new Error(res.status===409?'Outra edição modificou esta divisão. Seu trabalho continua aqui; copie as alterações importantes e recarregue antes de publicar.':formatError(result));
   return result;
  }
  function formatError(result:{error?:string;errors?:unknown;message?:string}){
