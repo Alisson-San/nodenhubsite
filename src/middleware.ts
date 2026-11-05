@@ -55,6 +55,94 @@ function createJsonError(
 	);
 }
 
+/**
+ * Páginas públicas: visitantes não pagam a verificação de sessão.
+ * Só consultamos o Supabase quando há cookie de autenticação, para
+ * ativar o modo de edição do administrador no próprio site.
+ */
+function hasAuthCookie(
+	request: Request,
+): boolean {
+	const header =
+		request.headers.get("cookie") ?? "";
+
+	return /(?:^|;\s*)sb-[^=]*-auth-token(?:\.\d+)?=/.test(
+		header,
+	);
+}
+
+const editablePublicPaths =
+	new Set([
+		"/",
+		"/noden-home",
+		"/noden-game",
+		"/noden-data",
+	]);
+
+async function handlePublicRequest(
+	context: Parameters<
+		Parameters<
+			typeof defineMiddleware
+		>[0]
+	>[0],
+	next: () => Promise<Response>,
+): Promise<Response> {
+	const pathname =
+		context.url.pathname.replace(
+			/\/$/,
+			"",
+		) || "/";
+
+	if (
+		context.isPrerendered ||
+		!editablePublicPaths.has(
+			pathname,
+		) ||
+		!hasAuthCookie(
+			context.request,
+		)
+	) {
+		return next();
+	}
+
+	try {
+		const supabase =
+			createSupabaseRequestClient({
+				request:
+					context.request,
+
+				cookies:
+					context.cookies,
+			});
+
+		const {
+			data,
+		} =
+			await supabase.auth.getUser();
+
+		context.locals.user =
+			data.user ?? null;
+
+		context.locals.isAdmin =
+			data.user?.app_metadata
+				?.role === "admin";
+	} catch {
+		// Sem sessão válida: segue como visitante.
+	}
+
+	const response =
+		await next();
+
+	if (context.locals.isAdmin) {
+		response.headers.set(
+			"Cache-Control",
+			"private, no-store",
+		);
+	}
+
+	return response;
+}
+
 export const onRequest =
 	defineMiddleware(
 		async (
@@ -70,7 +158,10 @@ export const onRequest =
 				context.url.pathname;
 
 			if (!isAdminArea(pathname)) {
-				return next();
+				return handlePublicRequest(
+					context,
+					next,
+				);
 			}
 
 			const continueWithoutCache =

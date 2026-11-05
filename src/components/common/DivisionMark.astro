@@ -1,0 +1,66 @@
+---
+/**
+ * Marca individual de cada divisão: o anel da logo Noden (mesmo degradê
+ * medido na logo oficial) com o ícone da área na cor do anel.
+ */
+import DivisionIcon from "./DivisionIcon.astro";
+import { RINGS } from "../../lib/site/brand";
+import { divisions } from "../../lib/site/divisions";
+import type { ServiceDivision } from "../../types/services";
+
+interface Props {
+	division: ServiceDivision;
+	/** Diâmetro em px; também aceita valores CSS. */
+	size?: number | string;
+	class?: string;
+	/** Mantido por compatibilidade: o ícone já usa a cor do anel. */
+	inverse?: boolean;
+	/** Quando false, recebe nome acessível. */
+	decorative?: boolean;
+}
+
+const { division, size = 48, class: className = "", decorative = true } = Astro.props;
+const ring = RINGS[division];
+const id = `dm-${division}-${Math.random().toString(36).slice(2, 8)}`;
+const dimension = typeof size === "number" ? `${size}px` : size;
+const box = ring.r + ring.width / 2 + 2;
+---
+
+<svg
+	class:list={["division-mark", className]}
+	viewBox={`${-box} ${-box} ${box * 2} ${box * 2}`}
+	style={`width:${dimension};height:${dimension}`}
+	role={decorative ? undefined : "img"}
+	aria-hidden={decorative ? "true" : undefined}
+	aria-label={decorative ? undefined : divisions[division].name}
+	focusable="false"
+>
+	<defs>
+		<linearGradient id={id} gradientUnits="userSpaceOnUse" x1={-ring.r} y1="0" x2={ring.r} y2="0">
+			<stop offset="0%" stop-color={ring.stops[0]} />
+			<stop offset="50%" stop-color={ring.stops[1]} />
+			<stop offset="100%" stop-color={ring.stops[2]} />
+		</linearGradient>
+	</defs>
+	<circle r={ring.r} fill="none" stroke={`url(#${id})`} stroke-width={ring.width} />
+	<g class="division-mark__icon" stroke={`url(#${id})`} fill="none" style={`--mark-fill:url(#${id})`}>
+		<DivisionIcon division={division} />
+	</g>
+</svg>
+
+<style>
+	.division-mark {
+		display: inline-block;
+		flex: none;
+		overflow: visible;
+	}
+	.division-mark__icon {
+		stroke-width: 26;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.division-mark__icon :global(.fill) {
+		fill: var(--mark-fill);
+		stroke: none;
+	}
+</style>

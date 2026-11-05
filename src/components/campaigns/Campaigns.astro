@@ -7,8 +7,8 @@ const campaigns=await loadCampaigns(Astro.props.page);
 // No response cache: stock or schedule changes must be reflected on the next load.
 Astro.response.headers.set('Cache-Control','no-store');
 ---
-{campaigns.filter(c=>c.format!=='dialog').slice(0,1).map(c=><CampaignBanner campaign={c} topOffset={["/","/mobile"].includes(Astro.props.page)}/>)}
-{!campaigns.some(c=>c.format!=='dialog') && campaigns.slice(0,1).map(c=><div data-campaign-fallback hidden><CampaignBanner campaign={c} topOffset={["/","/mobile"].includes(Astro.props.page)}/></div>)}
+{campaigns.filter(c=>c.format!=='dialog').slice(0,1).map(c=><CampaignBanner campaign={c}/>)}
+{!campaigns.some(c=>c.format!=='dialog') && campaigns.slice(0,1).map(c=><div data-campaign-fallback hidden><CampaignBanner campaign={c}/></div>)}
 {campaigns.filter(c=>c.format!=='banner').map(c=><CampaignDialog campaign={c}/>)}
 <script>
 import {mayDisplay,markDisplayed} from '../../lib/campaigns/frequency';

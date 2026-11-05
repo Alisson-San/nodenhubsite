@@ -1,422 +1,248 @@
 ---
 import SiteLogo from "./SiteLogo.astro";
-
-import {
-	getWhatsAppUrl,
-	siteConfig as fallbackSiteConfig,
-} from "../../config/site";
-
-import type {
-	RuntimeSiteConfig,
-} from "../../types/site";
-
-interface FooterLink {
-	label: string;
-	href: string;
-	external?: boolean;
-}
+import WhatsAppIcon from "./WhatsAppIcon.astro";
+import DivisionMark from "./DivisionMark.astro";
+import SocialIcon from "./SocialIcon.astro";
+import { getWhatsAppUrl, siteConfig } from "../../config/site";
+import { divisionOrder, divisions } from "../../lib/site/divisions";
+import type { RuntimeSiteConfig } from "../../types/site";
 
 interface Props {
-	navigation?: FooterLink[];
-	logoIdPrefix?: string;
-	class?: string;
 	site?: RuntimeSiteConfig;
 }
 
-const defaultNavigation: FooterLink[] = [
-	{
-		label: "Início",
-		href: "/",
-	},
-	{
-		label: "Noden Home",
-		href: "/home",
-	},
-	{
-		label: "Noden Game",
-		href: "/game",
-	},
-	{
-		label: "Noden Data",
-		href: "/data",
-	},
-	{
-		label: "Links",
-		href: "/links",
-	},
-];
-
-const {
-	navigation = defaultNavigation,
-	logoIdPrefix = "site-footer-logo",
-	class: className = "",
-	site = fallbackSiteConfig,
-} = Astro.props;
-
-const socialLinks: FooterLink[] =
-	site.socialLinks
-		.filter(
-			(item) =>
-				item.isActive &&
-				item.platform !== "whatsapp" &&
-				item.platform !== "website",
-		)
-		.sort(
-			(a, b) =>
-				a.sortOrder - b.sortOrder,
-		)
-		.map(
-			(item) => ({
-				label: item.label,
-				href: item.url,
-				external: true,
-			}),
-		);
-
-const currentYear = new Date().getFullYear();
-
-const phoneHref = `tel:${site.phone.replace(/[^\d+]/g, "")}`;
-
-const serviceAreaText = site.serviceAreas.join(", ");
-
-const whatsappUrl = getWhatsAppUrl(
-	undefined,
-	site,
-);
+const { site = siteConfig } = Astro.props;
+const year = new Date().getFullYear();
+const socials = site.socialLinks.filter((link) => link.isActive && link.platform !== "website");
+const digits = (value?: string | null) => (value ?? "").replace(/\D/g, "");
+// O telefone só aparece separado se não for o mesmo número do WhatsApp listado.
+const phoneHref =
+	site.phone && !socials.some((link) => digits(link.username) === digits(site.phone)) ? `tel:${site.phone.replace(/[^\d+]/g, "")}` : "";
 ---
 
-<footer class:list={["site-footer", className]}>
-	<div class="site-footer__container">
-		<div class="site-footer__main">
-			<div class="site-footer__brand">
-				<SiteLogo
-					size="md"
-					showTagline={true}
-					idPrefix={logoIdPrefix}
-				/>
+<footer class="site-footer">
+	<div class="site-footer__glow" aria-hidden="true"></div>
+	<div class="wrap site-footer__grid">
+		<div class="site-footer__brand">
+			<SiteLogo idPrefix="footer-logo" size="lg" inverse />
+			<p>Tecnologia resolvida para casa, setup gamer e empresa. {site.serviceAreas.join(", ")}.</p>
+			<a class="btn btn--whatsapp" href={getWhatsAppUrl(undefined, site)} target="_blank" rel="noopener">
+				<WhatsAppIcon />
+				Chamar no WhatsApp
+			</a>
+			{
+				socials.length > 0 && (
+					<ul class="site-footer__social" aria-label="Redes sociais">
+						{socials.map((link) => (
+							<li>
+								<a href={link.url} target="_blank" rel="noopener" aria-label={`${link.label}${link.username ? ` (${link.username})` : ""}`}>
+									<SocialIcon platform={link.platform} />
+								</a>
+							</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
 
-				<p>{site.description}</p>
-
-				<a
-					class="site-footer__primary-action"
-					href={whatsappUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Falar pelo WhatsApp
-
-					<svg
-						viewBox="0 0 20 20"
-						aria-hidden="true"
-						focusable="false"
-					>
-						<path
-							d="M6 14L14 6M8 6h6v6"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.7"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-					</svg>
-				</a>
-			</div>
-
-			<div class="site-footer__column">
-				<span class="site-footer__column-title">
-					Navegação
-				</span>
-
-				<nav aria-label="Navegação do rodapé">
-					{
-						navigation.map((item) => (
-							<a
-								href={item.href}
-								target={
-									item.external
-										? "_blank"
-										: undefined
-								}
-								rel={
-									item.external
-										? "noopener noreferrer"
-										: undefined
-								}
-							>
-								{item.label}
-							</a>
-						))
-					}
-				</nav>
-			</div>
-
-			<div class="site-footer__column">
-				<span class="site-footer__column-title">
-					Contato
-				</span>
-
-				<div class="site-footer__links">
-					<a href={phoneHref}>
-						{site.phone}
-					</a>
-
-					{
-						site.email && (
-							<a href={`mailto:${site.email}`}>
-								{site.email}
-							</a>
-						)
-					}
-
-					<a
-						href={whatsappUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						WhatsApp
-					</a>
-
-					{
-						socialLinks.map((item) => (
-							<a
-								href={item.href}
-								target="_blank"
-								rel="noopener noreferrer"
-							>
-								{item.label}
-							</a>
-						))
-					}
-				</div>
-			</div>
-
-			<div class="site-footer__column site-footer__area">
-				<span class="site-footer__column-title">
-					Atendimento
-				</span>
-
+		<nav aria-label="Divisões">
+			<h2>Divisões</h2>
+			<ul>
 				{
-					site.address && (
-						<p>{site.address}</p>
+					divisionOrder.map((id) => (
+						<li data-division={id}>
+							<a href={divisions[id].path}>
+								<DivisionMark division={id} size={28} />
+								<span>
+									{divisions[id].name}
+									<small>{divisions[id].audience}</small>
+								</span>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+
+		<div>
+			<h2>Contato</h2>
+			<ul>
+				{socials.map((link) => (
+					<li>
+						<a href={link.url} target="_blank" rel="noopener">
+							<SocialIcon platform={link.platform} size={18} />
+							{link.username || link.label}
+						</a>
+					</li>
+				))}
+				{
+					phoneHref && (
+						<li>
+							<a href={phoneHref}>
+								<SocialIcon platform="phone" size={18} />
+								{site.phone}
+							</a>
+						</li>
 					)
 				}
-
-				<p>{serviceAreaText}</p>
-
-				<span class="site-footer__status">
-					<span aria-hidden="true"></span>
-					{site.serviceHours}
-				</span>
-			</div>
+				{
+					site.email && (
+						<li>
+							<a href={`mailto:${site.email}`}>
+								<SocialIcon platform="email" size={18} />
+								{site.email}
+							</a>
+						</li>
+					)
+				}
+				<li>
+					<a href="/links">
+						<SocialIcon platform="website" size={18} />
+						Todos os links
+					</a>
+				</li>
+			</ul>
+			<p class="site-footer__hours">{site.serviceHours}</p>
 		</div>
+	</div>
 
-		<div class="site-footer__bottom">
-			<p>
-				© {currentYear} {site.legalName}.
-			</p>
-
-			<p>
-				Tecnologia que conecta.
-			</p>
-		</div>
+	<div class="wrap site-footer__bottom">
+		<span>© {year} {site.legalName}</span>
+		<a href="/admin">Área restrita</a>
 	</div>
 </footer>
 
 <style>
 	.site-footer {
+		--text: #f4f2ff;
+		--text-2: #b6b0d6;
+		--line: rgb(255 255 255 / 12%);
 		position: relative;
-		width: 100%;
-		margin-top: 80px;
-		border-top: 1px solid rgba(105, 142, 196, 0.14);
+		overflow: hidden;
+		background: #05040f;
+		color: var(--text);
+		padding-top: clamp(56px, 8vw, 96px);
+	}
+	.site-footer__glow {
+		position: absolute;
+		inset: -40% -10% auto;
+		height: 70%;
 		background:
-			radial-gradient(
-				circle at 10% 0%,
-				rgba(56, 91, 211, 0.11),
-				transparent 30%
-			),
-			#03070d;
-		color: #ffffff;
+			radial-gradient(40% 60% at 20% 100%, rgb(178 49 251 / 28%), transparent 70%),
+			radial-gradient(40% 60% at 55% 100%, rgb(45 47 252 / 26%), transparent 70%),
+			radial-gradient(40% 60% at 90% 100%, rgb(1 204 254 / 20%), transparent 70%);
+		pointer-events: none;
 	}
-
-	.site-footer__container {
-		width: min(100% - 40px, 1120px);
-		margin: 0 auto;
+	.site-footer::before {
+		content: "";
+		position: absolute;
+		inset: 0 0 auto;
+		height: 1px;
+		background: var(--brand-gradient);
+		opacity: 0.8;
 	}
-
-	.site-footer__main {
+	.site-footer__grid {
+		position: relative;
 		display: grid;
-		grid-template-columns: minmax(250px, 1.45fr) repeat(3, 1fr);
-		gap: 52px;
-		padding: 68px 0 58px;
+		gap: 40px;
+		grid-template-columns: 1.4fr 1fr 1fr;
 	}
-
-	.site-footer__brand {
-		display: flex;
-		align-items: flex-start;
-		flex-direction: column;
+	.site-footer__brand p {
+		margin: 18px 0 24px;
+		max-width: 36ch;
+		color: var(--text-2);
 	}
-
-	.site-footer__brand > p {
-		max-width: 330px;
-		margin: 24px 0 0;
-		color: #8899b0;
-		font-size: 0.84rem;
-		line-height: 1.7;
+	.site-footer h2 {
+		font-size: 0.95rem;
+		font-family: var(--font-body);
+		letter-spacing: 0;
+		color: var(--text-2);
+		margin-bottom: 12px;
 	}
-
-	.site-footer__primary-action {
+	.site-footer ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 2px;
+	}
+	.site-footer li a {
 		display: inline-flex;
+		align-items: center;
+		gap: 12px;
 		min-height: 44px;
-		margin-top: 24px;
-		padding: 0 16px;
-		align-items: center;
-		justify-content: center;
-		gap: 9px;
-		border: 1px solid rgba(91, 149, 235, 0.26);
-		border-radius: 12px;
-		background: rgba(37, 101, 204, 0.14);
-		color: #f7faff;
-		font-size: 0.71rem;
-		font-weight: 600;
+		color: var(--text);
 		text-decoration: none;
-		transition:
-			border-color 180ms ease,
-			background-color 180ms ease,
-			transform 180ms ease;
-	}
-
-	.site-footer__primary-action svg {
-		width: 17px;
-		height: 17px;
-	}
-
-	.site-footer__primary-action:hover {
-		border-color: rgba(69, 151, 255, 0.55);
-		background: rgba(39, 111, 226, 0.23);
-		transform: translateY(-1px);
-	}
-
-	.site-footer__column {
-		display: flex;
-		align-items: flex-start;
-		flex-direction: column;
-	}
-
-	.site-footer__column-title {
-		margin-bottom: 21px;
-		color: #718bb0;
-		font-size: 0.57rem;
 		font-weight: 600;
-		letter-spacing: 0.21em;
-		text-transform: uppercase;
 	}
-
-	.site-footer__column nav,
-	.site-footer__links {
-		display: flex;
-		align-items: flex-start;
-		flex-direction: column;
-		gap: 14px;
+	.site-footer li a small {
+		display: block;
+		color: var(--text-2);
+		font-weight: 500;
+		font-size: 0.85rem;
 	}
-
-	.site-footer__column a {
-		color: #a4b0c1;
-		font-size: 0.76rem;
-		line-height: 1.4;
-		text-decoration: none;
-		transition: color 180ms ease;
-	}
-
-	.site-footer__column a:hover {
+	.site-footer li a:hover {
 		color: #ffffff;
+		text-decoration: underline;
+		text-underline-offset: 4px;
 	}
-
-	.site-footer__area {
-		gap: 10px;
+	.site-footer__social {
+		display: flex !important;
+		gap: 10px !important;
+		margin-top: 22px !important;
 	}
-
-	.site-footer__area p {
-		margin: 0;
-		color: #9aa8bb;
-		font-size: 0.76rem;
-		line-height: 1.7;
+	.site-footer__social a {
+		justify-content: center;
+		width: 46px;
+		height: 46px;
+		border: 1px solid rgb(255 255 255 / 20%);
+		border-radius: 50%;
+		background: rgb(255 255 255 / 5%);
+		transition: background 0.2s ease, transform 0.2s ease;
 	}
-
-	.site-footer__status {
-		display: inline-flex;
-		margin-top: 8px;
-		align-items: center;
-		gap: 8px;
-		color: #8293aa;
-		font-size: 0.66rem;
-		line-height: 1.5;
+	.site-footer__social a:hover {
+		background: rgb(255 255 255 / 12%);
+		transform: translateY(-2px);
+		text-decoration: none;
 	}
-
-	.site-footer__status > span {
-		width: 7px;
-		height: 7px;
-		flex-shrink: 0;
-		border-radius: 999px;
-		background: #23d49b;
-		box-shadow: 0 0 12px rgba(35, 212, 155, 0.55);
+	.site-footer__hours {
+		margin-top: 12px;
+		color: var(--text-2);
+		font-size: 0.95rem;
 	}
-
+	.site-footer :focus-visible {
+		outline-color: #ffffff;
+	}
 	.site-footer__bottom {
+		position: relative;
 		display: flex;
-		min-height: 68px;
-		align-items: center;
 		justify-content: space-between;
-		gap: 24px;
-		border-top: 1px solid rgba(105, 142, 196, 0.11);
+		align-items: center;
+		gap: 16px;
+		flex-wrap: wrap;
+		margin-top: 48px;
+		padding-block: 16px 28px;
+		border-top: 1px solid var(--line);
+		font-size: 0.9rem;
+		color: var(--text-2);
 	}
-
-	.site-footer__bottom p {
-		margin: 0;
-		color: #91a1b8;
-		font-size: 0.64rem;
-		letter-spacing: 0.035em;
+	.site-footer__bottom a {
+		color: var(--text-2);
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
 	}
-
-	.site-footer a:focus-visible {
-		border-radius: 6px;
-		outline: 2px solid rgba(70, 147, 255, 0.75);
-		outline-offset: 4px;
-	}
-
-	@media (max-width: 900px) {
-		.site-footer__main {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+	@media (max-width: 860px) {
+		.site-footer__grid {
+			grid-template-columns: 1fr 1fr;
+		}
+		.site-footer__brand {
+			grid-column: 1 / -1;
 		}
 	}
-
-	@media (max-width: 600px) {
-		.site-footer {
-			margin-top: 60px;
-		}
-
-		.site-footer__container {
-			width: min(100% - 28px, 1120px);
-		}
-
-		.site-footer__main {
+	@media (max-width: 480px) {
+		.site-footer__grid {
 			grid-template-columns: 1fr;
-			gap: 42px;
-			padding: 52px 0 44px;
-		}
-
-		.site-footer__bottom {
-			min-height: auto;
-			padding: 22px 0;
-			align-items: flex-start;
-			flex-direction: column;
-			gap: 8px;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.site-footer__primary-action,
-		.site-footer__column a {
-			transition: none;
 		}
 	}
 </style>

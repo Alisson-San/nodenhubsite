@@ -1,0 +1,18 @@
+---
+/**
+ * Ícone da divisão (casinha, controle, banco de dados) no sistema do anel
+ * da logo: centro em 0,0. Traço e preenchimento vêm do elemento pai;
+ * os botões do controle usam a classe .fill.
+ */
+import { ICONS } from "../../lib/site/brand";
+import type { ServiceDivision } from "../../types/services";
+
+interface Props {
+	division: ServiceDivision;
+}
+
+const icon = ICONS[Astro.props.division];
+---
+
+{icon.paths.map((d) => <path d={d} />)}
+{icon.dots?.map(([cx, cy, r]) => <circle class="fill" cx={cx} cy={cy} r={r} />)}

@@ -1,0 +1,413 @@
+---
+/**
+ * Chamada final: texto + exemplo de conversa no WhatsApp que se escreve
+ * quando aparece na tela, com as três marcas da Noden orbitando.
+ * A conversa é ilustrativa (rotulada como exemplo) e só usa promessas
+ * confirmadas pela Noden.
+ */
+import WhatsAppIcon from "../common/WhatsAppIcon.astro";
+import DivisionMark from "../common/DivisionMark.astro";
+import { divisionOrder } from "../../lib/site/divisions";
+import type { ServiceDivision } from "../../types/services";
+
+interface ChatLine {
+	from: "client" | "noden";
+	text: string;
+}
+
+interface Props {
+	title: string;
+	description: string;
+	buttonLabel: string;
+	buttonHref: string;
+	secondaryLabel?: string;
+	secondaryHref?: string;
+	/** Campos editáveis: divisão (padrão) ou página inicial. */
+	editTarget?: "division" | "home";
+	division?: ServiceDivision;
+}
+
+const { title, description, buttonLabel, buttonHref, secondaryLabel, secondaryHref, editTarget = "division", division } = Astro.props;
+const edit = (divisionField: string, home: string) =>
+	editTarget === "home" ? { "data-home-field": home } : { "data-edit-field": divisionField };
+
+const chats: Record<ServiceDivision | "hub", ChatLine[]> = {
+	hub: [
+		{ from: "client", text: "Oi! Meu notebook tá muito lento 😩" },
+		{ from: "noden", text: "Oi! Manda uma foto ou vídeo que a gente avalia de graça 👀" },
+		{ from: "client", text: "Consegue buscar hoje?" },
+		{ from: "noden", text: "Se a agenda permitir, buscamos hoje mesmo. E você recebe o orçamento antes de qualquer serviço 🚐" },
+	],
+	home: [
+		{ from: "client", text: "O Wi-Fi não pega no quarto 😤" },
+		{ from: "noden", text: "Conta como é a casa e o roteador. A avaliação remota é grátis." },
+		{ from: "client", text: "Dá pra resolver essa semana?" },
+		{ from: "noden", text: "Dá sim. Passamos o orçamento antes e, se a agenda permitir, atendemos no mesmo dia." },
+	],
+	game: [
+		{ from: "client", text: "Quero trocar a placa de vídeo. Compensa? 🎮" },
+		{ from: "noden", text: "Me manda sua config e os jogos. Conferimos a compatibilidade antes de você comprar." },
+		{ from: "client", text: "E a montagem?" },
+		{ from: "noden", text: "A gente busca o PC, monta, testa temperatura e estabilidade e devolve rodando liso." },
+	],
+	data: [
+		{ from: "client", text: "Perdemos horas montando relatório no Excel 📊" },
+		{ from: "noden", text: "Conta como é o processo hoje? A partir dele dá pra pensar em automação e dashboard." },
+		{ from: "client", text: "Vocês fazem sob medida?" },
+		{ from: "noden", text: "Sim. A proposta sai do tamanho e do momento da sua empresa." },
+	],
+};
+const chat = chats[division ?? "hub"];
+---
+
+<section class="closing" aria-labelledby="contato-titulo" id="contato">
+	<div class="wrap closing__inner">
+		<div class="closing__copy" data-reveal>
+			<h2 class="h2" id="contato-titulo" {...edit("cta_title", "contactTitle")}>{title}</h2>
+			<p class="closing__text" {...edit("cta_description", "contactDescription")}>{description}</p>
+			<div class="closing__actions">
+				<a class="btn btn--whatsapp" href={buttonHref} target="_blank" rel="noopener">
+					<WhatsAppIcon />
+					<span {...edit("cta_button_label", "contactLabel")}>{buttonLabel}</span>
+				</a>
+				{
+					secondaryLabel && secondaryHref && (
+						<a class="link-arrow" href={secondaryHref}>
+							{secondaryLabel}
+						</a>
+					)
+				}
+			</div>
+		</div>
+
+		<div class="closing__visual">
+			<div class="orbit" aria-hidden="true">
+				{
+					divisionOrder.map((id, index) => (
+						<span class="orbit__item" style={`--i:${index}`}>
+							<DivisionMark division={id} size="100%" />
+						</span>
+					))
+				}
+			</div>
+
+			<div class="chat" data-chat>
+				<div class="chat__head">
+					<img src="/brand/noden-symbol-128.webp" alt="" width="40" height="40" />
+					<span>
+						<strong>Noden</strong>
+						<small>exemplo de conversa</small>
+					</span>
+				</div>
+				<ol class="chat__body" aria-label="Exemplo de conversa com a Noden">
+					{
+						chat.map((line) => (
+							<li class:list={["chat__msg", `chat__msg--${line.from}`]} data-chat-msg>
+								<span class="sr-only">{line.from === "client" ? "Cliente:" : "Noden:"}</span>
+								{line.text}
+							</li>
+						))
+					}
+					<li class="chat__typing" aria-hidden="true" data-chat-typing hidden>
+						<span></span><span></span><span></span>
+					</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	for (const chat of document.querySelectorAll<HTMLElement>("[data-chat]")) {
+		if (reduced) continue;
+		const messages = [...chat.querySelectorAll<HTMLElement>("[data-chat-msg]")];
+		const typing = chat.querySelector<HTMLElement>("[data-chat-typing]")!;
+		chat.classList.add("chat--live");
+		const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+		const play = async () => {
+			for (const message of messages) {
+				if (message.classList.contains("chat__msg--noden")) {
+					message.before(typing);
+					typing.hidden = false;
+					await wait(1100);
+					typing.hidden = true;
+				} else await wait(500);
+				message.classList.add("is-shown");
+			}
+		};
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				observer.disconnect();
+				play();
+			},
+			{ threshold: 0.4 },
+		);
+		observer.observe(chat);
+	}
+</script>
+
+<style>
+	/*
+	 * Fundo e conversa seguem o tema da página:
+	 *   hub/game/data — escuro, conversa no modo escuro do WhatsApp
+	 *   home          — bloco azul da Noden Home, conversa no modo claro
+	 */
+	.closing {
+		--text: #f4f2ff;
+		--text-2: #c9c3e6;
+		--closing-bg: #0b0820;
+		--closing-lead: #d4cff0;
+		--chat-bg: #0b141a;
+		--chat-line: rgb(255 255 255 / 14%);
+		--chat-head: #202c33;
+		--chat-head-sub: #aebac1;
+		--chat-in: #202c33;
+		--chat-out: #005c4b;
+		--chat-text: #e9edef;
+		--chat-dot: #8696a0;
+		--orbit-line: rgb(255 255 255 / 22%);
+		--orbit-mark: rgb(18 13 46 / 80%);
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(50% 70% at 85% 50%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%),
+			radial-gradient(40% 60% at 10% 100%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent 70%),
+			var(--closing-bg);
+		color: var(--text);
+	}
+	:global([data-theme="home"]) .closing {
+		--closing-bg: linear-gradient(125deg, #1b1fb5 0%, #0d47b8 50%, #06639a 100%);
+		--closing-lead: #dce8ff;
+		--chat-bg: #efeae2;
+		--chat-line: rgb(255 255 255 / 40%);
+		--chat-head: #008069;
+		--chat-head-sub: #d9f2ec;
+		--chat-in: #ffffff;
+		--chat-out: #d9fdd3;
+		--chat-text: #111b21;
+		--orbit-line: rgb(255 255 255 / 35%);
+		--orbit-mark: rgb(8 24 90 / 70%);
+	}
+	:global([data-theme="game"]) .closing {
+		--closing-bg:
+			radial-gradient(30% 50% at 60% 110%, rgb(255 46 160 / 18%), transparent 70%),
+			#07040f;
+	}
+	:global([data-theme="data"]) .closing {
+		--closing-lead: #c6d4f0;
+		--closing-bg:
+			linear-gradient(rgb(120 160 255 / 7%) 1px, transparent 1px) 0 0 / 48px 48px,
+			linear-gradient(90deg, rgb(120 160 255 / 7%) 1px, transparent 1px) 0 0 / 48px 48px,
+			#050d22;
+		--orbit-mark: rgb(5 13 34 / 85%);
+	}
+	.closing__inner {
+		display: grid;
+		grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+		gap: clamp(32px, 5vw, 72px);
+		align-items: center;
+		padding-block: clamp(64px, 9vw, 120px);
+	}
+	.closing__copy {
+		display: grid;
+		gap: 22px;
+		justify-items: start;
+	}
+	.closing h2 {
+		max-width: 15ch;
+		font-size: clamp(2.2rem, 5.6vw, 4.4rem);
+	}
+	.closing__text {
+		max-width: 46ch;
+		font-size: 1.15rem;
+		color: var(--closing-lead);
+	}
+	.closing__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px 28px;
+		align-items: center;
+		margin-top: 6px;
+	}
+
+	.closing__actions .link-arrow {
+		color: var(--white);
+	}
+	.closing :focus-visible {
+		outline-color: var(--white);
+		box-shadow: none;
+	}
+
+	/* Conversa */
+	.closing__visual {
+		position: relative;
+		margin: 0;
+		display: grid;
+		place-items: center;
+		min-height: 460px;
+	}
+	.chat {
+		position: relative;
+		z-index: 2;
+		width: min(100%, 360px);
+		border: 1px solid var(--chat-line);
+		border-radius: 28px;
+		background: var(--chat-bg);
+		color: var(--chat-text);
+		overflow: hidden;
+		box-shadow: 0 30px 80px -20px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 0 6px rgb(255 255 255 / 6%);
+	}
+	.chat__head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 14px 18px;
+		background: var(--chat-head);
+		color: var(--white);
+	}
+	.chat__head img {
+		width: 40px;
+		height: 40px;
+		padding: 5px;
+		border-radius: 50%;
+		background: var(--white);
+		object-fit: contain;
+	}
+	.chat__head strong {
+		display: block;
+		font-size: 1.05rem;
+	}
+	.chat__head small {
+		color: var(--chat-head-sub);
+	}
+	.chat__body {
+		list-style: none;
+		margin: 0;
+		padding: 18px 14px 22px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		min-height: 300px;
+	}
+	.chat__msg {
+		max-width: 82%;
+		padding: 9px 12px;
+		border-radius: 12px;
+		font-size: 0.97rem;
+		line-height: 1.35;
+		box-shadow: 0 1px 0 rgb(0 0 0 / 12%);
+	}
+	.chat__msg--client {
+		align-self: flex-end;
+		background: var(--chat-out);
+		border-top-right-radius: 4px;
+	}
+	.chat__msg--noden {
+		align-self: flex-start;
+		background: var(--chat-in);
+		border-top-left-radius: 4px;
+	}
+	.chat--live .chat__msg {
+		opacity: 0;
+		transform: translateY(10px) scale(0.96);
+		transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+	}
+	.chat--live .chat__msg.is-shown {
+		opacity: 1;
+		transform: none;
+	}
+	.chat__typing {
+		align-self: flex-start;
+		display: flex;
+		gap: 4px;
+		padding: 12px 14px;
+		border-radius: 12px;
+		background: var(--chat-in);
+	}
+	.chat__typing[hidden] {
+		display: none;
+	}
+	.chat__typing span {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--chat-dot);
+		animation: typing 1s infinite ease-in-out;
+	}
+	.chat__typing span:nth-child(2) {
+		animation-delay: 0.15s;
+	}
+	.chat__typing span:nth-child(3) {
+		animation-delay: 0.3s;
+	}
+	@keyframes typing {
+		0%,
+		100% {
+			transform: translateY(0);
+			opacity: 0.5;
+		}
+		50% {
+			transform: translateY(-4px);
+			opacity: 1;
+		}
+	}
+
+	/* Órbita com as três marcas */
+	.orbit {
+		position: absolute;
+		inset: 0;
+		margin: auto;
+		width: min(100%, 470px);
+		aspect-ratio: 1;
+		border-radius: 50%;
+		border: 1px dashed var(--orbit-line);
+		animation: orbit 36s linear infinite;
+	}
+	.orbit__item {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 74px;
+		height: 74px;
+		margin: -37px 0 0 -37px;
+		transform: rotate(calc(var(--i) * 120deg - 90deg)) translateX(min(50vw, 235px)) rotate(calc(var(--i) * -120deg + 90deg));
+	}
+	.orbit__item :global(.division-mark) {
+		animation: orbit 36s linear infinite reverse;
+		background: var(--orbit-mark);
+		border-radius: 50%;
+		padding: 8px;
+		box-shadow: 0 0 30px -6px color-mix(in srgb, var(--accent) 80%, transparent);
+	}
+	@keyframes orbit {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.orbit,
+		.orbit__item :global(.division-mark),
+		.chat__typing span {
+			animation: none;
+		}
+	}
+	@media (max-width: 860px) {
+		.closing__inner {
+			grid-template-columns: 1fr;
+		}
+		.closing__visual {
+			min-height: 420px;
+		}
+		.orbit {
+			width: min(100%, 400px);
+		}
+		.orbit__item {
+			width: 60px;
+			height: 60px;
+			margin: -30px 0 0 -30px;
+			transform: rotate(calc(var(--i) * 120deg - 90deg)) translateX(min(46vw, 200px)) rotate(calc(var(--i) * -120deg + 90deg));
+		}
+	}
+</style>

@@ -1,11 +1,11 @@
-import {campaignPages,type Campaign} from './types';
+import {campaignPages,normalizeCampaignPages,type Campaign} from './types';
 export function safeLink(v:string):boolean{if(v.startsWith('/')&&!v.startsWith('//')&&!v.includes('\\'))return true;try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password}catch{return false}}
 export function validateCampaign(c:Campaign):string[]{
  const e:string[]=[];
  if(!c||typeof c!=='object')return ['Campanha inválida.'];
  if(typeof c.title!=='string'||!c.title.trim()||c.title.length>120)e.push('Informe um título de até 120 caracteres.');
  if(typeof c.description!=='string'||c.description.length>2000)e.push('Descrição: máximo de 2000 caracteres.');
- if(!Array.isArray(c.pages)||!c.pages.length||c.pages.some(p=>!campaignPages.includes(p as typeof campaignPages[number])))e.push('Selecione páginas válidas.');
+ if(!Array.isArray(c.pages)||!c.pages.length||normalizeCampaignPages(c.pages).some(p=>!campaignPages.includes(p as typeof campaignPages[number])))e.push('Selecione páginas válidas.');
  if(!['banner','dialog','both'].includes(c.format))e.push('Formato inválido.');
  if(!['visit','session','campaign','days'].includes(c.frequency))e.push('Frequência inválida.');
  if(!Number.isInteger(c.intervalDays)||c.intervalDays<1||c.intervalDays>365)e.push('Intervalo: 1 a 365 dias.');

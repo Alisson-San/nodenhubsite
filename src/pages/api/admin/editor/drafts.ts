@@ -3,6 +3,7 @@ import { createSupabaseRequestClient } from "../../../../lib/supabase/request";
 import { isServiceDivision } from "../../../../lib/admin/divisions";
 import { getEditorSnapshot, saveCatalogDraft, discardCatalogDraft, isEditorMigrationMissing } from "../../../../lib/catalog/draftRepository";
 import { validateCatalogDocument } from "../../../../lib/catalog/editorValidation";
+import { validateEditorExtras } from "../../../../lib/site/editorExtrasValidation";
 export const prerender=false;
 export const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
 export const validOrigin=(request:Request)=>{try{return new URL(request.headers.get("origin")??"").origin===new URL(request.url).origin;}catch{return false;}};
@@ -34,7 +35,7 @@ export const POST:APIRoute=async context=>{
    return json(await getEditorSnapshot(client,body.division));
   }
   if(!Number.isSafeInteger(body.baseRevision)||body.baseRevision<0) return json({error:"Revisão base inválida."},400);
-  const errors=validateCatalogDocument(body.document);
+  const errors={...validateCatalogDocument(body.document),...validateEditorExtras(body.document)};
   if(body.document?.division!==body.division) errors.division="Divisão inconsistente.";
   if(Object.keys(errors).length) return json({error:"Revise os campos.",errors},422);
   return json(await saveCatalogDraft(createSupabaseRequestClient(context),body.division,body.expectedRevision,body.baseRevision,body.document));

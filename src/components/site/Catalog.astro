@@ -1,0 +1,1085 @@
+---
+import { getWhatsAppUrl } from "../../config/site";
+import { formatCurrency } from "../../lib/formatting";
+import { divisions } from "../../lib/site/divisions";
+import WhatsAppIcon from "../common/WhatsAppIcon.astro";
+import type { ProductDetail } from "../../lib/catalog/editorTypes";
+import type { CatalogItemKind, PricingItem, ServiceDivision } from "../../types/services";
+import type { RuntimeSiteConfig } from "../../types/site";
+
+interface Props {
+	site: RuntimeSiteConfig;
+	division: ServiceDivision;
+	title: string;
+	description?: string;
+	disclaimer?: string;
+	items: PricingItem[];
+	details?: Record<string, ProductDetail>;
+	editable?: boolean;
+}
+
+const { site, division, title, description, disclaimer, items, details = {}, editable = false } = Astro.props;
+
+const kindLabels: Record<CatalogItemKind, string> = {
+	service: "Serviços",
+	package: "Pacotes",
+	product: "Produtos",
+	consulting: "Consultoria",
+};
+
+interface Group {
+	key: string;
+	title: string;
+	description?: string;
+	items: PricingItem[];
+}
+
+const groups: Group[] = [];
+for (const item of items) {
+	const key = item.category?.id ?? item.category?.slug ?? `kind-${item.itemKind ?? "service"}`;
+	let group = groups.find((g) => g.key === key);
+	if (!group) {
+		group = {
+			key,
+			title: item.category?.name ?? kindLabels[item.itemKind ?? "service"],
+			description: item.category?.description,
+			items: [],
+		};
+		groups.push(group);
+	}
+	group.items.push(item);
+}
+
+/** Gratuito pelo tipo gravado; no conteúdo de reserva, pelo rótulo. */
+const isFree = (item: PricingItem) =>
+	item.priceType ? item.priceType === "free" : /^(sem custo|gr[aá]tis|gratuit)/i.test(item.priceLabel ?? "");
+const priceText = (item: PricingItem) => {
+	if (item.priceLabel) return { main: item.priceLabel };
+	if (typeof item.price === "number") {
+		return {
+			prefix: item.pricePrefix,
+			main: formatCurrency(item.price),
+			suffix: item.priceSuffix,
+		};
+	}
+	return { main: "Sob consulta" };
+};
+
+const normalize = (value: string) =>
+	value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("pt-BR");
+
+const searchText = (item: PricingItem) =>
+	normalize(
+		[item.name, item.description, item.category?.name, ...(item.features ?? []), ...(item.badges ?? []).map((b) => b.name)]
+			.filter(Boolean)
+			.join(" "),
+	);
+
+const whatsapp = (item: PricingItem) =>
+	getWhatsAppUrl(
+		item.ctaMessage ?? `Olá! Vim pelo site (${divisions[division].name}) e quero: ${item.name}.`,
+		site,
+	);
+
+const statusLabel: Record<string, string> = { sold: "Vendido", reserved: "Reservado", unavailable: "Indisponível" };
+const searchId = `catalogo-busca-${division}`;
+const fullPriceText = (item: PricingItem) => {
+	const price = priceText(item);
+	return [price.prefix, price.main, price.suffix].filter(Boolean).join(" ");
+};
+const VISIBLE_FEATURES = 4;
+---
+
+<section class="catalog section" id="precos" aria-labelledby="precos-titulo" data-catalog data-division-name={divisions[division].name}>
+	<div class="catalog__glow" aria-hidden="true"></div>
+	<div class="wrap">
+		<header class="catalog__head" data-reveal>
+			<div>
+				<p class="kicker">Preços</p>
+				<h2 class="h2" id="precos-titulo" data-edit-field="pricing_title">{title}</h2>
+			</div>
+			<div class="catalog__intro">
+				{description && <p class="lead" data-edit-field="pricing_description">{description}</p>}
+				{items.length > 0 && (
+					<p class="catalog__how">
+						<span class="catalog__how-badge">Dica</span>
+						Monte seu orçamento: adicione os serviços e envie a lista pronta no WhatsApp.
+					</p>
+				)}
+			</div>
+		</header>
+
+		{
+			items.length > 0 && (
+				<div class="catalog__tools">
+					<label class="catalog__search" for={searchId}>
+						<span class="sr-only">Buscar serviço</span>
+						<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2" /><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+						<input id={searchId} type="search" placeholder="Buscar: formatação, Wi-Fi, SSD…" autocomplete="off" data-catalog-search />
+					</label>
+					{
+						groups.length > 1 && (
+							<div class="catalog__filters" role="group" aria-label="Filtrar por categoria">
+								<button type="button" class="catalog__filter" aria-pressed="true" data-catalog-filter="">
+									Tudo <span>{items.length}</span>
+								</button>
+								{groups.map((group) => (
+									<button type="button" class="catalog__filter" aria-pressed="false" data-catalog-filter={group.key}>
+										{group.title} <span>{group.items.length}</span>
+									</button>
+								))}
+							</div>
+						)
+					}
+				</div>
+			)
+		}
+
+		<p class="catalog__status" role="status" aria-live="polite" data-catalog-status></p>
+
+		{
+			groups.map((group) => (
+				<div class="catalog__group" data-catalog-group={group.key}>
+					<div class="catalog__group-head">
+						<h3 class="h3">{group.title}</h3>
+						{group.description && <p>{group.description}</p>}
+					</div>
+					<ul class="catalog__grid" role="list">
+						{group.items.map((item) => {
+							const price = priceText(item);
+							const detail = item.id ? details[item.id] : undefined;
+							const cover = detail?.media.find((m) => m.type === "image" && m.url.startsWith("https://"));
+							const unavailable = detail && detail.status !== "available";
+							const features = item.features ?? [];
+							return (
+								<li
+									class:list={["offer", { "offer--featured": item.featured, "offer--inactive": item.inactive }]}
+									data-catalog-item
+									data-search={searchText(item)}
+									data-edit={editable ? "item" : undefined}
+									data-id={item.id}
+									data-quote-name={item.name}
+									data-quote-price={typeof item.price === "number" && !item.priceLabel ? item.price : ""}
+									data-quote-starting={price.prefix ? "1" : ""}
+									data-quote-free={isFree(item) ? "1" : undefined}
+									data-quote-text={fullPriceText(item)}
+								>
+									{item.inactive && <span class="offer__hidden-tag">Oculto do público</span>}
+									{cover && <img class="offer__cover" src={cover.url} alt={cover.alt} loading="lazy" width="640" height="400" />}
+									<div class="offer__tags">
+										{item.featured && <span class="offer__tag offer__tag--strong">Destaque</span>}
+										{item.tier && <span class="offer__tag">{item.tier.name}</span>}
+										{(item.badges ?? []).map((badge) => (
+											<span class="offer__tag">{badge.name}</span>
+										))}
+									</div>
+									<h4 class="offer__name">{item.name}</h4>
+									<p class="offer__price">
+										{typeof item.compareAtPrice === "number" && typeof item.price === "number" && item.compareAtPrice > item.price && (
+											<del>
+												<span class="sr-only">De </span>
+												{formatCurrency(item.compareAtPrice)}
+											</del>
+										)}
+										{price.prefix && <small>{price.prefix}</small>}
+										<strong>{price.main}</strong>
+										{price.suffix && <small>{price.suffix}</small>}
+									</p>
+									<p class="offer__desc">{detail?.summary || item.description}</p>
+									{features.length > 0 && (
+										<ul class="offer__features">
+											{features.slice(0, VISIBLE_FEATURES).map((feature) => (
+												<li>{feature}</li>
+											))}
+										</ul>
+									)}
+									{features.length > VISIBLE_FEATURES && (
+										<details class="offer__more">
+											<summary>+{features.length - VISIBLE_FEATURES} incluídos</summary>
+											<ul class="offer__features">
+												{features.slice(VISIBLE_FEATURES).map((feature) => (
+													<li>{feature}</li>
+												))}
+											</ul>
+										</details>
+									)}
+									{item.note && <p class="offer__note">{item.note}</p>}
+									{unavailable && <p class="offer__status">{statusLabel[detail.status]}</p>}
+									<div class="offer__actions">
+										<button type="button" class="offer__add" aria-pressed="false" data-quote-toggle hidden>
+											<span class="offer__add-on">Adicionado</span>
+											<span class="offer__add-off">Adicionar ao orçamento</span>
+										</button>
+										<a class="offer__ask" href={whatsapp(item)} target="_blank" rel="noopener" aria-label={`${item.ctaLabel ?? "Quero esse"}: ${item.name} (WhatsApp)`}>
+											<WhatsAppIcon />
+											<span>{item.ctaLabel ?? "Quero esse"}</span>
+										</a>
+										{detail && (
+											<a class="offer__detail" href={`/produtos/${detail.slug}`}>
+												Detalhes
+											</a>
+										)}
+									</div>
+								</li>
+							);
+						})}
+					</ul>
+				</div>
+			))
+		}
+
+		{items.length === 0 && <p class="catalog__empty">Os valores desta área são combinados por proposta. Chame no WhatsApp e explique a necessidade.</p>}
+
+		<p class="catalog__empty" hidden data-catalog-empty>
+			Nada encontrado com esse termo. <button type="button" class="catalog__clear" data-catalog-clear>Limpar busca</button>
+		</p>
+
+		{disclaimer && <p class="catalog__disclaimer" data-edit-field="pricing_disclaimer">{disclaimer}</p>}
+	</div>
+
+	<aside class="quote" aria-label="Seu orçamento" data-quote hidden>
+		<button type="button" class="quote__bar" aria-expanded="false" aria-controls={`orcamento-${division}`} data-quote-expand>
+			<span class="quote__count" data-quote-count>0</span>
+			<span class="quote__bar-text">
+				<strong>Seu orçamento</strong>
+				<small data-quote-total-short></small>
+			</span>
+			<span class="quote__chevron" aria-hidden="true">▴</span>
+		</button>
+		<div class="quote__panel" id={`orcamento-${division}`} data-quote-panel>
+			<ul class="quote__list" data-quote-list></ul>
+			<p class="quote__total">
+				<span>Total de referência</span>
+				<strong data-quote-total></strong>
+			</p>
+			<p class="quote__note">Valores de mão de obra para referência. O orçamento final vem antes de qualquer serviço.</p>
+			<div class="quote__actions">
+				<a class="btn btn--whatsapp" href="#" target="_blank" rel="noopener" data-quote-send>
+					<WhatsAppIcon />
+					Enviar no WhatsApp
+				</a>
+				<button type="button" class="btn btn--ghost btn--sm" data-quote-clear>Limpar</button>
+			</div>
+		</div>
+		<p class="sr-only" role="status" aria-live="polite" data-quote-live></p>
+	</aside>
+</section>
+
+<script>
+	import { buildQuoteMessage, quoteTotalText, summarizeQuote, type QuoteItem } from "../../lib/site/quote";
+
+	const normalize = (value: string) =>
+		value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR").trim();
+
+	for (const root of document.querySelectorAll<HTMLElement>("[data-catalog]")) {
+		// ---------- Busca e filtros ----------
+		const search = root.querySelector<HTMLInputElement>("[data-catalog-search]");
+		const filters = [...root.querySelectorAll<HTMLButtonElement>("[data-catalog-filter]")];
+		const groups = [...root.querySelectorAll<HTMLElement>("[data-catalog-group]")];
+		const empty = root.querySelector<HTMLElement>("[data-catalog-empty]");
+		const status = root.querySelector<HTMLElement>("[data-catalog-status]");
+		let active = "";
+
+		const apply = () => {
+			const term = normalize(search?.value ?? "");
+			let visible = 0;
+			for (const group of groups) {
+				const inGroup = !active || group.dataset.catalogGroup === active;
+				let groupVisible = 0;
+				for (const item of group.querySelectorAll<HTMLElement>("[data-catalog-item]")) {
+					const show = inGroup && (!term || (item.dataset.search ?? "").includes(term));
+					item.hidden = !show;
+					if (show) groupVisible++;
+				}
+				group.hidden = groupVisible === 0;
+				visible += groupVisible;
+			}
+			if (empty) empty.hidden = visible > 0;
+			if (status) status.textContent = term || active ? `${visible} ${visible === 1 ? "opção encontrada" : "opções encontradas"}` : "";
+		};
+		search?.addEventListener("input", apply);
+		for (const button of filters) {
+			button.addEventListener("click", () => {
+				active = button.dataset.catalogFilter ?? "";
+				for (const other of filters) other.setAttribute("aria-pressed", String(other === button));
+				apply();
+			});
+		}
+		root.querySelector("[data-catalog-clear]")?.addEventListener("click", () => {
+			if (search) search.value = "";
+			active = "";
+			for (const other of filters) other.setAttribute("aria-pressed", String(!other.dataset.catalogFilter));
+			apply();
+			search?.focus();
+		});
+
+		// Fundo da busca só quando ela fica presa sob o cabeçalho
+		const tools = root.querySelector<HTMLElement>(".catalog__tools");
+		if (tools) {
+			let queued = false;
+			const stick = () => {
+				queued = false;
+				const top = parseFloat(getComputedStyle(tools).top) || 0;
+				const box = root.getBoundingClientRect();
+				tools.classList.toggle("is-stuck", tools.getBoundingClientRect().top <= top + 1 && box.top < top && box.bottom > top);
+			};
+			window.addEventListener(
+				"scroll",
+				() => {
+					if (!queued) requestAnimationFrame(stick);
+					queued = true;
+				},
+				{ passive: true },
+			);
+			stick();
+		}
+
+		// ---------- Monte seu orçamento ----------
+		const tray = root.querySelector<HTMLElement>("[data-quote]");
+		if (!tray) continue;
+		const divisionName = root.dataset.divisionName ?? "Noden";
+		const storeKey = `noden:quote:${divisionName}`;
+		const list = tray.querySelector<HTMLElement>("[data-quote-list]")!;
+		const totalEl = tray.querySelector<HTMLElement>("[data-quote-total]")!;
+		const totalShort = tray.querySelector<HTMLElement>("[data-quote-total-short]")!;
+		const countEl = tray.querySelector<HTMLElement>("[data-quote-count]")!;
+		const send = tray.querySelector<HTMLAnchorElement>("[data-quote-send]")!;
+		const live = tray.querySelector<HTMLElement>("[data-quote-live]")!;
+		const expand = tray.querySelector<HTMLButtonElement>("[data-quote-expand]")!;
+		const phone = new URL(root.querySelector<HTMLAnchorElement>(".offer__ask")?.href ?? "https://wa.me/").pathname.replace(/\D/g, "");
+		const cards = new Map<string, HTMLElement>();
+		const selected = new Map<string, QuoteItem>();
+
+		root.querySelectorAll<HTMLElement>("[data-catalog-item]").forEach((card, index) => {
+			const id = card.dataset.id || `item-${index}`;
+			cards.set(id, card);
+			const toggle = card.querySelector<HTMLButtonElement>("[data-quote-toggle]");
+			if (!toggle) return;
+			toggle.hidden = false;
+			toggle.addEventListener("click", () => {
+				if (selected.has(id)) selected.delete(id);
+				else {
+					const raw = card.dataset.quotePrice;
+					selected.set(id, {
+						id,
+						name: card.dataset.quoteName ?? "",
+						price: raw ? Number(raw) : null,
+						startingAt: card.dataset.quoteStarting === "1",
+						priceText: card.dataset.quoteText ?? "",
+						free: card.dataset.quoteFree === "1",
+					});
+				}
+				render(selected.has(id) ? `${card.dataset.quoteName} adicionado ao orçamento.` : `${card.dataset.quoteName} removido do orçamento.`);
+			});
+		});
+
+		const save = () => {
+			try {
+				sessionStorage.setItem(storeKey, JSON.stringify([...selected.values()]));
+			} catch {
+				/* armazenamento indisponível */
+			}
+		};
+
+		function render(message = "") {
+			const items = [...selected.values()];
+			const summary = summarizeQuote(items);
+			tray!.hidden = items.length === 0;
+			document.body.classList.toggle("has-quote", items.length > 0);
+			countEl.textContent = String(items.length);
+			const total = quoteTotalText(summary);
+			totalEl.textContent = total;
+			totalShort.textContent = `${items.length} ${items.length === 1 ? "item" : "itens"} · ${total}`;
+			list.replaceChildren(
+				...items.map((item) => {
+					const li = document.createElement("li");
+					const name = document.createElement("span");
+					name.innerHTML = `<strong></strong><small></small>`;
+					name.querySelector("strong")!.textContent = item.name;
+					name.querySelector("small")!.textContent = item.priceText;
+					const remove = document.createElement("button");
+					remove.type = "button";
+					remove.className = "quote__remove";
+					remove.setAttribute("aria-label", `Remover ${item.name}`);
+					remove.textContent = "✕";
+					remove.addEventListener("click", () => {
+						selected.delete(item.id);
+						render(`${item.name} removido do orçamento.`);
+					});
+					li.append(name, remove);
+					return li;
+				}),
+			);
+			cards.forEach((card, id) => {
+				const toggle = card.querySelector<HTMLButtonElement>("[data-quote-toggle]");
+				const on = selected.has(id);
+				card.classList.toggle("is-selected", on);
+				toggle?.setAttribute("aria-pressed", String(on));
+			});
+			send.href = `https://wa.me/${phone}?text=${encodeURIComponent(buildQuoteMessage(divisionName, items))}`;
+			if (message) live.textContent = message;
+			save();
+		}
+
+		// No desktop a bandeja fica sempre aberta; o botão só serve no celular.
+		const wide = window.matchMedia("(min-width: 761px)");
+		const syncWide = () => {
+			expand.tabIndex = wide.matches ? -1 : 0;
+			if (wide.matches) expand.setAttribute("aria-expanded", "true");
+		};
+		wide.addEventListener("change", syncWide);
+		syncWide();
+		expand.addEventListener("click", () => {
+			const open = expand.getAttribute("aria-expanded") !== "true";
+			expand.setAttribute("aria-expanded", String(open));
+			tray.classList.toggle("is-open", open);
+		});
+		tray.querySelector("[data-quote-clear]")?.addEventListener("click", () => {
+			selected.clear();
+			render("Orçamento limpo.");
+		});
+
+		try {
+			const saved = JSON.parse(sessionStorage.getItem(storeKey) ?? "[]") as QuoteItem[];
+			for (const item of saved) if (cards.has(item.id)) selected.set(item.id, item);
+		} catch {
+			/* sem orçamento salvo */
+		}
+		render();
+	}
+</script>
+
+<style>
+	.catalog {
+		position: relative;
+		overflow: clip;
+	}
+	.catalog__glow {
+		position: absolute;
+		inset: 10% -10% auto auto;
+		width: 60%;
+		height: 50%;
+		background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 22%, transparent), transparent);
+		pointer-events: none;
+	}
+	.catalog__head {
+		position: relative;
+		display: grid;
+		grid-template-columns: 1.1fr 1fr;
+		gap: 24px 48px;
+		align-items: end;
+		margin-bottom: 32px;
+	}
+	.catalog__head .kicker {
+		margin-bottom: 14px;
+	}
+	.catalog__intro {
+		display: grid;
+		gap: 14px;
+	}
+	.catalog__how {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex-wrap: wrap;
+		padding: 10px 14px;
+		border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+		border-radius: 14px;
+		background: var(--accent-soft);
+		font-weight: 600;
+		color: var(--text);
+	}
+	.catalog__how-badge {
+		padding: 2px 10px;
+		border-radius: 999px;
+		background: var(--grad-button);
+		color: var(--white);
+		font-size: 0.8rem;
+		font-weight: 800;
+	}
+	.catalog__tools {
+		display: grid;
+		gap: 12px;
+		margin-bottom: 8px;
+		position: sticky;
+		top: var(--header-h);
+		z-index: 5;
+		padding-block: 12px;
+	}
+	/* Presa sob o cabeçalho: faixa de ponta a ponta (antes era um retângulo
+	   do tamanho do conteúdo, visível mesmo parado). */
+	.catalog__tools.is-stuck {
+		border-image: linear-gradient(color-mix(in srgb, var(--bg) 96%, transparent), color-mix(in srgb, var(--bg) 96%, transparent)) fill 0 / 0 / 0 100vmax;
+		clip-path: inset(0 -100vmax);
+	}
+	.catalog__search {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		max-width: 560px;
+		min-height: 54px;
+		padding: 0 18px;
+		border: 1px solid var(--line-strong);
+		border-radius: 999px;
+		/* Opaco: o conteúdo que passa por baixo não aparece através do campo */
+		background: linear-gradient(var(--surface-2), var(--surface-2)), var(--bg);
+		color: var(--text-2);
+	}
+	.catalog__search svg {
+		width: 22px;
+		flex: none;
+	}
+	.catalog__search input {
+		flex: 1;
+		min-width: 0;
+		border: 0;
+		background: transparent;
+		font: inherit;
+		font-size: 1.02rem;
+		color: var(--text);
+		outline: none;
+		min-height: 50px;
+	}
+	.catalog__search input::placeholder {
+		color: var(--text-2);
+		opacity: 0.85;
+	}
+	.catalog__search:focus-within {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 4px var(--accent-soft);
+	}
+	.catalog__filters {
+		display: flex;
+		gap: 8px;
+		overflow-x: auto;
+		padding-bottom: 4px;
+		scrollbar-width: thin;
+	}
+	.catalog__filter {
+		flex: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		min-height: 44px;
+		padding: 0 16px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		background: var(--surface);
+		color: var(--text-2);
+		font: 600 0.95rem var(--font-body);
+		cursor: pointer;
+		transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+	}
+	.catalog__filter span {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		opacity: 0.8;
+	}
+	.catalog__filter:hover {
+		color: var(--text);
+		border-color: var(--line-strong);
+	}
+	.catalog__filter[aria-pressed="true"] {
+		background: var(--grad-button);
+		border-color: transparent;
+		color: var(--white);
+	}
+	.catalog__status:empty {
+		display: none;
+	}
+	.catalog__status {
+		font-weight: 600;
+		color: var(--text-2);
+		margin-top: 8px;
+	}
+	.catalog__group {
+		position: relative;
+		margin-top: 44px;
+	}
+	.catalog__group[hidden] {
+		display: none;
+	}
+	.catalog__group-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 6px 18px;
+		padding-bottom: 14px;
+		margin-bottom: 20px;
+		border-bottom: 1px solid var(--line);
+	}
+	.catalog__group-head p {
+		color: var(--text-2);
+		max-width: 60ch;
+	}
+	.catalog__grid {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 18px;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+	}
+	.offer {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		padding: 24px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		min-width: 0;
+		overflow-wrap: anywhere;
+		transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+	}
+	.offer[hidden] {
+		display: none;
+	}
+	.offer:hover {
+		transform: translateY(-4px);
+		border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+		box-shadow: 0 24px 50px -26px var(--accent);
+	}
+	/* Destaque: fundo OPACO por baixo da borda em degradê. Com fundo
+	   translúcido o degradê vazava para dentro do cartão e o preço sumia. */
+	.offer--featured {
+		--featured-bg: var(--card-solid, color-mix(in srgb, var(--accent) 12%, var(--bg-2)));
+		border: 1.5px solid transparent;
+		background:
+			linear-gradient(var(--featured-bg), var(--featured-bg)) padding-box,
+			var(--grad) border-box;
+		box-shadow: 0 24px 60px -30px var(--accent);
+	}
+	/* Game: borda RGB girando, como num gabinete */
+	:global([data-theme="game"]) .offer--featured {
+		background:
+			linear-gradient(var(--featured-bg), var(--featured-bg)) padding-box,
+			conic-gradient(from var(--angle, 0deg), #b231fb, #4546fb, #01ccfe, #ff2ea0, #b231fb) border-box;
+		animation: offer-rgb 6s linear infinite;
+	}
+	@keyframes offer-rgb {
+		to {
+			--angle: 360deg;
+		}
+	}
+	/* Game: cantos de mira (HUD) nos cartões */
+	:global([data-theme="game"]) .offer::after {
+		content: "";
+		position: absolute;
+		inset: 8px;
+		pointer-events: none;
+		background:
+			linear-gradient(var(--accent), var(--accent)) top left / 14px 2px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) top left / 2px 14px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) bottom right / 14px 2px no-repeat,
+			linear-gradient(var(--accent), var(--accent)) bottom right / 2px 14px no-repeat;
+		opacity: 0.55;
+		transition: opacity 0.3s ease, inset 0.3s ease;
+	}
+	:global([data-theme="game"]) .offer:hover::after {
+		opacity: 1;
+		inset: 5px;
+	}
+	/* Data: faixa superior como uma linha selecionada */
+	:global([data-theme="data"]) .offer--featured::before {
+		content: "";
+		position: absolute;
+		inset: 0 24px auto;
+		height: 3px;
+		border-radius: 0 0 3px 3px;
+		background: var(--grad);
+	}
+	.offer.is-selected {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 3px var(--accent-soft), 0 24px 50px -26px var(--accent);
+	}
+	/* O destaque mantém a borda em degradê no hover e quando selecionado */
+	.offer--featured:hover,
+	.offer--featured.is-selected {
+		border-color: transparent;
+	}
+	.offer--inactive {
+		opacity: 0.6;
+		border-style: dashed;
+	}
+	.offer__hidden-tag {
+		align-self: flex-start;
+		font-size: 0.82rem;
+		font-weight: 700;
+		padding: 4px 10px;
+		border-radius: 6px;
+		background: var(--text);
+		color: var(--bg);
+	}
+	.offer__cover {
+		width: calc(100% + 48px);
+		max-width: none;
+		margin: -24px -24px 4px;
+		height: auto;
+		aspect-ratio: 16 / 10;
+		object-fit: cover;
+		border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+	}
+	.offer__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.offer__tags:empty {
+		display: none;
+	}
+	.offer__tag {
+		font-size: 0.78rem;
+		font-weight: 700;
+		padding: 3px 10px;
+		border: 1px solid var(--line-strong);
+		border-radius: 999px;
+		color: var(--text-2);
+	}
+	.offer__tag--strong {
+		background: var(--grad-button);
+		border-color: transparent;
+		color: var(--white);
+	}
+	.offer__name {
+		font-size: 1.35rem;
+		letter-spacing: -0.02em;
+		line-height: 1.12;
+	}
+	.offer__price {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px 8px;
+	}
+	.offer__price strong {
+		font-family: var(--font-display);
+		font-size: 2.1rem;
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+		color: var(--price);
+	}
+	:global([data-theme="data"]) .offer__price strong {
+		letter-spacing: -0.02em;
+	}
+	.offer__price small {
+		font-weight: 600;
+		color: var(--text-2);
+	}
+	:global([data-theme="data"]) .offer__price small {
+		font-family: var(--font-mono);
+		font-size: 0.82rem;
+		font-weight: 500;
+	}
+	.offer__price del {
+		width: 100%;
+		color: var(--text-2);
+		font-size: 0.95rem;
+	}
+	.offer__desc {
+		color: var(--text-2);
+	}
+	.offer__features {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 6px;
+		font-size: 0.96rem;
+	}
+	.offer__features li {
+		display: grid;
+		grid-template-columns: 14px 1fr;
+		gap: 10px;
+	}
+	.offer__features li::before {
+		content: "";
+		width: 8px;
+		height: 8px;
+		margin: 0.5em 0 0 3px;
+		border-radius: 50%;
+		background: var(--grad);
+	}
+	.offer__more summary {
+		cursor: pointer;
+		font-weight: 700;
+		font-size: 0.92rem;
+		color: var(--accent-text);
+		min-height: 32px;
+		display: flex;
+		align-items: center;
+	}
+	.offer__more .offer__features {
+		margin-top: 6px;
+	}
+	.offer__note,
+	.offer__status {
+		font-size: 0.88rem;
+		color: var(--text-2);
+	}
+	.offer__status {
+		font-weight: 700;
+		color: var(--text);
+	}
+	.offer__actions {
+		margin-top: auto;
+		padding-top: 10px;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px 14px;
+	}
+	.offer__add {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		min-height: 44px;
+		padding: 0 16px;
+		border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line));
+		border-radius: 999px;
+		background: var(--accent-soft);
+		color: var(--text);
+		font: 700 0.92rem var(--font-body);
+		cursor: pointer;
+		transition: background 0.2s ease, color 0.2s ease;
+	}
+	.offer__add::before {
+		content: "+";
+		font-size: 1.15rem;
+		line-height: 1;
+	}
+	.offer__add[hidden] {
+		display: none;
+	}
+	.offer__add-on {
+		display: none;
+	}
+	.offer__add[aria-pressed="true"] {
+		background: var(--grad-button);
+		border-color: transparent;
+		color: var(--white);
+	}
+	.offer__add[aria-pressed="true"]::before {
+		content: "✓";
+		font-size: 1rem;
+	}
+	.offer__add[aria-pressed="true"] .offer__add-on {
+		display: inline;
+	}
+	.offer__add[aria-pressed="true"] .offer__add-off {
+		display: none;
+	}
+	.offer__ask,
+	.offer__detail {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		min-height: 44px;
+		color: var(--text);
+		font-weight: 700;
+		font-size: 0.92rem;
+		text-decoration: underline;
+		text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent);
+		text-underline-offset: 5px;
+	}
+	.offer__ask :global(svg) {
+		width: 18px;
+		height: 18px;
+		color: #25d366;
+	}
+	.catalog__empty {
+		margin-top: 32px;
+		padding: 24px;
+		border: 1px dashed var(--line-strong);
+		border-radius: var(--radius);
+		font-weight: 600;
+		background: var(--surface);
+	}
+	.catalog__empty[hidden] {
+		display: none;
+	}
+	.catalog__clear {
+		background: none;
+		border: 0;
+		color: var(--accent-text);
+		font: inherit;
+		font-weight: 700;
+		text-decoration: underline;
+		cursor: pointer;
+		min-height: 44px;
+		margin-left: 8px;
+	}
+	.catalog__disclaimer {
+		margin-top: 40px;
+		max-width: 80ch;
+		font-size: 0.95rem;
+		color: var(--text-2);
+	}
+
+	/* Bandeja do orçamento */
+	.quote {
+		position: fixed;
+		right: 20px;
+		bottom: 20px;
+		z-index: 95;
+		width: min(380px, calc(100vw - 24px));
+		border: 1px solid var(--line-strong);
+		border-radius: 22px;
+		background: color-mix(in srgb, var(--bg) 82%, transparent);
+		backdrop-filter: blur(22px) saturate(150%);
+		-webkit-backdrop-filter: blur(22px) saturate(150%);
+		box-shadow: 0 30px 70px -20px rgb(0 0 0 / 45%), 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+		color: var(--text);
+		overflow: hidden;
+		animation: quote-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.1);
+	}
+	.quote[hidden] {
+		display: none;
+	}
+	@keyframes quote-in {
+		from {
+			transform: translateY(30px);
+			opacity: 0;
+		}
+	}
+	.quote__bar {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		padding: 14px 18px;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+	.quote__count {
+		display: grid;
+		place-items: center;
+		min-width: 34px;
+		height: 34px;
+		padding: 0 8px;
+		border-radius: 999px;
+		background: var(--grad-button);
+		color: var(--white);
+		font-weight: 800;
+	}
+	.quote__bar-text {
+		display: grid;
+		flex: 1;
+	}
+	.quote__bar-text small {
+		color: var(--text-2);
+	}
+	.quote__chevron {
+		transition: transform 0.25s ease;
+	}
+	.quote.is-open .quote__chevron {
+		transform: rotate(180deg);
+	}
+	.quote__panel {
+		display: grid;
+		gap: 12px;
+		padding: 0 18px 18px;
+	}
+	.quote__list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 6px;
+		max-height: 220px;
+		overflow-y: auto;
+	}
+	.quote__list :global(li) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		padding: 8px 10px;
+		border-radius: 12px;
+		background: var(--surface);
+	}
+	.quote__list :global(strong) {
+		display: block;
+		font-size: 0.95rem;
+	}
+	.quote__list :global(small) {
+		color: var(--text-2);
+	}
+	.quote__list :global(.quote__remove) {
+		flex: none;
+		width: 36px;
+		height: 36px;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		background: transparent;
+		color: var(--text-2);
+		cursor: pointer;
+	}
+	.quote__total {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 10px;
+		padding-top: 10px;
+		border-top: 1px solid var(--line);
+	}
+	.quote__total span {
+		color: var(--text-2);
+		font-weight: 600;
+	}
+	.quote__total strong {
+		font-family: var(--font-display);
+		font-size: 1.3rem;
+		text-align: right;
+	}
+	.quote__note {
+		font-size: 0.85rem;
+		color: var(--text-2);
+	}
+	.quote__actions {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+	.quote__actions .btn--whatsapp {
+		flex: 1;
+	}
+	:global(body.has-quote) :global(.sticky-cta) {
+		display: none !important;
+	}
+
+	@media (min-width: 761px) {
+		.quote__bar {
+			cursor: default;
+			pointer-events: none;
+		}
+		.quote__chevron {
+			display: none;
+		}
+	}
+	@media (max-width: 760px) {
+		.catalog__head {
+			grid-template-columns: 1fr;
+		}
+		.quote {
+			left: 12px;
+			right: 12px;
+			bottom: max(12px, env(safe-area-inset-bottom));
+			width: auto;
+		}
+		.quote__panel {
+			display: none;
+		}
+		.quote.is-open .quote__panel {
+			display: grid;
+		}
+	}
+</style>

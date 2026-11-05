@@ -1,8 +1,8 @@
 ---
 export const prerender = false;
-import ServiceLayout from '../../../layouts/ServiceLayout.astro';
-import PricingTable from '../../../components/services/PricingTable.astro';
-import ServicesGrid from '../../../components/services/ServicesGrid.astro';
+import PublicLayout from '../../../layouts/PublicLayout.astro';
+import Catalog from '../../../components/site/Catalog.astro';
+import Solutions from '../../../components/site/Solutions.astro';
 import ProductDetails from '../../../components/catalog/ProductDetails.astro';
 import { validateCatalogDocument } from '../../../lib/catalog/editorValidation';
 import type { CatalogDocument } from '../../../lib/catalog/editorTypes';
@@ -20,9 +20,9 @@ if(Object.keys(issues).length) return new Response(Object.entries(issues).map(([
 const doc=input.document;
 const client=createSupabaseRequestClient({request:Astro.request,cookies:Astro.cookies});
 const pageId=doc.items[0]?.service_page_id??doc.serviceCards[0]?.service_page_id;
-const [categories,tiers,badges,site,theme]=await Promise.all([
+const [categories,tiers,badges,site]=await Promise.all([
  client.from('catalog_categories').select('*').eq('service_page_id',pageId??'00000000-0000-0000-0000-000000000000'),
- client.from('catalog_tiers').select('*'),client.from('catalog_badges').select('*'),loadSiteConfig(),client.from('service_pages').select('accent_color,accent_secondary_color').eq('division',doc.division).single()
+ client.from('catalog_tiers').select('*'),client.from('catalog_badges').select('*'),loadSiteConfig()
 ]);
 const details=Object.fromEntries(await Promise.all(Object.entries(doc.details).map(async([id,d])=>[id,await resolveProductMedia(d,client)])));
 const items:PricingItem[]=doc.items.filter(x=>x.is_active || x.id===input.selected).map(x=>{
@@ -39,11 +39,11 @@ const items:PricingItem[]=doc.items.filter(x=>x.is_active || x.id===input.select
 const selected=items.find(x=>x.id===input.selected);
 const services=doc.serviceCards.filter(x=>x.is_active||x.id===input.selected).map(x=>({title:x.title,description:x.description,badge:x.badge??undefined,features:Array.isArray(x.features)?x.features.filter((f):f is string=>typeof f==='string'):[]}));
 ---
-<ServiceLayout site={site} division={doc.division} title="Prévia privada" description="Prévia administrativa" canonical="/admin/editor" accent={theme.data?.accent_color??"#4f9bff"} accentSecondary={theme.data?.accent_secondary_color??"#905fff"}>
- <div class="preview-note">PRÉVIA NÃO PUBLICADA · {doc.division.toUpperCase()} · inclui o card selecionado mesmo se oculto</div>
- {input.kind==='serviceCards'?<ServicesGrid title="Soluções" services={services}/>:<>
- {selected&&details[selected.id!]?<section class="detail-preview"><ProductDetails site={site} item={selected} detail={details[selected.id!]} division={doc.division} headingLevel="h1" /></section>:null}
- <PricingTable site={site} division={doc.division} title="Catálogo" items={items} productDetails={details} preview={true}/>
+<PublicLayout site={site} division={doc.division} title="Prévia privada" description="Prévia administrativa" canonical="/admin/editor" noindex stickyCta={false}>
+ <div class="preview-note">Prévia não publicada · {doc.division} · inclui o card selecionado mesmo se oculto</div>
+ {input.kind==='serviceCards'?<Solutions title="Soluções" description="Prévia dos cards de soluções." services={services}/>:<>
+ {selected&&details[selected.id!]?<section class="wrap detail-preview"><ProductDetails site={site} item={selected} detail={details[selected.id!]} division={doc.division} headingLevel="h1" /></section>:null}
+ <Catalog site={site} division={doc.division} title="Catálogo" items={items} details={details}/>
  </>}
-</ServiceLayout>
-<style>.preview-note{padding:18px;text-align:center;background:#122b45;color:#acd8ff;font:600 11px system-ui;letter-spacing:.12em}.detail-preview{max-width:1100px;margin:30px auto;padding:20px}</style>
+</PublicLayout>
+<style>.preview-note{padding:14px;text-align:center;background:var(--ink);color:var(--white);font-weight:700}.detail-preview{padding-block:40px}</style>

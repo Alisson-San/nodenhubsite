@@ -1,0 +1,432 @@
+---
+/**
+ * Jornada do atendimento: uma van percorre a rota conforme a rolagem e cada
+ * parada mostra a etapa e a promessa ligada a ela. Junta "promessas" e
+ * "como funciona" numa única seção.
+ * Sem JavaScript ou com movimento reduzido, tudo aparece já percorrido.
+ */
+import type { Promise as NodenPromise } from "../../lib/site/divisionContent";
+
+interface Props {
+	title: string;
+	steps: NodenPromise[];
+	promises: NodenPromise[];
+	areas?: string[];
+	/** Divisão: usa a cor dela; ausente = cores da marca. */
+	tone?: "brand" | "division";
+	editable?: boolean;
+	id?: string;
+}
+
+const { title, steps, promises, areas, tone = "brand", editable = false, id = "como-funciona" } = Astro.props;
+const extraPromises = promises.slice(steps.length);
+const stops = steps.map((_, index) => (index + 0.5) / steps.length);
+// Rota ondulada passando pelos centros das colunas (viewBox 1000 × 140).
+const horizontal = (() => {
+	const xs = stops.map((s) => s * 1000);
+	let d = `M 0 70`;
+	xs.forEach((x, i) => {
+		const prev = i === 0 ? 0 : xs[i - 1];
+		const mid = (prev + x) / 2;
+		const wave = i % 2 === 0 ? 18 : 122;
+		d += ` C ${mid.toFixed(0)} ${wave}, ${mid.toFixed(0)} ${wave}, ${x.toFixed(0)} 70`;
+	});
+	d += ` C 970 ${steps.length % 2 ? 122 : 18}, 990 70, 1000 70`;
+	return d;
+})();
+const vertical = "M 60 0 L 60 1000";
+---
+
+<section class:list={["journey", `journey--${tone}`]} aria-labelledby={`${id}-titulo`} id={id} data-journey>
+	<div class="wrap">
+		<h2 class="h2 journey__title" id={`${id}-titulo`}>{title}</h2>
+		{editable && <div data-edit-list="promises" hidden></div>}
+
+		<div class="journey__route" style={`--count:${steps.length}`}>
+			<svg class="journey__path journey__path--h" viewBox="0 0 1000 140" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+				<defs>
+					<linearGradient id={`${id}-trail-h`} x1="0" y1="0" x2="1" y2="0">
+						<stop offset="0%" class="journey__stop-a" />
+						<stop offset="100%" class="journey__stop-b" />
+					</linearGradient>
+				</defs>
+				<path class="journey__track" d={horizontal} />
+				<path class="journey__trail" d={horizontal} pathLength="1" stroke={`url(#${id}-trail-h)`} data-journey-trail />
+			</svg>
+			<svg class="journey__path journey__path--v" viewBox="0 0 120 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+				<defs>
+					<linearGradient id={`${id}-trail-v`} x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" class="journey__stop-a" />
+						<stop offset="100%" class="journey__stop-b" />
+					</linearGradient>
+				</defs>
+				<path class="journey__track" d={vertical} />
+				<path class="journey__trail" d={vertical} pathLength="1" stroke={`url(#${id}-trail-v)`} data-journey-trail />
+			</svg>
+
+			<span class="journey__van" aria-hidden="true" data-journey-van>
+				<svg viewBox="0 0 72 44" focusable="false">
+					<path class="van-body" d="M4 8 Q4 4 8 4 H44 Q48 4 50 7 L58 18 H64 Q68 18 68 22 V32 Q68 34 66 34 H6 Q4 34 4 32 Z" />
+					<path class="van-window" d="M46 9 L54 19 H46 Z" />
+					<circle class="van-ring" cx="22" cy="18" r="7" />
+					<circle class="van-wheel" cx="18" cy="35" r="6" />
+					<circle class="van-wheel" cx="54" cy="35" r="6" />
+				</svg>
+			</span>
+
+			<ol class="journey__stops" data-edit-list={editable ? "steps" : undefined}>
+				{
+					steps.map((step, index) => (
+						<li class="journey__stop is-reached" data-journey-stop={stops[index]} data-reveal>
+							<span class="journey__dot" aria-hidden="true">
+								{index + 1}
+							</span>
+							<div class="journey__card">
+								<h3>{step.title}</h3>
+								<p>{step.text}</p>
+								{promises[index] && (
+									<p class="journey__promise">
+										<svg viewBox="0 0 20 20" aria-hidden="true">
+											<path d="M4 10.5 8 14.5 16 6" />
+										</svg>
+										<span>
+											<strong>{promises[index].title}</strong>
+											{promises[index].text && <small>{promises[index].text}</small>}
+										</span>
+									</p>
+								)}
+							</div>
+						</li>
+					))
+				}
+			</ol>
+		</div>
+
+		{
+			(extraPromises.length > 0 || (areas && areas.length > 0)) && (
+				<div class="journey__extra">
+					{extraPromises.map((promise) => (
+						<span class="journey__chip">
+							<strong>{promise.title}</strong> {promise.text}
+						</span>
+					))}
+					{areas && areas.length > 0 && (
+						<span class="journey__chip">
+							<strong>Busca e entrega em</strong> {areas.join(" · ")}
+						</span>
+					)}
+				</div>
+			)
+		}
+	</div>
+</section>
+
+<script>
+	const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	for (const root of document.querySelectorAll<HTMLElement>("[data-journey]")) {
+		if (reduced) continue;
+		const stops = [...root.querySelectorAll<HTMLElement>("[data-journey-stop]")];
+		const van = root.querySelector<HTMLElement>("[data-journey-van]")!;
+		const route = root.querySelector<HTMLElement>(".journey__route")!;
+		root.classList.add("journey--live");
+		let raf = 0;
+
+		const update = () => {
+			raf = 0;
+			const rect = route.getBoundingClientRect();
+			const vh = window.innerHeight;
+			// 0 quando a rota entra pela parte de baixo da tela; 1 quando passa do meio.
+			const progress = Math.min(1, Math.max(0, (vh * 0.85 - rect.top) / (rect.height + vh * 0.25)));
+			const svg = [...root.querySelectorAll<SVGSVGElement>(".journey__path")].find((el) => el.getBoundingClientRect().width > 0);
+			if (!svg) return;
+			const trail = svg.querySelector<SVGPathElement>("[data-journey-trail]")!;
+			const length = trail.getTotalLength();
+			const point = trail.getPointAtLength(length * progress);
+			const ahead = trail.getPointAtLength(Math.min(length, length * progress + 2));
+			const view = svg.viewBox.baseVal;
+			const box = svg.getBoundingClientRect();
+			const x = ((point.x - view.x) / view.width) * box.width + (box.left - rect.left);
+			const y = ((point.y - view.y) / view.height) * box.height + (box.top - rect.top);
+			const angle = (Math.atan2(((ahead.y - point.y) / view.height) * box.height, ((ahead.x - point.x) / view.width) * box.width) * 180) / Math.PI;
+			van.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -60%) rotate(${angle.toFixed(1)}deg)`;
+			for (const path of root.querySelectorAll<SVGPathElement>("[data-journey-trail]")) path.style.strokeDashoffset = String(1 - progress);
+			// A parada acende quando a van passa pelo ponto dela.
+			const horizontalRoute = svg.classList.contains("journey__path--h");
+			stops.forEach((stop) => {
+				const dot = stop.querySelector<HTMLElement>(".journey__dot")!.getBoundingClientRect();
+				const center = horizontalRoute ? dot.left + dot.width / 2 - rect.left : dot.top + dot.height / 2 - rect.top;
+				stop.classList.toggle("is-reached", (horizontalRoute ? x : y) >= center - 4 || progress >= 0.999);
+			});
+		};
+
+		const request = () => {
+			if (!raf) raf = requestAnimationFrame(update);
+		};
+		new IntersectionObserver(([entry]) => {
+			if (entry.isIntersecting) {
+				window.addEventListener("scroll", request, { passive: true });
+				request();
+			} else window.removeEventListener("scroll", request);
+		}).observe(root);
+		window.addEventListener("resize", request);
+		update();
+	}
+</script>
+
+<style>
+	.journey {
+		position: relative;
+		overflow: hidden;
+		padding-block: clamp(72px, 10vw, 130px);
+		color: var(--text);
+		background: linear-gradient(
+			180deg,
+			transparent,
+			color-mix(in srgb, var(--accent) 10%, transparent) 30%,
+			color-mix(in srgb, var(--accent-2) 10%, transparent) 70%,
+			transparent
+		);
+	}
+	.journey::before {
+		content: "";
+		position: absolute;
+		inset: 20% -10% auto;
+		height: 60%;
+		background: radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%);
+		pointer-events: none;
+	}
+	.journey__title {
+		position: relative;
+		max-width: 18ch;
+	}
+	.journey__route {
+		position: relative;
+		margin-top: clamp(32px, 5vw, 56px);
+	}
+	.journey__path {
+		position: absolute;
+		pointer-events: none;
+		overflow: visible;
+	}
+	.journey__path--h {
+		left: 0;
+		right: 0;
+		top: 0;
+		width: 100%;
+		height: 140px;
+	}
+	.journey__path--v {
+		display: none;
+	}
+	.journey__stop-a {
+		stop-color: var(--accent-2);
+	}
+	.journey__stop-b {
+		stop-color: var(--accent);
+	}
+	.journey__track,
+	.journey__trail {
+		fill: none;
+		vector-effect: non-scaling-stroke;
+		stroke-linecap: round;
+	}
+	.journey__track {
+		stroke: var(--text-2);
+		stroke-opacity: 0.45;
+		stroke-width: 2;
+		stroke-dasharray: 2 10;
+	}
+	.journey__trail {
+		stroke-width: 5;
+		stroke-dasharray: 1;
+		stroke-dashoffset: 0;
+		filter: drop-shadow(0 0 6px var(--accent));
+	}
+	.journey__van {
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: 3;
+		width: 76px;
+		display: none;
+		filter: drop-shadow(0 8px 14px rgb(0 0 0 / 35%));
+	}
+	.journey--live .journey__van {
+		display: block;
+	}
+	.van-body {
+		fill: #ffffff;
+		stroke: #120e2a;
+		stroke-width: 2.5;
+		stroke-linejoin: round;
+	}
+	.van-window {
+		fill: #22c3ee;
+		stroke: #120e2a;
+		stroke-width: 2;
+		stroke-linejoin: round;
+	}
+	.van-ring {
+		fill: none;
+		stroke: #9b2bf0;
+		stroke-width: 4;
+	}
+	.van-wheel {
+		fill: #120e2a;
+		stroke: #ffffff;
+		stroke-width: 2.5;
+	}
+	.journey__stops {
+		position: relative;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+		gap: 0;
+	}
+	.journey__stop {
+		display: grid;
+		justify-items: center;
+		align-content: start;
+		gap: 20px;
+		padding-inline: 10px;
+	}
+	.journey__dot {
+		position: relative;
+		z-index: 2;
+		display: grid;
+		place-items: center;
+		width: 60px;
+		height: 60px;
+		margin-top: 40px;
+		border-radius: 50%;
+		border: 1px solid var(--line-strong);
+		background: var(--surface-2);
+		color: var(--text);
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: 1.4rem;
+		transition: background 0.4s ease, color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
+	}
+	.journey__card {
+		width: 100%;
+		display: grid;
+		gap: 8px;
+		align-content: start;
+		padding: 22px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		box-shadow: var(--shadow);
+		color: var(--text);
+		transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.5s ease, border-color 0.5s ease;
+	}
+	.journey__card h3 {
+		font-size: 1.3rem;
+		letter-spacing: -0.02em;
+	}
+	.journey__card > p {
+		color: var(--text-2);
+	}
+	.journey__promise {
+		display: flex;
+		gap: 10px;
+		align-items: flex-start;
+		margin-top: 6px;
+		padding: 10px 12px;
+		border-radius: 14px;
+		background: var(--accent-soft);
+		border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+	}
+	.journey__promise svg {
+		width: 20px;
+		height: 20px;
+		flex: none;
+		margin-top: 2px;
+		fill: none;
+		stroke: var(--accent-text);
+		stroke-width: 2.6;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.journey__promise strong {
+		display: block;
+		line-height: 1.2;
+	}
+	.journey__promise small {
+		display: block;
+		color: var(--text-2);
+		font-size: 0.88rem;
+		line-height: 1.35;
+		margin-top: 2px;
+	}
+
+	.journey--live .journey__stop:not(.is-reached) .journey__card {
+		opacity: 0.5;
+		transform: translateY(14px);
+	}
+	.journey__stop.is-reached .journey__dot {
+		background: var(--grad-button);
+		border-color: transparent;
+		color: var(--white);
+		transform: scale(1.06);
+		box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent), 0 10px 30px -8px var(--accent);
+	}
+	.journey__stop.is-reached .journey__card {
+		border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+	}
+
+	.journey__extra {
+		position: relative;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 32px;
+	}
+	.journey__chip {
+		padding: 8px 16px;
+		border-radius: 999px;
+		border: 1px solid var(--line-strong);
+		background: var(--surface);
+		color: var(--text-2);
+	}
+	.journey__chip strong {
+		color: var(--text);
+	}
+
+	@media (max-width: 860px) {
+		.journey__path--h {
+			display: none;
+		}
+		.journey__path--v {
+			display: block;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			width: 120px;
+			height: 100%;
+		}
+		.journey__stops {
+			grid-template-columns: 1fr;
+			gap: 28px;
+			padding-left: 90px;
+		}
+		.journey__stop {
+			justify-items: start;
+			position: relative;
+			padding-inline: 0;
+		}
+		.journey__dot {
+			position: absolute;
+			left: -58px;
+			top: 50%;
+			margin-top: -28px;
+			width: 56px;
+			height: 56px;
+		}
+		.journey__van {
+			width: 56px;
+		}
+	}
+</style>

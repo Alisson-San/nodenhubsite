@@ -10,7 +10,7 @@ export const homePage: ServicePageConfig = {
 			"Noden Home — Suporte técnico residencial",
 		description:
 			"Suporte técnico residencial, manutenção de computadores, formatação, limpeza, redes Wi-Fi e configuração de dispositivos.",
-		canonical: "/home",
+		canonical: "/noden-home",
 	},
 
 	theme: {
@@ -278,7 +278,7 @@ export const gamePage: ServicePageConfig = {
 			"Noden Game — Montagem e otimização de computadores gamer",
 		description:
 			"Montagem, manutenção, diagnóstico, upgrades e otimização de computadores e setups gamer.",
-		canonical: "/game",
+		canonical: "/noden-game",
 	},
 
 	theme: {
@@ -545,7 +545,7 @@ export const dataPage: ServicePageConfig = {
 			"Noden Data — Software, automação, dados e BI",
 		description:
 			"Desenvolvimento de software, sites, automações, dashboards, integração de dados e soluções digitais para empresas.",
-		canonical: "/data",
+		canonical: "/noden-data",
 	},
 
 	theme: {

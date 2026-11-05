@@ -1,0 +1,797 @@
+---
+import WhatsAppIcon from "../common/WhatsAppIcon.astro";
+import DivisionIcon from "../common/DivisionIcon.astro";
+import DivisionMark from "../common/DivisionMark.astro";
+import { formatCurrency } from "../../lib/formatting";
+import { RINGS, SYMBOL } from "../../lib/site/brand";
+import { divisionOrder, divisions } from "../../lib/site/divisions";
+import { splitHomeHighlights, type HomeContent } from "../../lib/site/homeContent";
+import type { ServiceDivision } from "../../types/services";
+
+interface Props {
+	content: HomeContent;
+	startingPrices: Record<ServiceDivision, number | null>;
+	whatsappUrl: string;
+	areas: string[];
+	/** Modo de edição: a apresentação fica em leitura normal. */
+	editing?: boolean;
+}
+
+const { content, startingPrices, whatsappUrl, areas, editing = false } = Astro.props;
+
+const cards: Record<ServiceDivision, { title: string; description: string; highlights: string[]; meta: string; label: string }> = {
+	home: { title: content.homeTitle, description: content.homeDescription, highlights: splitHomeHighlights(content.homeHighlights), meta: content.homeMeta, label: "Casa" },
+	game: { title: content.gameTitle, description: content.gameDescription, highlights: splitHomeHighlights(content.gameHighlights), meta: content.gameMeta, label: "Setup" },
+	data: { title: content.dataTitle, description: content.dataDescription, highlights: splitHomeHighlights(content.dataHighlights), meta: content.dataMeta, label: "Empresa" },
+};
+
+const acts = [
+	{ id: "inicio", label: "Início" },
+	{ id: "apresentacao-nos", label: "Os três nós" },
+	...divisionOrder.map((id) => ({ id: `apresentacao-${id}`, label: divisions[id].name })),
+	{ id: "apresentacao-conexao", label: "Conectados" },
+];
+
+// Logo unida = imagem oficial; os nós vetoriais repetem os mesmos anéis.
+// Posição inicial: logo centrada (ver INTRO em lib/site/nodeStory.ts).
+const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
+---
+
+<section class="story" data-story data-story-editing={editing ? "" : undefined} aria-labelledby="inicio-titulo">
+	<!--
+		Decide o modo animado antes da primeira pintura: sem isso a página
+		desenhava todos os atos empilhados e só depois os escondia.
+		Mesmas regras de canLive() em lib/site/nodeStory.ts.
+	-->
+	<script is:inline>
+		(function () {
+			var root = document.currentScript.parentElement;
+			var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+			if (!calm && !root.hasAttribute("data-story-editing") && window.innerWidth >= 360 && window.innerHeight >= 600) {
+				root.classList.add("story--live");
+				root.style.setProperty("--story-acts", "6");
+				// Se o módulo da animação não carregar (rede lenta, erro), volta
+				// à leitura normal: sem isso só a abertura ficava visível.
+				setTimeout(function () {
+					if (root.hasAttribute("data-story-started")) return;
+					root.classList.remove("story--live", "story--ready");
+					root.style.removeProperty("--story-acts");
+				}, 4000);
+			}
+		})();
+	</script>
+	<a class="story__skip" href="#depois-da-apresentacao">Pular apresentação</a>
+
+	<div class="story__stage" data-story-stage>
+		<div class="story__scene" aria-hidden="true">
+			<svg viewBox="0 0 1200 1000" class="story__svg" focusable="false">
+				<defs>
+					{
+						divisionOrder.map((id) => (
+							<>
+								<linearGradient id={`st-ring-${id}`} gradientUnits="userSpaceOnUse" x1={-RINGS[id].r} y1="0" x2={RINGS[id].r} y2="0">
+									<stop offset="0%" stop-color={RINGS[id].stops[0]} />
+									<stop offset="50%" stop-color={RINGS[id].stops[1]} />
+									<stop offset="100%" stop-color={RINGS[id].stops[2]} />
+								</linearGradient>
+								<radialGradient id={`st-spot-${id}`}>
+									<stop offset="0%" stop-color={RINGS[id].stops[1]} stop-opacity="0.45" />
+									<stop offset="100%" stop-color={RINGS[id].stops[1]} stop-opacity="0" />
+								</radialGradient>
+							</>
+						))
+					}
+				</defs>
+
+				<g data-world>
+					<!-- Rede entre os nós separados -->
+					<g class="st-edges" data-edges opacity="0">
+						<line data-edge="0" />
+						<line data-edge="1" />
+						<line data-edge="2" />
+						<circle r="9" class="st-packet" fill={RINGS.game.stops[0]} data-packet="0" />
+						<circle r="9" class="st-packet" fill={RINGS.home.stops[2]} data-packet="1" />
+						<circle r="9" class="st-packet" fill={RINGS.data.stops[0]} data-packet="2" />
+					</g>
+
+					<!-- Logo oficial (fita contínua) -->
+					<g data-frame transform={`translate(${intro.tx} ${intro.ty}) scale(${intro.k})`}>
+						<image href={SYMBOL.src} width={SYMBOL.width} height={SYMBOL.height} data-symbol />
+					</g>
+
+					{
+						divisionOrder.map((id) => (
+							<g
+								class="st-node"
+								data-node={id}
+								transform={`translate(${(RINGS[id].cx * intro.k + intro.tx).toFixed(1)} ${(RINGS[id].cy * intro.k + intro.ty).toFixed(1)}) scale(${intro.k})`}
+							>
+								<circle r={RINGS[id].r * 1.9} fill={`url(#st-spot-${id})`} opacity="0" data-spot />
+								<circle r={RINGS[id].r - RINGS[id].width / 2} class="st-fill" opacity="0" data-fill />
+								<circle r={RINGS[id].r} fill="none" stroke={`url(#st-ring-${id})`} stroke-width={RINGS[id].width} opacity="0" data-ring />
+								<g class="st-icon" stroke={`url(#st-ring-${id})`} style={`--icon-fill:url(#st-ring-${id})`} opacity="0" data-icon>
+									<DivisionIcon division={id} />
+								</g>
+								<text class="st-label" y={RINGS[id].r + RINGS[id].width / 2 + 100} text-anchor="middle" opacity="0" data-label>
+									{cards[id].label}
+								</text>
+							</g>
+						))
+					}
+
+					<g class="st-wordmark" data-wordmark opacity="0">
+						<text x="392" y="566" text-anchor="end">N</text>
+						<text x="808" y="566" text-anchor="start">DEN</text>
+						<text class="st-hub" x="600" y="770" text-anchor="middle">TECHNOLOGY HUB</text>
+					</g>
+				</g>
+			</svg>
+		</div>
+
+		<div class="story__panels" data-story-panels>
+			<article class="story__panel story__panel--intro is-active" id="inicio" data-act="0" tabindex="-1">
+				<p class="kicker">Noden · {areas.slice(0, 2).join(", ")} e região</p>
+				<h1 class="display" id="inicio-titulo" data-home-field="title">{content.title}</h1>
+				<p class="lead" data-home-field="description">{content.description}</p>
+				<div class="story__actions">
+					<a class="btn btn--whatsapp" href={whatsappUrl} target="_blank" rel="noopener">
+						<WhatsAppIcon />
+						<span>{content.contactLabel}</span>
+					</a>
+					<a class="link-arrow" href="#apresentacao-nos" data-story-goto="1">Ver como a Noden funciona <span aria-hidden="true">↓</span></a>
+				</div>
+			</article>
+
+			<article class="story__panel" id="apresentacao-nos" data-act="1" tabindex="-1">
+				<p class="kicker">Três nós</p>
+				<h2 class="h2" data-home-field="aboutTitle">{content.aboutTitle}</h2>
+				<p class="lead" data-home-field="aboutDescription">{content.aboutDescription}</p>
+				<ul class="story__nodes" role="list">
+					{
+						divisionOrder.map((id) => (
+							<li data-division={id}>
+								<DivisionMark division={id} size={52} />
+								<span>
+									<strong>{divisions[id].name}</strong>
+									<small>{cards[id].meta}</small>
+								</span>
+							</li>
+						))
+					}
+				</ul>
+			</article>
+
+			{
+				divisionOrder.map((id, index) => (
+					<article class="story__panel story__panel--division" id={`apresentacao-${id}`} data-act={index + 2} data-division={id} tabindex="-1">
+						<p class="story__tag">
+							<DivisionMark division={id} size={40} />
+							<span>{String(index + 1).padStart(2, "0")} · {divisions[id].name}</span>
+							<span class="story__meta" data-home-field={`${id}Meta`}>{cards[id].meta}</span>
+						</p>
+						<h2 class="h2" data-home-field={`${id}Title`}>{cards[id].title}</h2>
+						<p class="story__desc" data-home-field={`${id}Description`}>{cards[id].description}</p>
+						<ul class="story__chips" data-home-field={`${id}Highlights`} data-home-list>
+							{cards[id].highlights.map((item) => (
+								<li>{item}</li>
+							))}
+						</ul>
+						<div class="story__foot">
+							{startingPrices[id] !== null && (
+								<p class="story__price">
+									<small>Serviços a partir de</small>
+									<strong>{formatCurrency(startingPrices[id]!)}</strong>
+								</p>
+							)}
+							<div class="story__actions">
+								<a class="btn btn--accent" href={divisions[id].path}>
+									Ver {divisions[id].name} <span aria-hidden="true">→</span>
+								</a>
+								<a class="link-arrow" href={`${divisions[id].path}#precos`}>Preços</a>
+							</div>
+						</div>
+					</article>
+				))
+			}
+
+			<article class="story__panel story__panel--final" id="apresentacao-conexao" data-act="5" tabindex="-1">
+				<p class="kicker">Tudo conectado</p>
+				<h2 class="h2" data-home-field="storyTitle">{content.storyTitle}</h2>
+				<p class="lead" data-home-field="storyDescription">{content.storyDescription}</p>
+				<div class="story__actions">
+					<a class="btn btn--whatsapp" href={whatsappUrl} target="_blank" rel="noopener">
+						<WhatsAppIcon />
+						<span>{content.contactLabel}</span>
+					</a>
+				</div>
+				<nav class="story__pick" aria-label="Escolha a divisão">
+					{
+						divisionOrder.map((id) => (
+							<a href={divisions[id].path} data-division={id}>
+								<DivisionMark division={id} size={30} />
+								{divisions[id].name}
+							</a>
+						))
+					}
+				</nav>
+			</article>
+		</div>
+
+		<nav class="story__rail" aria-label="Partes da apresentação" data-story-rail>
+			<ol>
+				{
+					acts.map((act, index) => (
+						<li>
+							<a href={`#${act.id}`} data-story-goto={index} aria-current={index === 0 ? "step" : undefined}>
+								<span class="story__rail-dot" aria-hidden="true" />
+								<span class="story__rail-label">{act.label}</span>
+							</a>
+						</li>
+					))
+				}
+			</ol>
+		</nav>
+	</div>
+</section>
+<span id="depois-da-apresentacao" tabindex="-1"></span>
+
+<script>
+	import { startNodeStory } from "../../lib/site/nodeStory";
+	startNodeStory();
+</script>
+
+<style>
+	/* ---------- Base (sem JavaScript, movimento reduzido ou tela pequena) ---------- */
+	.story {
+		position: relative;
+	}
+	.story__skip {
+		position: absolute;
+		left: 16px;
+		top: 8px;
+		z-index: 20;
+		padding: 10px 16px;
+		border-radius: 999px;
+		background: var(--ink);
+		color: var(--white);
+		font-weight: 700;
+		transform: translateY(-200%);
+	}
+	.story__skip:focus {
+		transform: none;
+	}
+	.story__stage {
+		width: 100%;
+		max-width: var(--max);
+		margin-inline: auto;
+		padding-inline: var(--gutter);
+		display: grid;
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+		gap: 0 clamp(24px, 4vw, 64px);
+		align-items: center;
+	}
+	.story__scene {
+		grid-column: 2;
+		grid-row: 1;
+		align-self: center;
+		padding-block: 32px;
+	}
+	.story__svg {
+		width: 100%;
+		height: auto;
+		max-height: 70vh;
+		overflow: visible;
+	}
+	.story__panels {
+		display: contents;
+	}
+	.story__panel {
+		grid-column: 1 / -1;
+		padding-block: clamp(36px, 6vw, 72px);
+		border-top: 2px solid var(--line-soft);
+		display: grid;
+		gap: 18px;
+		align-content: center;
+		justify-items: start;
+	}
+	.story__panel--intro {
+		grid-column: 1;
+		grid-row: 1;
+		border-top: 0;
+	}
+	.story__panel--intro h1 {
+		max-width: 14ch;
+		font-size: clamp(2.6rem, 6.4vw, 5.4rem);
+	}
+	.story__panel:focus {
+		outline: none;
+	}
+	.story__rail {
+		display: none;
+	}
+	.story__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 14px 26px;
+		margin-top: 6px;
+	}
+	.story__nodes {
+		list-style: none;
+		margin: 6px 0 0;
+		padding: 0;
+		display: grid;
+		gap: 10px;
+	}
+	.story__nodes li {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+	}
+	.story__nodes strong {
+		display: block;
+		font-family: var(--font-display);
+		font-size: 1.3rem;
+		line-height: 1.1;
+	}
+	.story__nodes small {
+		color: var(--muted);
+		font-weight: 600;
+	}
+	.story__dot {
+		width: 18px;
+		height: 18px;
+		flex: none;
+		border-radius: 50%;
+		border: 4px solid var(--accent);
+	}
+	.story__tag {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 12px;
+		font-weight: 700;
+	}
+	.story__meta {
+		padding: 3px 12px;
+		border-radius: 999px;
+		background: var(--accent);
+		color: var(--on-accent);
+		font-size: 0.9rem;
+	}
+	.story__panel--division h2 {
+		max-width: 16ch;
+	}
+	.story__desc {
+		font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+		color: var(--ink-2);
+		max-width: 50ch;
+	}
+	.story__chips {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.story__chips li {
+		padding: 5px 13px;
+		border: 1.5px solid var(--ink);
+		border-radius: 999px;
+		background: var(--accent-soft);
+		font-weight: 600;
+		font-size: 0.93rem;
+	}
+	.story__foot {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: 16px 32px;
+		margin-top: 6px;
+	}
+	.story__price {
+		display: grid;
+	}
+	.story__price small {
+		font-weight: 700;
+		color: var(--muted);
+	}
+	.story__price strong {
+		font-family: var(--font-display);
+		font-size: clamp(2rem, 3.6vw, 2.8rem);
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		line-height: 1;
+		color: var(--accent-text);
+	}
+	.story__pick {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+	.story__pick a {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		min-height: 48px;
+		padding: 0 18px;
+		border: var(--border);
+		border-radius: 999px;
+		background: var(--white);
+		font-weight: 700;
+		text-decoration: none;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+	.story__pick a:hover {
+		transform: translate(-2px, -2px);
+		box-shadow: 4px 4px 0 var(--accent);
+	}
+
+	/* SVG */
+	.st-edges line {
+		stroke: rgb(255 255 255 / 55%);
+		stroke-width: 3;
+		stroke-dasharray: 2 14;
+		stroke-linecap: round;
+	}
+	.st-fill {
+		fill: #17123d;
+	}
+	.st-icon {
+		fill: none;
+		stroke-width: 24;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.st-icon :global(.fill) {
+		fill: var(--icon-fill);
+		stroke: none;
+	}
+	.st-label {
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: 92px;
+		fill: #ffffff;
+	}
+	.st-wordmark text {
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: 196px;
+		letter-spacing: 4px;
+		fill: #ffffff;
+	}
+	.st-wordmark .st-hub {
+		font-family: var(--font-body);
+		font-weight: 700;
+		font-size: 44px;
+		letter-spacing: 22px;
+		fill: #b9b3e0;
+	}
+
+	/* Palco escuro com textura de rede */
+	.story {
+		--story-bg: #0f0b29;
+		background: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 7%) 1.2px, transparent 1.6px) 0 0 / 28px 28px;
+		color: var(--white);
+	}
+	.story :global(.lead),
+	.story .story__desc {
+		color: #d4cff0;
+	}
+	.story :global(.kicker) {
+		color: #8fe6ff;
+	}
+	.story :global(.link-arrow) {
+		color: var(--white);
+	}
+	.story [data-division="home"] {
+		--accent-light: #6fe3ff;
+	}
+	.story [data-division="game"] {
+		--accent-light: #d3a3ff;
+	}
+	.story [data-division="data"] {
+		--accent-light: #a9b1ff;
+	}
+	.story .story__price strong {
+		color: var(--accent-light);
+	}
+	.story .story__price small,
+	.story .story__nodes small {
+		color: #b9b3e0;
+	}
+	.story .story__chips li {
+		border-color: rgb(255 255 255 / 35%);
+		background: rgb(255 255 255 / 7%);
+	}
+	.story .story__pick a {
+		background: rgb(255 255 255 / 6%);
+		border-color: rgb(255 255 255 / 45%);
+		color: var(--white);
+	}
+	.story .story__panel {
+		border-top-color: rgb(255 255 255 / 12%);
+	}
+	.story :focus-visible {
+		outline-color: var(--white);
+		box-shadow: none;
+	}
+	.story .story__rail a {
+		color: #b9b3e0;
+	}
+	.story .story__rail a[aria-current] {
+		color: var(--white);
+	}
+	.story .story__rail-dot {
+		border-color: var(--white);
+		background: var(--story-bg);
+	}
+	.story .story__rail a[aria-current] .story__rail-dot {
+		background: var(--white);
+	}
+	.story .story__rail ol::before {
+		border-right-color: rgb(255 255 255 / 25%);
+	}
+
+	/* Respiração da logo no topo: transform no contêiner (compositor). */
+	:global(.story--at-start) .story__scene {
+		animation: story-breathe 3.6s ease-in-out infinite;
+	}
+	@keyframes story-breathe {
+		50% {
+			transform: translateY(-8px);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		:global(.story--at-start) .story__scene {
+			animation: none;
+		}
+	}
+
+	/* ---------- Apresentação animada (ativada pelo script) ---------- */
+	:global(.story--live) {
+		height: calc(var(--story-acts, 6) * 92svh);
+	}
+	:global(.story--live) .story__stage {
+		position: sticky;
+		top: var(--header-h);
+		height: calc(100svh - var(--header-h));
+		max-width: none;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) 150px;
+		grid-template-rows: 1fr;
+		padding-left: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
+		overflow: hidden;
+	}
+	:global(.story--live) .story__scene {
+		grid-column: 2;
+		grid-row: 1;
+		height: 100%;
+		padding: 0;
+		display: grid;
+		place-items: center;
+	}
+	:global(.story--live) .story__svg {
+		max-height: calc(100svh - var(--header-h) - 48px);
+	}
+	:global(.story--live) .story__panels {
+		display: grid;
+		grid-column: 1;
+		grid-row: 1;
+		align-self: center;
+		max-height: calc(100svh - var(--header-h) - 32px);
+	}
+	:global(.story--live) .story__panel {
+		grid-area: 1 / 1;
+		align-self: center;
+		grid-column: 1;
+		padding-block: 0;
+		border-top: 0;
+		/* Só opacidade: o texto continua disponível para leitores de tela e
+		   teclado; ao receber foco, a cena rola até o ato (nodeStory.ts). */
+		opacity: 0;
+		pointer-events: none;
+		transform: translateY(28px);
+	}
+	:global(.story--live) .story__panel.is-active {
+		opacity: 1;
+		pointer-events: auto;
+		transform: none;
+		z-index: 1;
+	}
+	/* Transições só depois que a cena está montada (evita o "piscar" inicial). */
+	:global(.story--live.story--ready) .story__panel {
+		transition:
+			opacity 0.45s ease,
+			transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
+	:global(.story--live.story--ready) .story__panel.is-active {
+		transition:
+			opacity 0.45s ease 0.1s,
+			transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s;
+	}
+	:global(.story--live) .story__panel.is-before {
+		transform: translateY(-28px);
+	}
+	:global(.story--live) .story__rail {
+		display: block;
+		grid-column: 3;
+		grid-row: 1;
+		align-self: center;
+		justify-self: end;
+		padding-right: var(--gutter);
+	}
+	.story__rail ol {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 2px;
+		position: relative;
+	}
+	.story__rail ol::before {
+		content: "";
+		position: absolute;
+		right: 7px;
+		top: 22px;
+		bottom: 22px;
+		border-right: 2px dashed var(--line-soft);
+	}
+	.story__rail a {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 10px;
+		min-height: 44px;
+		color: var(--muted);
+		font-size: 0.85rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.story__rail-dot {
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		border: 3px solid var(--ink);
+		background: var(--paper);
+		transition: background 0.2s ease, transform 0.2s ease;
+	}
+	.story__rail a[aria-current] {
+		color: var(--ink);
+	}
+	.story__rail a[aria-current] .story__rail-dot {
+		background: var(--ink);
+		transform: scale(1.2);
+	}
+	.story__rail a:hover .story__rail-dot {
+		background: var(--accent);
+	}
+
+	/* Telas baixas (notebooks): texto mais compacto para caber na cena fixa */
+	@media (min-width: 761px) and (max-height: 820px) {
+		:global(.story--live) .story__panel {
+			gap: 12px;
+		}
+		:global(.story--live) .story__panel--intro h1 {
+			font-size: clamp(2.4rem, 4.6vw, 3.6rem);
+		}
+		:global(.story--live) .story__panel h2 {
+			font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+		}
+		:global(.story--live) .lead,
+		:global(.story--live) .story__desc {
+			font-size: 1.02rem;
+		}
+		:global(.story--live) .story__chips li {
+			font-size: 0.85rem;
+			padding: 3px 10px;
+		}
+		:global(.story--live) .story__price strong {
+			font-size: 1.9rem;
+		}
+		:global(.story--live) .story__nodes {
+			gap: 6px;
+		}
+	}
+	@media (max-width: 1100px) {
+		:global(.story--live) .story__stage {
+			grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr) 44px;
+		}
+		.story__rail-label {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip: rect(0 0 0 0);
+		}
+	}
+
+	/* Celular em modo animado: cena em cima, texto embaixo */
+	@media (max-width: 760px) {
+		.story__stage {
+			grid-template-columns: 1fr;
+		}
+		.story__scene {
+			grid-column: 1;
+			grid-row: 2;
+			max-width: 360px;
+			justify-self: center;
+			padding-block: 0 24px;
+		}
+		.story__panel--intro {
+			grid-column: 1;
+		}
+		:global(.story--live) .story__stage {
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: minmax(0, 32%) minmax(0, 1fr);
+			padding-inline: var(--gutter);
+			padding-bottom: 92px;
+			gap: 0;
+		}
+		:global(.story--live) .story__scene {
+			grid-column: 1;
+			grid-row: 1;
+			max-width: none;
+		}
+		:global(.story--live) .story__svg {
+			height: 100%;
+			width: auto;
+			max-width: 100%;
+		}
+		:global(.story--live) .story__panels {
+			grid-column: 1;
+			grid-row: 2;
+			align-self: start;
+			max-height: none;
+			height: 100%;
+		}
+		:global(.story--live) .story__panel {
+			align-content: start;
+			align-self: start;
+			gap: 10px;
+		}
+		/* No celular a cena ocupa o topo; detalhes extras ficam nas páginas das divisões. */
+		:global(.story--live) .story__chips,
+		:global(.story--live) .story__nodes small,
+		:global(.story--live) .story__panel .kicker {
+			display: none;
+		}
+		:global(.story--live) .story__nodes {
+			grid-template-columns: repeat(3, auto);
+			gap: 14px;
+		}
+		:global(.story--live) .story__nodes li {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 6px;
+		}
+		:global(.story--live) .story__nodes strong {
+			font-size: 1rem;
+		}
+		:global(.story--live) .story__actions {
+			gap: 10px 18px;
+		}
+		:global(.story--live) .story__pick a {
+			min-height: 44px;
+			padding: 0 12px;
+			font-size: 0.9rem;
+		}
+		:global(.story--live) .story__panel--intro h1 {
+			font-size: clamp(1.9rem, 8.6vw, 2.6rem);
+		}
+		:global(.story--live) .story__panel h2 {
+			font-size: clamp(1.6rem, 7vw, 2.1rem);
+		}
+		:global(.story--live) .lead,
+		:global(.story--live) .story__desc {
+			font-size: 1rem;
+		}
+		:global(.story--live) .story__price strong {
+			font-size: 1.8rem;
+		}
+		:global(.story--live) .story__rail {
+			display: none;
+		}
+	}
+</style>
