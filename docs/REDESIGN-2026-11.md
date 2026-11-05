@@ -95,7 +95,7 @@ Textos editáveis novos: `storyTitle` e `storyDescription` (fim da apresentaçã
 - **Explorador de serviços** (`Solutions.astro`): abas acessíveis (setas, Home/End) com painel grande; em tela estreita, sem JS ou no modo de edição vira lista.
 - **Monte seu orçamento** (`Catalog.astro` + `lib/site/quote.ts`): o visitante adiciona itens, vê o total de referência ("a partir de" e itens sob consulta tratados) e envia a lista pronta no WhatsApp. A seleção sobrevive à recarga (sessionStorage).
 - **Vitrine** (`Showcase.astro`): portfólio da Noden Data (cartões em moldura de navegador, link do projeto, tecnologias) e galeria de setups da Noden Game (mosaico com ficha técnica). Visualizador com todas as imagens, setas e teclado. Cadastro no próprio site (modal com envio de imagens, descrição obrigatória, publicar/ocultar, ordenar, excluir).
-  - Requer a migração `supabase/migrations/20261105180000_showcase.sql` (tabela `showcase_items` com RLS e bucket público `showcase-media`, escrita só de admins). **Não aplicada.** Enquanto não for, a seção não aparece para visitantes e o admin vê um aviso.
+  - Migração `supabase/migrations/20261105185813_showcase.sql` (tabela `showcase_items` com RLS e bucket público `showcase-media`, escrita só de admins). **Aplicada em 05/11/2026 com autorização do responsável** (arquivo renomeado para a versão registrada pelo Supabase). Verificado no banco real, em transação desfeita: admin vê rascunhos e envia imagem; visitante vê só o publicado e não grava; usuário logado sem papel de admin não altera nem envia. Nenhum dado de teste ficou gravado; advisors sem alertas novos. A seção aparece para visitantes quando houver o primeiro item publicado.
   - Testada em PGlite: `scripts/qa/showcase-database.test.mjs` (11 verificações).
 
 ### Verificação
@@ -104,5 +104,5 @@ Textos editáveis novos: `storyTitle` e `storyDescription` (fim da apresentaçã
 - `inline-editor.cjs`: 16 fluxos, incluindo cadastro na vitrine com imagem.
 
 ### Pendente
-- Aplicar a migração da vitrine (precisa de autorização) e cadastrar os primeiros projetos/setups com fotos reais.
+- Cadastrar os primeiros projetos/setups com fotos reais (modo de edição nas páginas Noden Data e Noden Game).
 - Testar com login real de administrador (edição, publicação e envio de imagens).

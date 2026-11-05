@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "../supabase/server";
 import { SHOWCASE_BUCKET, type ShowcaseDivision, type ShowcaseItem } from "./types";
 
-// A tabela ainda não está nos tipos gerados (migração 20261105180000_showcase).
+// A tabela ainda não está nos tipos gerados (migração 20261105185813_showcase).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = SupabaseClient<any>;
 

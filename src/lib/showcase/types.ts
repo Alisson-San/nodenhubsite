@@ -1,7 +1,7 @@
 /**
  * Vitrine: projetos da Noden Data (sites, sistemas, dashboards) e setups
  * montados pela Noden Game. Tabela public.showcase_items e bucket público
- * showcase-media (migração 20261105180000_showcase.sql).
+ * showcase-media (migração 20261105185813_showcase.sql).
  */
 export type ShowcaseDivision = "game" | "data";
 
