@@ -13,9 +13,11 @@ interface Props {
 	startingPrices: Record<ServiceDivision, number | null>;
 	whatsappUrl: string;
 	areas: string[];
+	/** Modo de edição: a apresentação fica em leitura normal. */
+	editing?: boolean;
 }
 
-const { content, startingPrices, whatsappUrl, areas } = Astro.props;
+const { content, startingPrices, whatsappUrl, areas, editing = false } = Astro.props;
 
 const cards: Record<ServiceDivision, { title: string; description: string; highlights: string[]; meta: string; label: string }> = {
 	home: { title: content.homeTitle, description: content.homeDescription, highlights: splitHomeHighlights(content.homeHighlights), meta: content.homeMeta, label: "Casa" },
@@ -35,7 +37,22 @@ const acts = [
 const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 ---
 
-<section class="story" data-story aria-labelledby="inicio-titulo">
+<section class="story" data-story data-story-editing={editing ? "" : undefined} aria-labelledby="inicio-titulo">
+	<!--
+		Decide o modo animado antes da primeira pintura: sem isso a página
+		desenhava todos os atos empilhados e só depois os escondia.
+		Mesmas regras de canLive() em lib/site/nodeStory.ts.
+	-->
+	<script is:inline>
+		(function () {
+			var root = document.currentScript.parentElement;
+			var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+			if (!calm && !root.hasAttribute("data-story-editing") && window.innerWidth >= 360 && window.innerHeight >= 600) {
+				root.classList.add("story--live");
+				root.style.setProperty("--story-acts", "6");
+			}
+		})();
+	</script>
 	<a class="story__skip" href="#depois-da-apresentacao">Pular apresentação</a>
 
 	<div class="story__stage" data-story-stage>
@@ -557,18 +574,23 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 		opacity: 0;
 		pointer-events: none;
 		transform: translateY(28px);
-		transition:
-			opacity 0.45s ease,
-			transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
 	}
 	:global(.story--live) .story__panel.is-active {
 		opacity: 1;
 		pointer-events: auto;
 		transform: none;
+		z-index: 1;
+	}
+	/* Transições só depois que a cena está montada (evita o "piscar" inicial). */
+	:global(.story--live.story--ready) .story__panel {
+		transition:
+			opacity 0.45s ease,
+			transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
+	:global(.story--live.story--ready) .story__panel.is-active {
 		transition:
 			opacity 0.45s ease 0.1s,
 			transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s;
-		z-index: 1;
 	}
 	:global(.story--live) .story__panel.is-before {
 		transform: translateY(-28px);

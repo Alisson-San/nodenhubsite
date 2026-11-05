@@ -180,7 +180,7 @@ export function startNodeStory(): void {
 	let frame = 0;
 	let currentAct = -1;
 
-	const editing = () => Boolean(document.getElementById("noden-home-editor-state"));
+	const editing = () => root.hasAttribute("data-story-editing") || Boolean(document.getElementById("noden-home-editor-state"));
 	const canLive = () => !reduced.matches && !editing() && window.innerWidth >= 360 && window.innerHeight >= 600;
 	const scrollRange = () => Math.max(1, root.offsetHeight - stage.offsetHeight);
 	const progress = () => clamp(-root.getBoundingClientRect().top / scrollRange());
@@ -278,6 +278,8 @@ export function startNodeStory(): void {
 	}
 
 	function evaluate() {
+		// Sem transições enquanto o modo é decidido; voltam após a cena montada.
+		root.classList.remove("story--ready");
 		const want = canLive();
 		root.style.setProperty("--story-acts", String(ACTS));
 		root.classList.toggle("story--live", want);
@@ -291,6 +293,7 @@ export function startNodeStory(): void {
 		}
 		currentAct = -1;
 		loop(performance.now());
+		requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add("story--ready")));
 	}
 
 	const goTo = (act: number, smooth = true) => {

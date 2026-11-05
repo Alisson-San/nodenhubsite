@@ -79,6 +79,26 @@ const check = (ok, label) => {
 	}
 	check((await fetch(base + '/pagina-que-nao-existe')).status === 404, 'página inexistente responde 404');
 
+	// Carregamento: só o texto de abertura pode aparecer, mesmo com CPU lenta
+	// (antes, os seis atos apareciam empilhados por um instante).
+	for (const [width, height] of [[1440, 900], [390, 844]]) {
+		const context = await browser.newContext({ viewport: { width, height } });
+		const page = await context.newPage();
+		const cdp = await context.newCDPSession(page);
+		await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+		await page.goto(base + '/', { waitUntil: 'commit' });
+		let most = 0;
+		for (let i = 0; i < 30; i++) {
+			const visibleActs = await page
+				.evaluate(() => [...document.querySelectorAll('[data-act]')].filter((el) => parseFloat(getComputedStyle(el).opacity) > 0.05 && el.getBoundingClientRect().top < innerHeight).length)
+				.catch(() => 0);
+			most = Math.max(most, visibleActs);
+			await page.waitForTimeout(40);
+		}
+		check(most === 1, `${width}x${height}: carregamento sem atos sobrepostos (máx. ${most} visível)`);
+		await context.close();
+	}
+
 	// Apresentação dos três nós
 	const story = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 	await story.goto(base + '/', { waitUntil: 'networkidle' });

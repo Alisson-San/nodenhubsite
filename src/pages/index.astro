@@ -41,8 +41,7 @@ const steps = [
 >
 	{!editor && <Campaigns page="/" />}
 
-	<NodeStory content={content} startingPrices={startingPrices} whatsappUrl={whatsappUrl} areas={site.serviceAreas} />
-
+	<NodeStory content={content} startingPrices={startingPrices} whatsappUrl={whatsappUrl} areas={site.serviceAreas} editing={Boolean(editor)} />
 
 	<Journey title="Do WhatsApp ao equipamento funcionando." steps={steps} promises={promises} areas={site.serviceAreas} />
 
