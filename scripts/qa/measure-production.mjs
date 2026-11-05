@@ -35,7 +35,7 @@ try {
       for(let i=0;i<300;i++) { if(await evaluate('document.readyState==="complete" && !!window.lab'))break; await pause(100); }
       await pause(1800);
       const data=await evaluate(`({...window.lab,path:location.pathname,fcp:performance.getEntriesByName('first-contentful-paint')[0]?.startTime,ttfb:performance.getEntriesByType('navigation')[0]?.responseStart,load:performance.getEntriesByType('navigation')[0]?.loadEventEnd,jsBytes:performance.getEntriesByType('resource').filter(e=>e.name.endsWith('.js')).reduce((sum,e)=>sum+e.encodedBodySize,0)})`);
-      assert.equal(data.path,mobile?'/mobile':'/');
+      assert.equal(data.path,'/');
       results.push({mode:mobile?'390x844 CPU4x 1.6Mbps RTT150ms':'1440x900 unthrottled',run,...data});
       console.log(JSON.stringify(results.at(-1)));
     }

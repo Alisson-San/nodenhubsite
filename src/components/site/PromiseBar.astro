@@ -1,0 +1,39 @@
+---
+import type { Promise as NodenPromise } from "../../lib/site/divisionContent";
+
+interface Props {
+	promises: NodenPromise[];
+	label?: string;
+	editList?: string;
+}
+
+const { promises, label = "O que você ganha chamando a Noden", editList } = Astro.props;
+---
+
+<section class="promises" aria-label={label}>
+	<div class="wrap">
+		<ul class="promise-list" data-edit-list={editList}>
+			{
+				promises.map((promise) => (
+					<li>
+						<strong>{promise.title}</strong>
+						<span>{promise.text}</span>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</section>
+
+<style>
+	.promises {
+		margin-top: -2px;
+		padding-block: clamp(28px, 5vw, 56px) 0;
+	}
+	.promise-list {
+		box-shadow: var(--shadow);
+	}
+	.promise-list li:first-child strong {
+		color: var(--accent-text);
+	}
+</style>

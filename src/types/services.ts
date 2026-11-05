@@ -37,6 +37,9 @@ export interface CatalogBadge {
 }
 
 export interface ServiceItem {
+	id?: string;
+	/** Somente no modo de edição: item oculto do público. */
+	inactive?: boolean;
 	title: string;
 	description: string;
 	features?: string[];
@@ -45,6 +48,8 @@ export interface ServiceItem {
 
 export interface PricingItem {
 	id?: string;
+	/** Somente no modo de edição: item oculto do público. */
+	inactive?: boolean;
 
 	name: string;
 	description: string;

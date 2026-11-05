@@ -60,7 +60,7 @@ O impacto visual deve vir de composição, tipografia, identidade e movimento be
 
 ### Protocolo de verificação
 
-Cobrir `/`, `/home`, `/game`, `/data`, `/links`, a função da rota `/mobile` e o painel existente. Revalidar as rotas antes de presumir que continuam disponíveis.
+Cobrir `/`, `/noden-home`, `/noden-game`, `/noden-data`, `/links`, `/produtos/[slug]`, os redirecionamentos 301 das rotas antigas (`/home`, `/game`, `/data`, `/mobile`), o modo de edição no site e o painel existente. Revalidar as rotas antes de presumir que continuam disponíveis.
 
 - Tamanhos: 320×740, 390×844, 768×1024, 910×698 e 1440×900; incluir uma tela baixa em paisagem.
 - Navegação: clique, toque simulado, Tab/Shift+Tab, Enter/Espaço, Escape, voltar/avançar, recarga e URL com fragmento.

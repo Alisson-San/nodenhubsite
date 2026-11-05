@@ -3,6 +3,7 @@ export const prerender=false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import {createSupabaseRequestClient} from '../../../lib/supabase/request';
 import {loadCampaignDrafts} from '../../../lib/campaigns/repository';
+import {campaignPageLabels} from '../../../lib/campaigns/types';
 import type {SupabaseClient} from '@supabase/supabase-js';
 const client=createSupabaseRequestClient(Astro) as SupabaseClient;
 const {drafts,ready}=await loadCampaignDrafts(client);
@@ -21,7 +22,7 @@ const {data:products}=await client.from('pricing_items').select('id,name').eq('i
     <p class="hint">Produtos vendidos, reservados, indisponíveis ou despublicados não exibem a campanha.</p>
     <label>Imagem (HTTPS) <input name="imageUrl" type="url" placeholder="https://..."/></label>
     <label>Descrição da imagem <input name="imageAlt" maxlength="300"/></label>
-    <fieldset><legend>Exibir em</legend>{[['/','Início'],['/mobile','Início móvel'],['/home','Home'],['/game','Game'],['/data','Data']].map(([value,label])=><label class="check"><input type="checkbox" name="pages" value={value} checked={value==='/data'}/>{label}</label>)}</fieldset>
+    <fieldset><legend>Exibir em</legend>{Object.entries(campaignPageLabels).map(([value,label])=><label class="check"><input type="checkbox" name="pages" value={value} checked={value==='/noden-data'}/>{label}</label>)}</fieldset>
     <label>Apresentação <select name="format"><option value="banner">Destaque na página</option><option value="dialog">Aviso ao entrar</option><option value="both">Destaque e aviso</option></select></label>
     <label>Frequência do aviso <select name="frequency"><option value="campaign">Uma vez por campanha</option><option value="session">Uma vez por sessão</option><option value="visit">A cada visita à página</option><option value="days">Intervalo em dias</option></select></label>
     <label>Intervalo em dias <input name="intervalDays" type="number" min="1" max="365" value="7"/></label>
@@ -37,7 +38,7 @@ const {data:products}=await client.from('pricing_items').select('id,name').eq('i
  </div>
 </AdminLayout>
 <script>
-import {emptyCampaign,type CampaignDraft} from '../../../lib/campaigns/types';
+import {emptyCampaign,normalizeCampaignPages,type CampaignDraft} from '../../../lib/campaigns/types';
 import {validateCampaign,saoPauloToUTC,utcToSaoPaulo} from '../../../lib/campaigns/validation';
 const root=document.querySelector<HTMLElement>('#campaign-editor')!;
 const form=document.querySelector<HTMLFormElement>('#campaign-form')!;
@@ -63,7 +64,7 @@ function load(id:string){
  title.textContent=current.title;description.textContent=current.description;
  for(const name of ['buttonLabel','href','productId','imageUrl','imageAlt','format','frequency','intervalDays','priority'])field(name).value=String(current[name as keyof typeof current]??'');
  field('active').checked=current.active;field('startsAt').value=utcToSaoPaulo(current.startsAt);field('endsAt').value=utcToSaoPaulo(current.endsAt);
- form.querySelectorAll<HTMLInputElement>('[name=pages]').forEach(el=>el.checked=current.pages.includes(el.value));
+ form.querySelectorAll<HTMLInputElement>('[name=pages]').forEach(el=>el.checked=normalizeCampaignPages(current.pages).includes(el.value));
  document.querySelector('#campaign-state')!.textContent=d?(d.published?'Publicada • edição em rascunho':'Rascunho salvo'):'Rascunho novo';
  dirty=false;preview();message('');
 }

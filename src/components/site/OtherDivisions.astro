@@ -1,0 +1,81 @@
+---
+import { divisionOrder, divisions } from "../../lib/site/divisions";
+import type { ServiceDivision } from "../../types/services";
+
+interface Props {
+	current: ServiceDivision;
+}
+
+const others = divisionOrder.filter((id) => id !== Astro.props.current);
+---
+
+<nav class="others" aria-label="Outras divisões da Noden">
+	<div class="wrap others__grid">
+		{
+			others.map((id) => (
+				<a class="other" href={divisions[id].path} data-division={id}>
+					<span class="other__ring" aria-hidden="true" />
+					<span>
+						<small>{divisions[id].audience}</small>
+						<strong>{divisions[id].name}</strong>
+						<span class="other__pitch">{divisions[id].pitch}</span>
+					</span>
+					<span class="other__arrow" aria-hidden="true">→</span>
+				</a>
+			))
+		}
+	</div>
+</nav>
+
+<style>
+	.others {
+		padding-block: clamp(40px, 6vw, 72px);
+	}
+	.others__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+		gap: 20px;
+	}
+	.other {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: 18px;
+		align-items: center;
+		padding: 22px;
+		border: var(--border);
+		border-radius: var(--radius);
+		background: var(--white);
+		text-decoration: none;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+	.other:hover {
+		transform: translate(-3px, -3px);
+		box-shadow: 6px 6px 0 var(--accent);
+	}
+	.other__ring {
+		width: 52px;
+		height: 52px;
+		border-radius: 50%;
+		border: 10px solid var(--accent);
+	}
+	.other small {
+		display: block;
+		font-weight: 700;
+		color: var(--accent-text);
+	}
+	.other strong {
+		display: block;
+		font-family: var(--font-display);
+		font-size: 1.5rem;
+		letter-spacing: -0.02em;
+	}
+	.other__pitch {
+		display: block;
+		color: var(--muted);
+		font-size: 0.95rem;
+	}
+	.other__arrow {
+		font-size: 1.6rem;
+		font-weight: 700;
+	}
+</style>

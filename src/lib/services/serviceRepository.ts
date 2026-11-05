@@ -19,6 +19,9 @@ import type {
 	ServicePageConfig,
 } from "../../types/services";
 
+import { divisions, modernizePath } from "../site/divisions";
+import { withMarketingCopy } from "../../data/marketingCopy";
+
 import {
 	createSupabaseServerClient,
 } from "../supabase/server";
@@ -57,9 +60,9 @@ const fallbackPages: Record<
 	ServiceDivision,
 	ServicePageConfig
 > = {
-	home: homePage,
-	game: gamePage,
-	data: dataPage,
+	home: withMarketingCopy(homePage),
+	game: withMarketingCopy(gamePage),
+	data: withMarketingCopy(dataPage),
 };
 
 function optionalString(
@@ -104,6 +107,7 @@ function mapService(
 	row: ServiceRow,
 ): ServiceItem {
 	return {
+		id: row.id,
 		title: row.title,
 		description: row.description,
 
@@ -462,8 +466,10 @@ function mapServicePage(
 			description:
 				row.seo_description,
 
+			// A rota é definida pelo código (lib/site/divisions);
+			// o caminho salvo no banco é legado.
 			canonical:
-				row.canonical_path,
+				divisions[row.division].path,
 		},
 
 		theme: {
@@ -504,7 +510,9 @@ function mapServicePage(
 
 			secondaryHref:
 				optionalString(
-					row.hero_secondary_href,
+					row.hero_secondary_href
+						? modernizePath(row.hero_secondary_href)
+						: null,
 				),
 		},
 
@@ -578,7 +586,9 @@ function mapServicePage(
 
 			secondaryHref:
 				optionalString(
-					row.cta_secondary_href,
+					row.cta_secondary_href
+						? modernizePath(row.cta_secondary_href)
+						: null,
 				),
 		},
 	};

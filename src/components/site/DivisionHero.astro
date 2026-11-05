@@ -1,0 +1,401 @@
+---
+import WhatsAppIcon from "../common/WhatsAppIcon.astro";
+import { divisions } from "../../lib/site/divisions";
+import type { DivisionExtras } from "../../lib/site/divisionContent";
+import type { ServiceDivision, ServiceItem } from "../../types/services";
+
+interface Props {
+	division: ServiceDivision;
+	eyebrow: string;
+	title: string;
+	description: string;
+	highlights: string[];
+	primaryLabel?: string;
+	primaryHref: string;
+	secondaryLabel?: string;
+	secondaryHref: string;
+	extras: DivisionExtras;
+	services: ServiceItem[];
+	areas: string[];
+}
+
+const {
+	division,
+	eyebrow,
+	title,
+	description,
+	highlights,
+	primaryLabel = "Chamar no WhatsApp",
+	primaryHref,
+	secondaryLabel = "Ver preços",
+	secondaryHref,
+	extras,
+	services,
+	areas,
+} = Astro.props;
+
+const meta = divisions[division];
+// Rótulos antigos vinham em CAIXA ALTA; exibimos em frase normal e
+// omitimos quando só repetem o nome da divisão.
+const sentence = (value: string) =>
+	value === value.toLocaleUpperCase("pt-BR") ? value.charAt(0) + value.slice(1).toLocaleLowerCase("pt-BR") : value;
+const eyebrowText = sentence(eyebrow.trim());
+const showEyebrow = eyebrowText.toLocaleLowerCase("pt-BR") !== meta.name.toLocaleLowerCase("pt-BR");
+const visibleServices = services.filter((s) => !s.inactive).slice(0, 5);
+const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "Decisão com clareza"];
+---
+
+<section class="hero" aria-labelledby="hero-titulo">
+	<div class="wrap hero__grid">
+		<div class="hero__copy">
+			<p class="hero__eyebrow">
+				<span class="hero__badge">{meta.name}</span>
+				<span data-edit-field="hero_eyebrow" hidden={!showEyebrow}>{eyebrowText}</span>
+			</p>
+			<h1 class="display hero__title" id="hero-titulo" data-edit-field="hero_title">{title}</h1>
+			<p class="hero__lead" data-edit-field="hero_description">{description}</p>
+			<div class="hero__actions">
+				<a class="btn btn--light" href={primaryHref} target="_blank" rel="noopener">
+					<WhatsAppIcon />
+					<span data-edit-field="hero_primary_label">{primaryLabel}</span>
+				</a>
+				<a class="hero__secondary" href={secondaryHref}>
+					<span data-edit-field="hero_secondary_label">{secondaryLabel}</span>
+					<span aria-hidden="true">↓</span>
+				</a>
+			</div>
+			{
+				highlights.length > 0 && (
+					<ul class="hero__highlights" data-edit-field="hero_highlights" data-edit-type="list">
+						{highlights.map((item) => (
+							<li>{item}</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
+
+		<div class="hero__visual">
+			<div class="hero__rings" aria-hidden="true">
+				<span class="r r1"></span>
+				<span class="r r2"></span>
+				<span class="r r3"></span>
+			</div>
+
+			{
+				division === "home" && (
+					<div class="card">
+						<p class="card__label">Como funciona hoje</p>
+						<ol class="route">
+							{extras.steps.map((step) => (
+								<li>
+									<strong>{step.title}</strong>
+								</li>
+							))}
+						</ol>
+						<p class="card__foot">
+							Buscamos e entregamos em {areas.join(", ")}.
+						</p>
+					</div>
+				)
+			}
+
+			{
+				division === "game" && (
+					<div class="card card--dark">
+						<p class="card__label">O que entra no seu setup</p>
+						<ul class="loadout">
+							{visibleServices.map((service, index) => (
+								<li>
+									<span class="loadout__n">{String(index + 1).padStart(2, "0")}</span>
+									<strong>{service.title}</strong>
+								</li>
+							))}
+						</ul>
+						<p class="card__foot">Busca e entrega do PC incluída na conversa.</p>
+					</div>
+				)
+			}
+
+			{
+				division === "data" && (
+					<div class="card">
+						<p class="card__label">Do processo à decisão</p>
+						<ol class="pipe">
+							{pipeline.map((step) => (
+								<li>{step}</li>
+							))}
+						</ol>
+					</div>
+				)
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.hero {
+		background: var(--accent);
+		color: var(--on-accent);
+		border-bottom: var(--border);
+		overflow: hidden;
+		position: relative;
+	}
+	:global([data-division="game"]) .hero {
+		background: var(--ink);
+		color: var(--white);
+	}
+	.hero__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+		gap: clamp(32px, 5vw, 72px);
+		align-items: center;
+		padding-block: clamp(40px, 7vw, 96px) clamp(48px, 8vw, 110px);
+	}
+	.hero__eyebrow {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px 14px;
+		font-weight: 700;
+		margin-bottom: 22px;
+	}
+	.hero__badge {
+		padding: 6px 14px;
+		border: 2px solid currentColor;
+		border-radius: 999px;
+	}
+	:global([data-division="game"]) .hero__badge {
+		background: var(--violet);
+		border-color: var(--violet);
+	}
+	.hero__title {
+		max-width: 14ch;
+		font-size: clamp(2.6rem, 6.4vw, 5.4rem);
+	}
+	.hero__lead {
+		margin-top: 22px;
+		max-width: 44ch;
+		font-size: clamp(1.1rem, 1.7vw, 1.3rem);
+		line-height: 1.45;
+	}
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 16px 28px;
+		margin-top: 32px;
+	}
+	.hero__actions .btn {
+		--btn-shadow: var(--ink);
+	}
+	:global([data-division="game"]) .hero__actions .btn {
+		--btn-shadow: var(--violet);
+	}
+	.hero__secondary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		min-height: 44px;
+		font-weight: 700;
+		color: inherit;
+		text-decoration: none;
+		border-bottom: 2px solid currentColor;
+	}
+	.hero__highlights {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		list-style: none;
+		margin: 30px 0 0;
+		padding: 0;
+	}
+	.hero__highlights li {
+		padding: 6px 14px;
+		border-radius: 999px;
+		background: color-mix(in srgb, currentColor 12%, transparent);
+		font-weight: 600;
+		font-size: 0.95rem;
+	}
+
+	/* Visual */
+	.hero__visual {
+		position: relative;
+		min-height: 360px;
+		display: grid;
+		place-items: center;
+	}
+	.hero__rings {
+		position: absolute;
+		inset: -10% -18% -10% 0;
+		pointer-events: none;
+	}
+	.r {
+		position: absolute;
+		border-radius: 50%;
+		aspect-ratio: 1;
+		border: clamp(18px, 2.6vw, 34px) solid;
+	}
+	.r1 {
+		width: 62%;
+		top: -4%;
+		left: 22%;
+		border-color: var(--indigo);
+	}
+	.r2 {
+		width: 54%;
+		bottom: -6%;
+		left: -2%;
+		border-color: var(--violet);
+	}
+	.r3 {
+		width: 58%;
+		bottom: -12%;
+		right: -4%;
+		border-color: var(--cyan);
+	}
+	:global([data-division="home"]) .r3,
+	:global([data-division="data"]) .r1 {
+		border-color: var(--white);
+	}
+	:global([data-division="game"]) .r2 {
+		border-color: var(--white);
+	}
+
+	.card {
+		position: relative;
+		width: min(100%, 380px);
+		padding: 26px;
+		background: var(--white);
+		color: var(--ink);
+		border: var(--border);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
+	}
+	.card--dark {
+		background: var(--ink-2);
+		color: var(--white);
+		border-color: var(--white);
+		box-shadow: 6px 6px 0 var(--violet);
+	}
+	.card__label {
+		font-weight: 700;
+		color: var(--muted);
+		margin-bottom: 14px;
+	}
+	.card--dark .card__label,
+	.card--dark .card__foot {
+		color: #cfc9ec;
+	}
+	.card__foot {
+		margin-top: 16px;
+		font-size: 0.92rem;
+		color: var(--muted);
+	}
+	.route {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		counter-reset: step;
+	}
+	.route li {
+		position: relative;
+		counter-increment: step;
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding-block: 10px;
+		font-family: var(--font-display);
+		font-size: 1.25rem;
+	}
+	.route li::before {
+		content: counter(step);
+		width: 34px;
+		height: 34px;
+		flex: none;
+		display: grid;
+		place-items: center;
+		border-radius: 50%;
+		border: var(--border);
+		background: var(--cyan);
+		font-size: 1rem;
+		font-weight: 800;
+	}
+	.route li:not(:last-child)::after {
+		content: "";
+		position: absolute;
+		left: 16px;
+		top: 44px;
+		height: calc(100% - 34px);
+		border-left: 2px dashed var(--ink);
+	}
+	.loadout {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0;
+	}
+	.loadout li {
+		display: flex;
+		align-items: baseline;
+		gap: 14px;
+		padding-block: 10px;
+		border-bottom: 1px solid #4b4470;
+		font-family: var(--font-display);
+		font-size: 1.15rem;
+	}
+	.loadout__n {
+		font-family: var(--font-body);
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: #d4b3fb;
+	}
+	.pipe {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 10px;
+	}
+	.pipe li {
+		position: relative;
+		padding: 12px 16px;
+		border: var(--border);
+		border-radius: var(--radius-sm);
+		font-family: var(--font-display);
+		font-size: 1.15rem;
+		font-weight: 700;
+	}
+	.pipe li:last-child {
+		background: var(--indigo);
+		color: var(--white);
+	}
+	.pipe li:not(:last-child)::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		bottom: -12px;
+		width: 2px;
+		height: 10px;
+		background: var(--ink);
+	}
+
+	@media (max-width: 900px) {
+		.hero__grid {
+			grid-template-columns: 1fr;
+		}
+		.hero__visual {
+			min-height: 0;
+			padding-block: 24px 8px;
+		}
+		.hero__rings {
+			display: none;
+		}
+	}
+	@media (max-width: 520px) {
+		.hero__actions .btn {
+			width: 100%;
+		}
+	}
+</style>

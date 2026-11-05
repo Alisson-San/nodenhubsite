@@ -1,11 +1,7 @@
 ---
-import {
-	siteConfig as fallbackSiteConfig,
-} from "../config/site";
-
-import type {
-	RuntimeSiteConfig,
-} from "../types/site";
+import "../styles/noden.css";
+import { siteConfig as fallbackSiteConfig } from "../config/site";
+import type { RuntimeSiteConfig } from "../types/site";
 
 interface Props {
 	site?: RuntimeSiteConfig;
@@ -13,56 +9,46 @@ interface Props {
 	description?: string;
 	canonical?: string;
 	themeColor?: string;
+	noindex?: boolean;
 }
 
 const {
 	site = fallbackSiteConfig,
-	title = `${site.name} — Technology Hub`,
+	title = `${site.name} — tecnologia resolvida para casa, setup e empresa`,
 	description = site.description,
 	canonical,
-	themeColor = "#02050a",
+	themeColor = "#f6f5fa",
+	noindex = false,
 } = Astro.props;
 
-const canonicalUrl = canonical
-	? new URL(canonical, site.url)
-	: new URL(Astro.url.pathname, site.url);
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, site.url);
+const ogImage = new URL("/android-chrome-512x512.png", site.url);
 ---
 
 <!doctype html>
 <html lang={site.locale}>
 	<head>
 		<meta charset="utf-8" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1"
-		/>
-
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
 		<meta name="description" content={description} />
 		<meta name="theme-color" content={themeColor} />
-
 		<link rel="canonical" href={canonicalUrl} />
+		{noindex && <meta name="robots" content="noindex, nofollow" />}
 
-		<link
-			rel="icon"
-			type="image/png"
-			sizes="32x32"
-			href="/favicon-32x32.png"
-		/>
+		<meta property="og:type" content="website" />
+		<meta property="og:locale" content="pt_BR" />
+		<meta property="og:site_name" content={site.name} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={ogImage} />
+		<meta name="twitter:card" content="summary" />
 
-		<link
-			rel="icon"
-			type="image/png"
-			sizes="16x16"
-			href="/favicon-16x16.png"
-		/>
-
-		<link
-			rel="apple-touch-icon"
-			sizes="180x180"
-			href="/apple-touch-icon.png"
-		/>
-
-		<title>{title}</title>
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
 
 		<slot name="head" />
 	</head>

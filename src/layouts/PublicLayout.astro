@@ -1,0 +1,114 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import SiteHeader from "../components/common/SiteHeader.astro";
+import SiteFooter from "../components/common/SiteFooter.astro";
+import WhatsAppIcon from "../components/common/WhatsAppIcon.astro";
+import { getWhatsAppUrl, siteConfig as fallbackSiteConfig } from "../config/site";
+import type { RuntimeSiteConfig } from "../types/site";
+import type { ServiceDivision } from "../types/services";
+
+interface Props {
+	site?: RuntimeSiteConfig;
+	title: string;
+	description: string;
+	canonical?: string;
+	division?: ServiceDivision;
+	current?: ServiceDivision | "start" | "links";
+	whatsappMessage?: string;
+	noindex?: boolean;
+	/** Barra fixa de WhatsApp no celular. */
+	stickyCta?: boolean;
+}
+
+const {
+	site = fallbackSiteConfig,
+	title,
+	description,
+	canonical,
+	division,
+	current = division,
+	whatsappMessage,
+	noindex = false,
+	stickyCta = true,
+} = Astro.props;
+---
+
+<BaseLayout site={site} title={title} description={description} canonical={canonical} noindex={noindex}>
+	<slot name="head" slot="head" />
+	<div class="page" data-division={division}>
+		<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+		<SiteHeader site={site} current={current} whatsappMessage={whatsappMessage} />
+		<main id="conteudo" tabindex="-1">
+			<slot />
+		</main>
+		<SiteFooter site={site} />
+
+		{
+			stickyCta && (
+				<a class="sticky-cta" data-sticky-cta href={getWhatsAppUrl(whatsappMessage, site)} target="_blank" rel="noopener">
+					<WhatsAppIcon />
+					<span>Chamar no WhatsApp</span>
+				</a>
+			)
+		}
+		<slot name="after" />
+	</div>
+</BaseLayout>
+
+<script>
+	// O botão fixo aparece depois da abertura, que já tem o próprio botão.
+	const sticky = document.querySelector<HTMLElement>("[data-sticky-cta]");
+	if (sticky) {
+		const update = () => sticky.classList.toggle("is-visible", window.scrollY > window.innerHeight * 0.6);
+		update();
+		window.addEventListener("scroll", update, { passive: true });
+	}
+</script>
+
+<style>
+	main:focus {
+		outline: none;
+	}
+	.sticky-cta {
+		display: none;
+	}
+	@media (max-width: 720px) {
+		.page {
+			padding-bottom: 84px;
+		}
+		.sticky-cta {
+			position: fixed;
+			left: 12px;
+			right: 12px;
+			bottom: max(12px, env(safe-area-inset-bottom));
+			z-index: 90;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			min-height: 56px;
+			border: var(--border);
+			border-radius: 999px;
+			background: var(--whatsapp);
+			color: var(--white);
+			font-weight: 700;
+			font-size: 1.05rem;
+			text-decoration: none;
+			box-shadow: var(--shadow-sm);
+			transform: translateY(140%);
+			visibility: hidden;
+			transition: transform 0.25s ease, visibility 0.25s;
+		}
+		.sticky-cta.is-visible {
+			transform: none;
+			visibility: visible;
+		}
+		.sticky-cta :global(svg) {
+			width: 22px;
+			height: 22px;
+		}
+		:global(.menu-open) .sticky-cta {
+			display: none;
+		}
+	}
+</style>

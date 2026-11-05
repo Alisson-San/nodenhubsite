@@ -3,13 +3,13 @@ import {test} from 'node:test';
 import {eligibleCampaigns} from './eligibility';
 import {mayDisplay, markDisplayed} from './frequency';
 import {validateCampaign, saoPauloToUTC} from './validation';
-const c:any={id:'b',title:'Novidade',description:'Texto',pages:['/data'],format:'both',active:true,startsAt:'2026-09-24T12:00:00Z',endsAt:'2026-09-24T13:00:00Z',priority:0,frequency:'campaign',intervalDays:7,displayVersion:1,productId:null,href:'/data',buttonLabel:'Ver',imageUrl:'',imageAlt:''};
+const c:any={id:'b',title:'Novidade',description:'Texto',pages:['/noden-data'],format:'both',active:true,startsAt:'2026-09-24T12:00:00Z',endsAt:'2026-09-24T13:00:00Z',priority:0,frequency:'campaign',intervalDays:7,displayVersion:1,productId:null,href:'/noden-data',buttonLabel:'Ver',imageUrl:'',imageAlt:''};
 test('boundary times, page and sold product suppress display',()=>{
- assert.equal(eligibleCampaigns([c],'/data',Date.parse(c.startsAt)).length,1);
- assert.equal(eligibleCampaigns([c],'/data',Date.parse(c.endsAt)).length,0);
- assert.equal(eligibleCampaigns([c],'/home',Date.parse(c.startsAt)).length,0);
- assert.equal(eligibleCampaigns([{...c,productId:'p',productEligible:false}],'/data',Date.parse(c.startsAt)).length,0);
- assert.deepEqual(eligibleCampaigns([{...c,id:'z'},{...c,id:'a'}],'/data',Date.parse(c.startsAt)).map(x=>x.id),['a','z']);
+ assert.equal(eligibleCampaigns([c],'/noden-data',Date.parse(c.startsAt)).length,1);
+ assert.equal(eligibleCampaigns([c],'/noden-data',Date.parse(c.endsAt)).length,0);
+ assert.equal(eligibleCampaigns([c],'/noden-home',Date.parse(c.startsAt)).length,0);
+ assert.equal(eligibleCampaigns([{...c,productId:'p',productEligible:false}],'/noden-data',Date.parse(c.startsAt)).length,0);
+ assert.deepEqual(eligibleCampaigns([{...c,id:'z'},{...c,id:'a'}],'/noden-data',Date.parse(c.startsAt)).map(x=>x.id),['a','z']);
 });
 test('frequency fails closed without storage; edits preserve history; explicit version resets',()=>{
  const m=new Map<string,string>(); const storage={getItem:(k:string)=>m.get(k)??null,setItem:(k:string,v:string)=>{m.set(k,v)}};

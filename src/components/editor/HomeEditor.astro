@@ -1,0 +1,49 @@
+---
+import type { HomeEditorState } from "../../lib/site/homeView";
+import "../../styles/inline-editor.css";
+
+interface Props {
+	state: HomeEditorState;
+}
+
+const payload = JSON.stringify(Astro.props.state).replace(/</g, "\\u003c");
+---
+
+<script is:inline type="application/json" id="noden-home-editor-state" set:html={payload} />
+
+<div class="ne-bar" role="region" aria-label="Modo de edição da página inicial" data-ne-bar>
+	<p class="ne-bar__status">
+		<span class="ne-bar__dot" aria-hidden="true"></span>
+		<strong>Editando a inicial</strong>
+		<span data-ne-status>Carregando…</span>
+	</p>
+	<div class="ne-bar__actions">
+		<button type="button" class="ne-btn" aria-pressed="false" data-ne-mode>Ver como visitante</button>
+		<button type="button" class="ne-btn" data-ne-page>Todos os textos</button>
+		<button type="button" class="ne-btn" data-ne-discard>Descartar</button>
+		<button type="button" class="ne-btn" data-ne-save disabled>Salvar rascunho</button>
+		<button type="button" class="ne-btn ne-btn--primary" data-ne-publish disabled>Publicar</button>
+	</div>
+</div>
+
+<div class="ne-toast" role="status" aria-live="polite" data-ne-toast hidden></div>
+
+<dialog class="ne-modal" data-ne-modal aria-labelledby="ne-modal-title">
+	<form method="dialog" class="ne-modal__form" data-ne-form novalidate>
+		<header class="ne-modal__head">
+			<h2 id="ne-modal-title" data-ne-title>Editar</h2>
+			<button type="button" class="ne-icon" data-ne-close aria-label="Fechar">✕</button>
+		</header>
+		<div class="ne-modal__body" data-ne-body></div>
+		<p class="ne-modal__error" role="alert" data-ne-error hidden></p>
+		<footer class="ne-modal__foot">
+			<button type="button" class="ne-btn" data-ne-close>Cancelar</button>
+			<button type="submit" class="ne-btn ne-btn--primary" data-ne-submit>Salvar</button>
+		</footer>
+	</form>
+</dialog>
+
+<script>
+	import { startHomeEditor } from "../../lib/editor/homeEditor";
+	startHomeEditor();
+</script>

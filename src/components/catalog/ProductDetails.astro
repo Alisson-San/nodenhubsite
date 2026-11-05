@@ -7,6 +7,7 @@ import {productAction,productUpdatedDate} from '../../lib/catalog/media';
 import {getWhatsAppUrl} from '../../config/site';
 import {formatCurrency} from '../../lib/formatting';
 import ProductGallery from './ProductGallery.astro';
+import {divisions} from '../../lib/site/divisions';
 interface Props {site?:RuntimeSiteConfig;item:PricingItem;detail:ProductDetail;division:ServiceDivision;preview?:boolean;headingLevel?:'h1'|'h2'}
 const {item,detail,division,headingLevel:Heading='h2'}=Astro.props;
 const site=Astro.props.site??await loadSiteConfig();
@@ -15,9 +16,9 @@ const action=productAction(detail,getWhatsAppUrl(item.ctaMessage||'Olá! Gostari
 const status={available:'Disponível',reserved:'Reservado',sold:'Vendido',unavailable:'Indisponível'}[detail.status];
 ---
 <article class="product-details">
-<header><span class="eyebrow">NODEN {division.toUpperCase()} · {status}</span><Heading>{item.name}</Heading><p class="summary">{detail.summary||item.description}</p>
+<header><span class="eyebrow">{divisions[division].name} · {status}</span><Heading>{item.name}</Heading><p class="summary">{detail.summary||item.description}</p>
 {detail.version&&<p class="version">Versão {detail.version}{updatedDate&&' · Atualizado em '+updatedDate}</p>}
-<div class="actions">{action?<a class="primary" href={action.href} target="_blank" rel="noopener noreferrer">{action.label} ↗</a>:<span class="unavailable">{status}</span>}
+<div class="actions">{action?<a class="btn btn--accent" href={action.href} target="_blank" rel="noopener noreferrer">{action.label} ↗</a>:<span class="unavailable">{status}</span>}
 <span>{item.priceLabel||(typeof item.price==='number'?((item.pricePrefix||'')+' '+formatCurrency(item.price)+' '+(item.priceSuffix||'')):'Sob consulta')}</span></div>{item.note&&<p class="note">{item.note}</p>}</header>
 <ProductGallery media={detail.media}/>
 {detail.body&&<section><h2>Sobre o produto</h2><p class="body">{detail.body}</p></section>}
@@ -26,5 +27,17 @@ const status={available:'Disponível',reserved:'Reservado',sold:'Vendido',unavai
 {detail.faq.length>0&&<section><h2>Perguntas frequentes</h2>{detail.faq.map(f=><details><summary>{f.question}</summary><p class="body">{f.answer}</p></details>)}</section>}
 </article>
 <style>
-.product-details{display:grid;gap:32px;color:#f1f6ff;min-width:0;overflow-wrap:anywhere}.eyebrow{font-size:.72rem;letter-spacing:.14em;color:#b4cef0}.product-details h1,.product-details h2{font-weight:400;letter-spacing:-.04em;line-height:1.12}.product-details header h1,.product-details header h2{font-size:clamp(2rem,5vw,3.8rem);margin:18px 0}.summary{font-size:1.1rem;line-height:1.7;color:#b8c7dc;max-width:800px}.version,.note{font-size:.85rem;color:#a6b9d3}.actions{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:24px}.primary{display:inline-flex;align-items:center;min-height:48px;padding:12px 20px;background:#234a76;border:1px solid #598bc5;border-radius:12px;color:white;text-decoration:none}.unavailable{padding:12px 18px;background:#253043;border-radius:12px}.body{white-space:pre-line;line-height:1.8;color:#b8c7dc}li{line-height:1.7;color:#b8c7dc;margin-bottom:12px}li h3{color:white}details{border-bottom:1px solid #2a3c55;padding:16px 0}summary{cursor:pointer;min-height:30px}a:focus-visible,summary:focus-visible{outline:2px solid #badaff;outline-offset:4px}
+.product-details{display:grid;gap:36px;min-width:0;overflow-wrap:anywhere}
+.eyebrow{display:inline-block;font-weight:700;color:var(--accent-text)}
+.product-details header h1,.product-details header h2{font-size:clamp(2.2rem,6vw,4.4rem);margin:14px 0 18px;max-width:18ch}
+.product-details section h2{font-size:clamp(1.6rem,3vw,2.2rem);margin-bottom:14px}
+.summary{font-size:1.2rem;line-height:1.5;color:var(--ink-2);max-width:60ch}
+.version,.note{font-size:.95rem;color:var(--muted)}
+.actions{display:flex;gap:16px 24px;align-items:center;flex-wrap:wrap;margin-top:24px}
+.actions span{font-family:var(--font-display);font-weight:800;font-size:1.8rem}
+.unavailable{padding:10px 16px;border:var(--border);border-radius:999px;font-weight:700}
+.body{white-space:pre-line;line-height:1.7;color:var(--ink-2);max-width:70ch}
+li{line-height:1.6;margin-bottom:10px}
+details{border-bottom:var(--border);padding:14px 0}
+summary{cursor:pointer;min-height:44px;font-weight:700;display:flex;align-items:center}
 </style>

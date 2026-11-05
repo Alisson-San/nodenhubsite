@@ -1,0 +1,63 @@
+# Novo visual, rotas e edição no site — 05/11/2026
+
+Branch: `claude/confident-bohr-stupb0`, a partir da `develop` (94dfde9).
+
+## Decisões do responsável
+- Rotas das divisões: `/noden-home`, `/noden-game`, `/noden-data`.
+- Base visual clara, com blocos nas cores da logo.
+- Promessas confirmadas para o marketing: **atendimento no mesmo dia** (conforme agenda) e **busca e entrega do equipamento**. Também usadas, porque já estavam publicadas: avaliação remota grátis (Home), orçamento antes, compatibilidade antes da compra e testes no final (Game).
+- Edição no site com **rascunho + Publicar**.
+
+## Rotas
+| Antes | Agora | Observação |
+|---|---|---|
+| `/` (desktop) e `/mobile` (celular, por user-agent) | `/` | Uma página responsiva. `/mobile` → 301 para `/`. Removido o redirecionamento por user-agent do `vercel.json`. |
+| `/home`, `/game`, `/data` | `/noden-home`, `/noden-game`, `/noden-data` | 301 em `astro.config.mjs`. O fragmento (`#precos`) é preservado. |
+| `/produtos/[slug]` | igual | Link de volta aponta para a nova rota da divisão. |
+| `/dev/components`, `/dev/services` | removidas | Vitrines de componentes antigos. |
+
+O caminho da divisão vem de `src/lib/site/divisions.ts`; `canonical_path` e links antigos salvos no banco são convertidos por `modernizePath`. Campanhas salvas com páginas antigas continuam valendo (`normalizeCampaignPages`).
+
+## Visual
+- `src/styles/noden.css`: tokens, tipografia (Bricolage Grotesque + Instrument Sans, servidas pelo próprio site), botões, chips e a lista de promessas. Contrastes medidos estão no topo do arquivo.
+- Cor por divisão: Home = ciano (texto escuro), Game = violeta (abertura escura), Data = índigo. Os três anéis da logo são o elemento gráfico: na inicial, cada anel é o link de uma divisão.
+- Saíram: fundo azul-marinho com brilhos, rótulos em caixa alta acima de cada título, grades de cards iguais com ícone brilhante e a animação GSAP da inicial (`gsap` e `lenis` removidos).
+- Celular: menu em tela cheia sem links invisíveis focáveis, botão fixo de WhatsApp que aparece após a abertura, sem rolagem horizontal de 320 px a 1440 px.
+
+## Edição no site
+Com sessão de administrador, as páginas `/`, `/noden-home`, `/noden-game` e `/noden-data` abrem em modo de edição (o middleware só consulta a sessão quando há cookie de autenticação; visitantes não pagam esse custo).
+
+- **Textos**: clique e digite no próprio lugar. Enter confirma, Escape desfaz.
+- **Cards de soluções e itens de preço**: barra em cada card com Editar (modal), ↑/↓ (dentro da categoria), Ocultar/Mostrar e Excluir (confirmação). Botões "+ Nova solução" e "+ Novo item em …".
+- **Promessas e etapas**: "Editar promessas"/"Editar etapas" (modal com 1 a 6 itens).
+- **Textos e Google**: modal com todos os textos, mensagens de WhatsApp e SEO. Botão **Preencher com textos sugeridos** carrega a proposta de `src/data/marketingCopy.ts` para revisão.
+- **Barra inferior**: Ver como visitante, Descartar, Salvar rascunho, Publicar.
+
+### Onde fica cada coisa
+| Conteúdo | Rascunho | Ao publicar |
+|---|---|---|
+| Itens, cards, detalhes de produto | `catalog_drafts.document` | `catalog_editor_publish` (atômico, já existente) |
+| Textos da divisão | `catalog_drafts.document.page` | `service_pages` |
+| Promessas e etapas | `catalog_drafts.document.extras` | `site_settings` `site.division_content` (público) |
+| Textos da inicial | `site_settings` `site.home_draft` (privado) | `site_settings` `site.identity.home` |
+
+Ordem de publicação da divisão: catálogo → promessas → textos (que alteram a revisão de origem) → descarte do rascunho. Se um passo falhar, o rascunho fica e uma nova tentativa reaplica tudo. **Nenhuma migração nova**: os campos extras viajam no JSON do rascunho, que a função SQL aceita.
+
+O editor antigo (`/admin/editor`, agora "Editor de produtos") continua para mídias, FAQ e etapas de produto. Os formulários antigos de `/admin/pages` e `/admin/catalog` gravam direto; se usados com um rascunho aberto, a publicação acusa conflito e orienta descartar.
+
+## Verificação
+- `npm run validate`: 0 erros, 0 avisos.
+- Testes unitários: 37 (7 arquivos), incluindo regras novas de textos, promessas, rotas, campanhas antigas e operações do editor.
+- `scripts/qa/routing.test.mjs`: sem redirecionamento por user-agent, 301 das rotas antigas, rotas renderizadas.
+- `scripts/qa/catalog-database.test.mjs` (PGlite): 10 grupos.
+- `scripts/qa/public-site.cjs`: 5 páginas × 6 tamanhos (320×740, 390×844, 768×1024, 910×698, 1440×900, 740×360) sem rolagem horizontal; menu por teclado e Escape; busca sem acento e estado vazio; botão fixo; link "Pular para o conteúdo"; 301; 404; movimento reduzido.
+- `scripts/qa/inline-editor.cjs` com `DEV_EDITOR_FIXTURE=true`: 15 fluxos (texto no lugar, modal de item, validação, nova solução, novo item, mover, ocultar, excluir, promessas, textos e Google, textos sugeridos, publicar, modo visitante, inicial). Os envios foram validados pelas mesmas regras do servidor.
+- Função de produção executada localmente: páginas 200, inexistentes 404, admin sem sessão 303/401.
+
+## Limites e pendências
+- **Não testado com sessão real de administrador no Supabase** (o banco não é acessível desta sessão). Testar no ambiente da develop: salvar rascunho, recarregar, publicar e conferir a página pública numa divisão, de preferência com um item oculto de teste.
+- Os textos de venda sugeridos **não foram gravados** no banco: use "Preencher com textos sugeridos" no modo de edição de cada divisão e publique quando aprovar.
+- O conteúdo de reserva (`src/data/servicePages.ts`) tem menos itens que o banco; aparece só se o Supabase falhar.
+- Imagens e mídias de produto continuam no "Editor de produtos" do painel.
+- Alertas anteriores do Supabase (`write_audit_log`, proteção de senhas vazadas) seguem pendentes.
+- `npm audit`: 4 moderados de build (glob/minimatch via adaptador Vercel); correção exigiria rebaixar o adaptador.

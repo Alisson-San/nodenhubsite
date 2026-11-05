@@ -1,0 +1,102 @@
+---
+import WhatsAppIcon from "../common/WhatsAppIcon.astro";
+
+interface Props {
+	title: string;
+	description: string;
+	buttonLabel: string;
+	buttonHref: string;
+	secondaryLabel?: string;
+	secondaryHref?: string;
+	/** Campos editáveis: divisão (padrão) ou página inicial. */
+	editTarget?: "division" | "home";
+}
+
+const { title, description, buttonLabel, buttonHref, secondaryLabel, secondaryHref, editTarget = "division" } = Astro.props;
+const edit = (division: string, home: string) =>
+	editTarget === "home" ? { "data-home-field": home } : { "data-edit-field": division };
+---
+
+<section class="closing" aria-labelledby="contato-titulo" id="contato">
+	<div class="wrap closing__inner">
+		<span class="closing__ring" aria-hidden="true"></span>
+		<h2 class="h2" id="contato-titulo" {...edit("cta_title", "contactTitle")}>{title}</h2>
+		<p class="closing__text" {...edit("cta_description", "contactDescription")}>{description}</p>
+		<div class="closing__actions">
+			<a class="btn btn--whatsapp" href={buttonHref} target="_blank" rel="noopener">
+				<WhatsAppIcon />
+				<span {...edit("cta_button_label", "contactLabel")}>{buttonLabel}</span>
+			</a>
+			{
+				secondaryLabel && secondaryHref && (
+					<a class="link-arrow" href={secondaryHref}>
+						{secondaryLabel}
+					</a>
+				)
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.closing {
+		background: var(--ink);
+		color: var(--white);
+		overflow: hidden;
+	}
+	.closing__inner {
+		position: relative;
+		padding-block: clamp(64px, 10vw, 130px);
+		display: grid;
+		gap: 22px;
+		justify-items: start;
+	}
+	.closing h2 {
+		max-width: 16ch;
+		font-size: clamp(2.2rem, 6vw, 4.6rem);
+		position: relative;
+	}
+	.closing__text {
+		max-width: 52ch;
+		font-size: 1.15rem;
+		color: #d9d5ee;
+		position: relative;
+	}
+	.closing__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px 28px;
+		align-items: center;
+		margin-top: 10px;
+		position: relative;
+	}
+	.closing__actions .btn {
+		--btn-shadow: var(--accent);
+		border-color: var(--white);
+	}
+	.closing__ring {
+		position: absolute;
+		right: -6%;
+		top: 50%;
+		width: min(48vw, 520px);
+		aspect-ratio: 1;
+		transform: translateY(-50%);
+		border-radius: 50%;
+		border: clamp(24px, 4vw, 56px) solid var(--accent);
+		opacity: 0.9;
+	}
+	.closing :focus-visible {
+		outline-color: var(--white);
+		box-shadow: none;
+	}
+	@media (max-width: 720px) {
+		.closing__ring {
+			top: auto;
+			bottom: -30%;
+			right: -30%;
+			width: 80vw;
+			transform: none;
+			opacity: 0.5;
+		}
+	}
+</style>

@@ -1,0 +1,67 @@
+---
+import type { Promise as NodenPromise } from "../../lib/site/divisionContent";
+
+interface Props {
+	title?: string;
+	steps: NodenPromise[];
+	editList?: string;
+}
+
+const { title = "Como funciona", steps, editList } = Astro.props;
+---
+
+<section class="steps section" aria-labelledby="etapas-titulo">
+	<div class="wrap">
+		<h2 class="h2" id="etapas-titulo">{title}</h2>
+		<ol class="steps__list" data-edit-list={editList}>
+			{
+				steps.map((step, index) => (
+					<li>
+						<span class="steps__n" aria-hidden="true">{index + 1}</span>
+						<h3 class="h3">{step.title}</h3>
+						<p>{step.text}</p>
+					</li>
+				))
+			}
+		</ol>
+	</div>
+</section>
+
+<style>
+	.steps {
+		background: var(--accent-soft);
+		border-block: var(--border);
+	}
+	.steps__list {
+		list-style: none;
+		margin: clamp(28px, 5vw, 48px) 0 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+		gap: 28px;
+		counter-reset: step;
+	}
+	.steps__list li {
+		position: relative;
+		display: grid;
+		gap: 10px;
+		align-content: start;
+	}
+	.steps__n {
+		display: grid;
+		place-items: center;
+		width: 72px;
+		height: 72px;
+		border-radius: 50%;
+		border: 10px solid var(--accent);
+		background: var(--white);
+		font-family: var(--font-display);
+		font-size: 1.6rem;
+		font-weight: 800;
+		margin-bottom: 6px;
+		outline: 2px solid var(--ink);
+	}
+	.steps__list p {
+		color: var(--ink-2);
+	}
+</style>
