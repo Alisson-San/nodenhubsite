@@ -1,4 +1,5 @@
 ---
+import Campaigns from "../campaigns/Campaigns.astro";
 import ServiceLayout from "../../layouts/ServiceLayout.astro";
 
 import ServiceHero from "./ServiceHero.astro";
@@ -40,6 +41,7 @@ const site =
 	accent={page.theme.accent}
 	accentSecondary={page.theme.accentSecondary}
 >
+	<Campaigns page={"/" + page.division} />
 	<ServiceHero
 		division={page.division}
 		eyebrow={page.hero.eyebrow}

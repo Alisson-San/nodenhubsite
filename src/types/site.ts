@@ -1,3 +1,5 @@
+import type { HomeContent } from "../lib/site/homeContent";
+
 export interface SiteSocialLink {
 	id?: string;
 	platform: string;
@@ -9,6 +11,7 @@ export interface SiteSocialLink {
 }
 
 export interface RuntimeSiteConfig {
+	home: HomeContent;
 	name: string;
 	legalName: string;
 	description: string;

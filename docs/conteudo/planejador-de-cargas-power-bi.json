@@ -1,0 +1,77 @@
+{
+  "slug": "planejador-de-cargas-power-bi",
+  "summary": "Planeje a distribuição de caixas de pedidos e remessas em um compartimento 3D, com prioridades de carga e diagnóstico das restrições físicas.",
+  "body": "O Planejador de Cargas transforma dados do relatório em uma simulação visual de carregamento. Selecione pedidos ou remessas, escolha as embalagens e o compartimento e organize a prioridade dos documentos antes de simular.\n\nA cena 3D permite inspecionar a distribuição, com agrupamento de cores por produto, pedido, remessa ou embalagem. O resultado passa por um validador independente do motor de alocação.\n\nVersão em desenvolvimento, ainda sem publicação no catálogo Microsoft. A documentação registra testes no Power BI Desktop com dados sintéticos; a validação no Power BI Web permanece pendente. A simulação não certifica amarração, estabilidade dinâmica, atrito ou aceleração e não garante uma distribuição ótima.",
+  "media": [],
+  "features": [
+    "Seleção de múltiplos pedidos e remessas",
+    "Escolha de embalagens e compartimento de carga",
+    "Prioridades de carregamento pela ordem dos documentos",
+    "Visualização 3D e cores por produto, pedido, remessa ou embalagem",
+    "Simulação com progresso e diagnóstico de dados inconsistentes",
+    "Validação física independente, incluindo apoio e capacidade de suporte"
+  ],
+  "steps": [
+    {
+      "title": "Prepare os dados do relatório",
+      "body": "Organize os campos de pedido/item, remessa/item quando houver, produto, quantidade em unidades e embalagem. Inclua unidades por embalagem, dimensões em milímetros, peso por volume, orientações e capacidade de suporte. Preserve o detalhe das linhas: agregações anteriores ao visual podem impedir a reconstrução das alocações."
+    },
+    {
+      "title": "Associe os campos ao visual",
+      "body": "Use os campos oferecidos pelo visual no Power BI para relacionar as colunas do seu modelo. Não é necessária uma coluna externa de ID técnico. Confira quantidades, embalagens e dimensões antes de simular."
+    },
+    {
+      "title": "Selecione documentos e embalagens",
+      "body": "Escolha os pedidos ou remessas que deseja planejar, confira a embalagem utilizada e selecione o compartimento de carga."
+    },
+    {
+      "title": "Organize a prioridade de carga",
+      "body": "Com a prioridade ativa, coloque os documentos na ordem desejada. Os primeiros são carregados ao fundo e os últimos ficam próximos à porta, respeitando as regras de descarga do modelo."
+    },
+    {
+      "title": "Execute a simulação",
+      "body": "Inicie o planejamento e acompanhe as etapas de preparação, busca, validação e desenho. O percentual de simulação representa o orçamento de validações consumido; não corresponde ao tempo restante nem à proporção de caixas posicionadas."
+    },
+    {
+      "title": "Inspecione o resultado e os avisos",
+      "body": "Examine a cena 3D e use as cores para distinguir os grupos. Leia os diagnósticos: uma origem não reconciliada mantém o estado geral incompleto, mesmo quando a geometria das caixas passa na validação. Após mudar a seleção, não trate um plano marcado como obsoleto como resultado atual."
+    }
+  ],
+  "faq": [
+    {
+      "question": "Já está disponível no catálogo Microsoft?",
+      "answer": "Ainda não. O link de distribuição será incluído quando o visual estiver publicado."
+    },
+    {
+      "question": "Como a quantidade de caixas é calculada?",
+      "answer": "A quantidade de unidades é dividida pelo fator da embalagem. Por exemplo, 25 unidades com fator 5 geram 5 caixas. Se houver resto, como 26 dividido por 5, a alocação é bloqueada e um diagnóstico é apresentado; o visual não arredonda nem cria caixas parciais."
+    },
+    {
+      "question": "Preciso criar um ID técnico na origem?",
+      "answer": "Não é exigida uma coluna externa de ID técnico. O visual deriva a identidade a partir do contexto do host e dos dados de negócio, preservando a multiplicidade das linhas recebidas."
+    },
+    {
+      "question": "O que significa resultado incompleto?",
+      "answer": "Existem dados ou condições que precisam de revisão. Um aviso global de origem não reconciliada, por exemplo, mantém o resultado incompleto mesmo que as posições das caixas sejam geometricamente válidas."
+    },
+    {
+      "question": "A simulação garante o melhor carregamento possível?",
+      "answer": "Não. O motor usa heurísticas com orçamento de busca limitado. Esgotar esse orçamento não prova que uma solução é impossível, e uma distribuição válida não é garantia de solução ótima."
+    },
+    {
+      "question": "O visual substitui a avaliação de segurança da carga?",
+      "answer": "Não. O modelo valida as restrições físicas implementadas, mas não certifica estabilidade dinâmica, amarração, atrito ou aceleração. Essas condições exigem avaliação operacional apropriada."
+    },
+    {
+      "question": "Funciona no Power BI Web?",
+      "answer": "A documentação registra testes no Power BI Desktop com dados sintéticos. A validação no Power BI Web ainda está pendente."
+    }
+  ],
+  "version": "0.5.0.9",
+  "updatedAt": "2026-09-26T19:05:43.368Z",
+  "status": "unavailable",
+  "modality": "digital",
+  "ctaKind": "contact",
+  "microsoftUrl": "",
+  "externalUrl": ""
+}

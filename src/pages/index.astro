@@ -1,6 +1,11 @@
 ---
 export const prerender = false;
 
+import { splitHomeHighlights } from "../lib/site/homeContent";
+
+import Campaigns from "../components/campaigns/Campaigns.astro";
+import SiteFooter from "../components/common/SiteFooter.astro";
+
 import NodenSymbol from "../components/NodenSymbol.astro";
 import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
 
@@ -30,10 +35,31 @@ const whatsappUrl =
 			content={site.description}
 		/>
 		<title>{site.name} — Technology Hub</title>
+		<link rel="canonical" href={new URL("/", site.url)} />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 
+		<script is:inline>
+			// Reserve the desktop scene before first paint, with a readable fallback if the bundle fails.
+			if (matchMedia("(min-width: 1100px) and (min-height: 550px) and (prefers-reduced-motion: no-preference)").matches) {
+				document.documentElement.classList.add("experience-animated", "experience-preparing");
+				setTimeout(() => {
+					if (!document.documentElement.classList.contains("experience-preparing")) return;
+					document.documentElement.classList.remove("experience-animated", "experience-preparing");
+					document.documentElement.dataset.animationUnavailable = "true";
+					requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView());
+				}, 2500);
+			}
+		</script>
+		<noscript><style>
+			.menu-toggle { display: none !important; }
+			.site-header { position: relative !important; height: auto !important; flex-wrap: wrap; gap: 20px; padding: 20px !important; }
+			.site-navigation { position: static !important; opacity: 1 !important; visibility: visible !important; transform: none !important; pointer-events: auto !important; padding: 0 !important; max-height: none !important; }
+		</style></noscript>
 	</head>
 
 	<body>
+		<Campaigns page="/" />
+		<a class="skip-link" href="#inicio">Pular para o conteúdo</a>
 
 		<header id="site-header" class="site-header">
 			<a
@@ -80,6 +106,21 @@ const whatsappUrl =
 
 					<NodenSymbol />
 
+					<div id="inicio" tabindex="-1" class="copy start-copy">
+						<span class="start-kicker">NODEN TECHNOLOGY HUB</span>
+
+						<h1>{site.home.title}</h1>
+
+						<p class="start-message">{site.home.description}</p>
+						<div class="start-actions">
+							<a class="start-contact" href={whatsappUrl} target="_blank" rel="noopener noreferrer">{site.home.contactLabel}</a>
+							<a href="/home">Home · suporte residencial</a>
+							<a href="/game">Game · seu setup</a>
+							<a href="/data">Data · software e dados</a>
+						</div>
+
+					</div>
+
 					<div id="brand-scene" class="brand-scene">
 						<div class="brand-lockup" aria-label="NODEN Technology Hub">
 							<div class="brand-word">
@@ -95,7 +136,7 @@ const whatsappUrl =
 							<span class="brand-subtitle">TECHNOLOGY HUB</span>
 						</div>
 
-						<div id="about-copy" class="about-copy">
+						<div id="quem-somos" tabindex="-1" class="about-copy">
 							<div class="about-marker">
 								<span class="about-index">01</span>
 								<span class="about-eyebrow">QUEM SOMOS</span>
@@ -106,16 +147,8 @@ const whatsappUrl =
 								<div class="about-heading">
 									<span class="about-kicker">UM HUB. TRÊS FRENTES.</span>
 
-									<h2>
-										Tecnologia para
-										<span> pessoas, performance e dados.</span>
-									</h2>
-
-									<p class="about-lead">
-										A Noden reúne serviços complementares para resolver desde
-										o suporte do dia a dia até projetos de alta performance e
-										inteligência de dados.
-									</p>
+									<h2>{site.home.aboutTitle}</h2>
+									<p class="about-lead">{site.home.aboutDescription}</p>
 									<div
 										class="about-coverage"
 										aria-label="Cidades com atendimento domiciliar"
@@ -166,37 +199,16 @@ const whatsappUrl =
 						</div>
 					</div>
 
-					<div id="start-copy" class="copy start-copy">
-						<span class="start-kicker">NODEN TECHNOLOGY HUB</span>
-
-						<h1>BEM-VINDO</h1>
-
-						<p class="start-message">
-							<strong>A tecnologia nos conecta.</strong>
-							<span>A Noden transforma essa conexão.</span>
-						</p>
-					</div>
 
 					<div class="division-shell">
-						<div id="home-copy" class="copy division-copy division-home">
+						<div id="noden-home" tabindex="-1" class="copy division-copy division-home">
 							<span class="division-kicker">NODEN HOME</span>
-							<h2>Suporte técnico presencial para sua casa.</h2>
-							<p class="division-lead">
-								Atendimento residencial com deslocamento até o local para
-								resolver problemas, instalar equipamentos e orientar você com
-								clareza.
-							</p>
+							<h2>{site.home.homeTitle}</h2>
+							<p class="division-lead">{site.home.homeDescription}</p>
 
-							<ul class="division-list">
-								<li>Instalação e configuração de equipamentos</li>
-								<li>Limpeza, formatação e otimização do sistema</li>
-								<li>Upgrades básicos de memória e SSD</li>
-								<li>Consultoria gratuita para dúvidas e problemas</li>
-							</ul>
+							<ul class="division-list">{splitHomeHighlights(site.home.homeHighlights).map((item) => <li>{item}</li>)}</ul>
 
-							<p class="division-meta">
-								Atendimento local · Diagnóstico · Solução prática
-							</p>
+							<p class="division-meta">{site.home.homeMeta}</p>
 
 							<a
 								class="division-link"
@@ -223,24 +235,14 @@ const whatsappUrl =
 					</div>
 
 					<div class="division-shell">
-						<div id="game-copy" class="copy division-copy division-game">
+						<div id="noden-game" tabindex="-1" class="copy division-copy division-game">
 							<span class="division-kicker">NODEN GAME</span>
-							<h2>Setup gamer pensado em otimização.</h2>
-							<p class="division-lead">
-								Para quem quer montar, revisar ou evoluir o setup com foco em
-								desempenho, estabilidade e melhor escolha de hardware.
-							</p>
+							<h2>{site.home.gameTitle}</h2>
+							<p class="division-lead">{site.home.gameDescription}</p>
 
-							<ul class="division-list">
-								<li>Montagem e revisão completa do setup gamer</li>
-								<li>Diagnóstico de desempenho e gargalos</li>
-								<li>Upgrades de hardware e refrigeração</li>
-								<li>Consultoria para peças, compatibilidade e custo-benefício</li>
-							</ul>
+							<ul class="division-list">{splitHomeHighlights(site.home.gameHighlights).map((item) => <li>{item}</li>)}</ul>
 
-							<p class="division-meta">
-								Hardware · Performance · Otimização
-							</p>
+							<p class="division-meta">{site.home.gameMeta}</p>
 
 							<a
 								class="division-link"
@@ -267,25 +269,14 @@ const whatsappUrl =
 					</div>
 
 					<div class="division-shell">
-						<div id="data-copy" class="copy division-copy division-data">
+						<div id="noden-data" tabindex="-1" class="copy division-copy division-data">
 							<span class="division-kicker">NODEN DATA</span>
-							<h2>Dados organizados para apoiar decisões reais.</h2>
-							<p class="division-lead">
-								Soluções para estruturar informações, automatizar análises e
-								transformar dados em visão de negócio.
-							</p>
+							<h2>{site.home.dataTitle}</h2>
+							<p class="division-lead">{site.home.dataDescription}</p>
 
-							<ul class="division-list">
-								<li>Dashboards, indicadores e visualização de resultados</li>
-								<li>Soluções de Software, evoluindo processos.</li>
-								<li>Integração, tratamento e organização de dados</li>
-								<li>Automação de relatórios e fluxos analíticos</li>
-								<li>BI, analytics e apoio à tomada de decisão</li>
-							</ul>
+							<ul class="division-list">{splitHomeHighlights(site.home.dataHighlights).map((item) => <li>{item}</li>)}</ul>
 
-							<p class="division-meta">
-								Data Engineering · BI · Analytics · Developer
-							</p>
+							<p class="division-meta">{site.home.dataMeta}</p>
 
 							<a
 								class="division-link"
@@ -311,17 +302,10 @@ const whatsappUrl =
 						</div>
 					</div>
 
-					<div id="final-copy" class="copy final-copy">
+					<div id="contato" tabindex="-1" class="copy final-copy">
 						<div class="final-demand">
-							<h2>
-								<span class="final-demand-line final-demand-line-one">
-									Várias demandas
-								</span>
-
-								<span class="final-demand-line final-demand-line-two">
-									Um só lugar.
-								</span>
-							</h2>
+							<h2><span class="final-demand-line final-demand-line-one">{site.home.contactTitle}</span></h2>
+							<p class="contact-description final-demand-line final-demand-line-two">{site.home.contactDescription}</p>
 						</div>
 
 						<div class="final-brand-lockup" aria-label="NODEN">
@@ -341,7 +325,6 @@ const whatsappUrl =
 							target="_blank"
 							rel="noopener noreferrer"
 							class="final-contact-link"
-							aria-label="Entre em contato pelo WhatsApp"
 						>
 							<span class="final-contact-icon" aria-hidden="true">
 								<svg viewBox="0 0 24 24" role="img">
@@ -354,7 +337,7 @@ const whatsappUrl =
 								</svg>
 							</span>
 
-							<span>ENTRE EM CONTATO</span>
+							<span>{site.home.contactLabel}</span>
 						</a>
 					</div>
 
@@ -366,6 +349,32 @@ const whatsappUrl =
 			</section>
 
 		</main>
+		<SiteFooter site={site} logoIdPrefix="landing-footer" />
+
+		<script is:inline>
+			const header = document.querySelector("#site-header");
+			const menuToggle = document.querySelector("#menu-toggle");
+			const menu = document.querySelector("#site-navigation");
+			const mobileMenu = window.matchMedia("(max-width: 800px)");
+			const setMenu = (open) => {
+				header?.classList.toggle("is-menu-open", open);
+				menuToggle?.setAttribute("aria-expanded", String(open));
+				menuToggle?.setAttribute("aria-label", open ? "Fechar menu" : "Abrir menu");
+				if (menu) menu.inert = mobileMenu.matches && !open;
+			};
+			menuToggle?.addEventListener("click", () => setMenu(menuToggle.getAttribute("aria-expanded") !== "true"));
+			header?.addEventListener("keydown", (event) => {
+				if (event.key === "Escape") { setMenu(false); menuToggle?.focus(); }
+			});
+			header?.addEventListener("focusout", () => {
+				requestAnimationFrame(() => { if (!header.contains(document.activeElement)) setMenu(false); });
+			});
+			mobileMenu.addEventListener("change", () => setMenu(false));
+			setMenu(false);
+
+ document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener("click", () => setMenu(false)));
+ window.addEventListener("scroll", () => header?.classList.toggle("is-scrolled", scrollY > 24), { passive: true });
+		</script>
 
 		<script>
 			import gsap from "gsap";
@@ -374,6 +383,31 @@ const whatsappUrl =
 
 			gsap.registerPlugin(ScrollTrigger);
 
+			let resumeTime: number | undefined;
+			let navigateScene: ((hash: string, focus?: boolean) => void) | undefined;
+			const header = document.querySelector<HTMLElement>("#site-header");
+			document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {
+				link.addEventListener("click", (event) => {
+					if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+					if (navigateScene) {
+						event.preventDefault();
+						if (location.hash !== link.hash) history.pushState(null, "", link.hash);
+						navigateScene(link.hash, true);
+					}
+				});
+			});
+			const followHash = () => {
+				if (navigateScene) navigateScene(location.hash);
+				else if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+			};
+			document.fonts.ready.then(() => requestAnimationFrame(followHash));
+			window.addEventListener("hashchange", followHash);
+			window.addEventListener("popstate", followHash);
+
+			gsap.matchMedia().add("(min-width: 1100px) and (min-height: 550px) and (prefers-reduced-motion: no-preference)", (context) => {
+			if (document.documentElement.dataset.animationUnavailable === "true") return;
+			document.documentElement.classList.add("experience-animated");
+
 			const lenis = new Lenis({
 				duration: 0.82,
 				smoothWheel: true,
@@ -381,9 +415,8 @@ const whatsappUrl =
 
 			lenis.on("scroll", ScrollTrigger.update);
 
-			gsap.ticker.add((time) => {
-				lenis.raf(time * 1000);
-			});
+			const tick = (time: number) => lenis.raf(time * 1000);
+			gsap.ticker.add(tick);
 
 			gsap.ticker.lagSmoothing(0);
 
@@ -489,12 +522,12 @@ const whatsappUrl =
 				scale: 0.5,
 			});
 
-			gsap.set(".copy:not(#start-copy)", {
+			gsap.set(".copy:not(#inicio)", {
 				opacity: 0,
 				y: 50,
 			});
 
-			gsap.set("#start-copy", {
+			gsap.set("#inicio", {
 				opacity: 1,
 				y: 0,
 			});
@@ -519,22 +552,25 @@ const whatsappUrl =
 				y: 14,
 			});
 
-			gsap.set("#about-copy .about-marker > *", {
+			gsap.set("#quem-somos .about-marker > *", {
 				opacity: 0,
 				x: -18,
 			});
 
-			gsap.set("#about-copy .about-heading > *", {
+			gsap.set("#quem-somos .about-heading > *", {
 				opacity: 0,
 				y: 24,
 			});
 
-			gsap.set("#about-copy .service-card", {
+			gsap.set("#quem-somos .service-card", {
 				opacity: 0,
 				y: 24,
 			});
 
 			gsap.set("#brand-symbol", {
+				// Keep centering explicit: fractional CSS widths can defeat GSAP transform inference.
+				xPercent: -50,
+				yPercent: -50,
 				scale: 1,
 				x: 0,
 				y: 0,
@@ -572,46 +608,29 @@ const whatsappUrl =
 
 				if (!node || !ring) return;
 
+				gsap.set(node, { x: 0, y: 0, scale, rotation });
 				const bounds = ring.getBoundingClientRect();
-				const currentX = bounds.left + bounds.width / 2;
-				const currentY = bounds.top + bounds.height / 2;
-
+				const svg = node.ownerSVGElement;
+				const unitScale = svg ? svg.getBoundingClientRect().width / svg.viewBox.baseVal.width : 1;
 				gsap.set(node, {
-					x: targetX - currentX,
-					y: targetY - currentY,
-					scale,
-					rotation,
+					x: (targetX - bounds.left - bounds.width / 2) / unitScale,
+					y: (targetY - bounds.top - bounds.height / 2) / unitScale,
 				});
 			};
 
 			const placeIntroNodes = () => {
-				const mobile = window.innerWidth <= 800;
-				const nodeScale = mobile ? 0.4 : 0.68;
-				const bottomY = window.innerHeight * (mobile ? 0.86 : 0.8);
-
-				placeIntroNode(
-					"#node-home",
-					window.innerWidth * 0.5,
-					window.innerHeight * (mobile ? 0.12 : 0.15),
-					nodeScale,
-					mobile ? -8 : -16,
-				);
-
-				placeIntroNode(
-					"#node-game",
-					window.innerWidth * (mobile ? 0.17 : 0.08),
-					bottomY,
-					nodeScale,
-					mobile ? 8 : 14,
-				);
-
-				placeIntroNode(
-					"#node-data",
-					window.innerWidth * (mobile ? 0.83 : 0.92),
-					bottomY,
-					nodeScale,
-					mobile ? -8 : -14,
-				);
+				const scene = document.querySelector<HTMLElement>('.scene')!;
+				const copy = document.querySelector<HTMLElement>('#inicio')!;
+				const bounds = scene.getBoundingClientRect();
+				const copyBounds = copy.getBoundingClientRect();
+				const rail = Math.max(40, (copyBounds.left - bounds.left) / 2);
+				const radius = Math.min(58, rail - 24);
+				const symbolWidth = document.querySelector<HTMLElement>('#brand-symbol')!.offsetWidth;
+				const scale = radius / (226 * symbolWidth / 1024);
+				// Side rails keep the full stroke and idle motion outside the reading area.
+				placeIntroNode('#node-home', bounds.left + rail, bounds.height * .3, scale, 0);
+				placeIntroNode('#node-game', bounds.left + rail, bounds.height * .78, scale, 0);
+				placeIntroNode('#node-data', bounds.right - rail, bounds.height * .54, scale, 0);
 			};
 
 			placeIntroNodes();
@@ -622,34 +641,47 @@ const whatsappUrl =
 			const brandSymbolSlot =
 				document.querySelector<HTMLElement>("#brand-symbol-slot");
 
-			const getBrandSymbolTarget = () => {
-				if (!brandSymbol || !brandSymbolSlot) {
-					return { x: 0, y: 0, scale: 0.25 };
-				}
-
-				const slotBounds = brandSymbolSlot.getBoundingClientRect();
-				const symbolWidth = brandSymbol.offsetWidth || 1;
-
+			const brandLockup = document.querySelector<HTMLElement>('.brand-lockup')!;
+			const scene = document.querySelector<HTMLElement>('.scene')!;
+			const getBrandOffset = () => scene.clientHeight / 2 - brandLockup.offsetTop - brandLockup.offsetHeight / 2;
+			gsap.set(brandLockup, { y: getBrandOffset });
+			const getBrandSymbolTarget = (centered = true) => {
+				if (!brandSymbol || !brandSymbolSlot) return { x: 0, y: 0, scale: .25 };
+				const slot = brandSymbolSlot.getBoundingClientRect();
+				const bounds = scene.getBoundingClientRect();
+				const currentOffset = Number(gsap.getProperty(brandLockup, 'y'));
 				return {
-					x:
-						slotBounds.left +
-						slotBounds.width / 2 -
-						window.innerWidth / 2,
-					y:
-						slotBounds.top +
-						slotBounds.height / 2 -
-						window.innerHeight / 2,
-					scale: slotBounds.width / symbolWidth,
+					x: slot.left + slot.width / 2 - bounds.left - bounds.width / 2,
+					y: slot.top + slot.height / 2 - currentOffset + (centered ? getBrandOffset() : 0) - bounds.top - bounds.height / 2,
+					scale: slot.width / parseFloat(getComputedStyle(brandSymbol).width),
 				};
 			};
 
+			// A circular envelope includes each ring's stroke throughout the full rotation.
+			const symbolViewBox = brandSymbol!.querySelector("svg")!.viewBox.baseVal;
+			const orbitRadius = Math.max(...Array.from(
+				brandSymbol!.querySelectorAll<SVGCircleElement>(".module-ring"),
+				(ring) => {
+					const frame = ring.closest<SVGGElement>('[id^="pos-"]')!;
+					const center = new DOMPoint(ring.cx.baseVal.value, ring.cy.baseVal.value)
+						.matrixTransform(frame.transform.baseVal.consolidate()!.matrix);
+					return (Math.hypot(center.x - symbolViewBox.width / 2, center.y - symbolViewBox.height / 2) +
+						ring.r.baseVal.value + parseFloat(getComputedStyle(ring).strokeWidth) / 2) / symbolViewBox.width;
+				},
+			));
 			const getDivisionSymbolState = () => {
-				const mobile = window.innerWidth <= 800;
-
+				const panel = document.querySelector<HTMLElement>(".division-copy")!;
+				const shell = panel.parentElement!;
+				const left = 24;
+				const right = scene.clientWidth - parseFloat(getComputedStyle(shell).paddingRight) -
+					parseFloat(getComputedStyle(panel).width) - 24;
+				const top = Math.max(88, (header?.offsetHeight ?? 68) + 20);
+				const bottom = scene.clientHeight - 24;
+				const symbolRadius = parseFloat(getComputedStyle(brandSymbol!).width) * orbitRadius;
 				return {
-					x: mobile ? 0 : -205,
-					y: mobile ? -window.innerHeight * 0.28 : 42,
-					scale: mobile ? 0.78 : 1.42,
+					x: (left + right) / 2 - scene.clientWidth / 2,
+					y: (top + bottom) / 2 - scene.clientHeight / 2,
+					scale: Math.min(1.42, (right - left) / (2 * symbolRadius), (bottom - top) / (2 * symbolRadius)),
 				};
 			};
 
@@ -672,17 +704,17 @@ const whatsappUrl =
 				}
 
 				const slotBounds = finalSymbolSlot.getBoundingClientRect();
-				const symbolWidth = brandSymbol.offsetWidth || 1;
+				const symbolWidth = parseFloat(getComputedStyle(brandSymbol).width) || 1;
 
 				return {
 					x:
 						slotBounds.left +
 						slotBounds.width / 2 -
-						window.innerWidth / 2,
+						scene.getBoundingClientRect().left - scene.clientWidth / 2,
 					y:
 						slotBounds.top +
 						slotBounds.height / 2 -
-						window.innerHeight / 2,
+						scene.getBoundingClientRect().top - scene.clientHeight / 2,
 					scale: slotBounds.width / symbolWidth,
 				};
 			};
@@ -692,7 +724,7 @@ const whatsappUrl =
 				x: 24,
 			});
 
-			gsap.set("#final-copy", {
+			gsap.set("#contato", {
 				opacity: 1,
 				y: 0,
 			});
@@ -726,19 +758,19 @@ const whatsappUrl =
 			});
 
 			gsap.fromTo(
-				"#start-copy .start-kicker",
+				"#inicio .start-kicker",
 				{ opacity: 0, y: 14 },
 				{ opacity: 1, y: 0, duration: 0.8, delay: 0.1, ease: "power2.out" },
 			);
 
 			gsap.fromTo(
-				"#start-copy h1",
+				"#inicio h1",
 				{ opacity: 0, y: 28 },
 				{ opacity: 1, y: 0, duration: 1, delay: 0.2, ease: "power3.out" },
 			);
 
 			gsap.fromTo(
-				"#start-copy .start-message",
+				"#inicio .start-message",
 				{ opacity: 0, y: 18 },
 				{ opacity: 1, y: 0, duration: 0.9, delay: 0.38, ease: "power2.out" },
 			);
@@ -756,7 +788,7 @@ const whatsappUrl =
 			);
 
 			timeline.to(
-					"#start-copy",
+					"#inicio",
 					{
 						opacity: 0,
 						y: -35,
@@ -857,7 +889,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#about-copy .about-marker > *",
+					"#quem-somos .about-marker > *",
 					{
 						opacity: 1,
 						x: 0,
@@ -869,7 +901,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#about-copy .about-heading > *",
+					"#quem-somos .about-heading > *",
 					{
 						opacity: 1,
 						y: 0,
@@ -881,7 +913,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#about-copy .service-card",
+					"#quem-somos .service-card",
 					{
 						opacity: 1,
 						y: 0,
@@ -956,7 +988,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#home-copy",
+					"#noden-home",
 					{
 						autoAlpha: 1,
 						y: 0,
@@ -968,7 +1000,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#home-copy",
+					"#noden-home",
 					{
 						autoAlpha: 0,
 						y: -32,
@@ -1033,7 +1065,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#game-copy",
+					"#noden-game",
 					{
 						autoAlpha: 1,
 						y: 0,
@@ -1045,7 +1077,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#game-copy",
+					"#noden-game",
 					{
 						autoAlpha: 0,
 						y: -32,
@@ -1110,7 +1142,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#data-copy",
+					"#noden-data",
 					{
 						autoAlpha: 1,
 						y: 0,
@@ -1122,7 +1154,7 @@ const whatsappUrl =
 				)
 
 				.to(
-					"#data-copy",
+					"#noden-data",
 					{
 						autoAlpha: 0,
 						y: -32,
@@ -1264,34 +1296,39 @@ const whatsappUrl =
 					17.18,
 				);
 
+			const brandPause = 1.5;
+			timeline.shiftChildren(brandPause, false, 4.35);
+			timeline.to(brandLockup, { y: 0, duration: .85, ease: 'power3.inOut' }, 4.95);
+			timeline.to('#brand-symbol', {
+				x: () => getBrandSymbolTarget(false).x,
+				y: () => getBrandSymbolTarget(false).y,
+				duration: .85, ease: 'power3.inOut',
+			}, 4.95);
 			timeline.addLabel("inicio", 0);
-			timeline.addLabel("quem-somos", 4.5);
-			timeline.addLabel("home", 7.28);
-			timeline.addLabel("game", 9.82);
-			timeline.addLabel("data", 12.35);
-			timeline.addLabel("contato", 17.18);
+			timeline.addLabel("quem-somos", 4.5 + brandPause);
+			timeline.addLabel("home", 7.28 + brandPause);
+			timeline.addLabel("game", 9.82 + brandPause);
+			timeline.addLabel("data", 12.35 + brandPause);
+			timeline.addLabel("contato", 17.18 + brandPause);
 
 			const menuTargetTimes: Record<string, number> = {
 				inicio: 0,
 
 				// Marca, proposta, cidades e três segmentos já visíveis.
-				"quem-somos": 5.9,
+				"quem-somos": 5.9 + brandPause,
 
 				// Ícone e painel Home completamente apresentados.
-				home: 8.2,
+				home: 8.2 + brandPause,
 
 				// Ícone e painel Game completamente apresentados.
-				game: 10.75,
+				game: 10.75 + brandPause,
 
 				// Ícone e painel Data completamente apresentados.
-				data: 13.3,
+				data: 13.3 + brandPause,
 
 				// Tratado separadamente para ir ao fim real.
 				contato: timeline.duration(),
 			};
-
-			const header = document.querySelector<HTMLElement>("#site-header");
-			const menuToggle = document.querySelector<HTMLButtonElement>("#menu-toggle");
 
 			const navigationLinks = Array.from(
 				document.querySelectorAll<HTMLAnchorElement>(
@@ -1330,12 +1367,6 @@ const whatsappUrl =
 				return currentLabel;
 			};
 
-			const closeMobileMenu = () => {
-				header?.classList.remove("is-menu-open");
-				menuToggle?.setAttribute("aria-expanded", "false");
-				menuToggle?.setAttribute("aria-label", "Abrir menu");
-			};
-
 			const scrollToTimelineLabel = (label: string) => {
 				const trigger = timeline.scrollTrigger;
 
@@ -1371,33 +1402,27 @@ const whatsappUrl =
 				setActiveNavigation(label);
 			};
 
-			document
-				.querySelectorAll<HTMLAnchorElement>("[data-timeline-label]")
-				.forEach((link) => {
-					link.addEventListener("click", (event) => {
-						event.preventDefault();
-
-						const label = link.dataset.timelineLabel;
-						if (!label) return;
-
-						closeMobileMenu();
-						scrollToTimelineLabel(label);
-					});
-				});
-
-
-			menuToggle?.addEventListener("click", () => {
-				const isOpen = header?.classList.toggle("is-menu-open") ?? false;
-
-				menuToggle.setAttribute("aria-expanded", String(isOpen));
-				menuToggle.setAttribute(
-					"aria-label",
-					isOpen ? "Fechar menu" : "Abrir menu",
-				);
+			const panels = Array.from(document.querySelectorAll<HTMLElement>("#inicio, #quem-somos, #noden-home, #noden-game, #noden-data, #contato"));
+			const syncPanels = () => panels.forEach((panel) => {
+				const contentVisible = panel.id !== "contato" || Array.from(panel.querySelectorAll(".final-demand-line, .final-contact-link")).some((item) => Number(getComputedStyle(item).opacity) > 0.5);
+				const visible = contentVisible && Number(getComputedStyle(panel).opacity) > 0.5 &&
+					(panel.id !== "quem-somos" || Number(getComputedStyle(panel.parentElement!).opacity) > 0.5);
+				panel.inert = !visible;
+				panel.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => { link.inert = !visible || Number(getComputedStyle(link).opacity) <= 0.5; });
+				panel.setAttribute("aria-hidden", String(!visible));
 			});
+			navigateScene = (hash, focus = false) => {
+				const id = hash.slice(1) || "inicio";
+				const panel = panels.find((item) => item.id === id);
+				if (!panel) return;
+				scrollToTimelineLabel(id.replace("noden-", ""));
+				syncPanels();
+				if (focus) panel.focus({ preventScroll: true });
+			};
 
 			timeline.eventCallback("onUpdate", () => {
 				setActiveNavigation(getCurrentTimelineLabel());
+				syncPanels();
 			});
 
 			lenis.on("scroll", (event: { scroll: number }) => {
@@ -1405,13 +1430,54 @@ const whatsappUrl =
 				setActiveNavigation(getCurrentTimelineLabel());
 			});
 
-			window.addEventListener("resize", () => {
-				closeMobileMenu();
-				placeIntroNodes();
-				ScrollTrigger.refresh();
+			// Editorial text must remain readable when it exceeds the fixed scene.
+			const divisionPanels = Array.from(document.querySelectorAll<HTMLElement>(".division-copy"));
+			const aboutPanel = document.querySelector<HTMLElement>("#quem-somos");
+			const fitsScene = () => divisionPanels.every((panel) => panel.offsetHeight <= scene.clientHeight - 128) &&
+				(!aboutPanel || aboutPanel.offsetTop + aboutPanel.offsetHeight <= scene.clientHeight - 12);
+			const contentObserver = new ResizeObserver(() => {
+				if (!fitsScene()) context.revert();
 			});
-
+			divisionPanels.forEach((panel) => contentObserver.observe(panel));
+			if (aboutPanel) contentObserver.observe(aboutPanel);
+			let resizeTimer: ReturnType<typeof setTimeout>;
+			const onResize = () => {
+				if (!matchMedia("(min-width: 1100px) and (min-height: 550px) and (prefers-reduced-motion: no-preference)").matches) return;
+				resumeTime ??= timeline.time();
+				clearTimeout(resizeTimer);
+				resizeTimer = setTimeout(() => gsap.matchMediaRefresh(), 150);
+			};
+			window.addEventListener("resize", onResize);
+			document.documentElement.classList.remove("experience-preparing");
+			const initialFrame = requestAnimationFrame(() => {
+				ScrollTrigger.refresh();
+				const trigger = timeline.scrollTrigger;
+				if (resumeTime !== undefined && trigger) {
+					const time = resumeTime;
+					resumeTime = undefined;
+					lenis.scrollTo(trigger.start + (trigger.end - trigger.start) * time / timeline.duration(), { immediate: true, force: true });
+					timeline.time(time, false);
+					ScrollTrigger.update();
+				} else followHash();
+				syncPanels();
+			});
 			setActiveNavigation("inicio");
+			return () => {
+				cancelAnimationFrame(initialFrame);
+				introIdleTweens.forEach((tween) => tween.kill());
+				introIdleTweens = [];
+				contentObserver.disconnect();
+				clearTimeout(resizeTimer);
+				window.removeEventListener("resize", onResize);
+				gsap.ticker.remove(tick);
+				lenis.destroy();
+				navigateScene = undefined;
+				document.documentElement.classList.remove("experience-animated");
+				panels.forEach((panel) => { panel.inert = false; panel.removeAttribute("aria-hidden"); panel.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => { link.inert = false; }); });
+				if (!matchMedia("(min-width: 1100px) and (min-height: 550px) and (prefers-reduced-motion: no-preference)").matches) resumeTime = undefined;
+				if (resumeTime === undefined) requestAnimationFrame(followHash);
+			};
+			});
 		</script>
 	</body>
 </html>
@@ -1438,7 +1504,7 @@ const whatsappUrl =
 
 
 	body {
-		overflow-x: hidden;
+		overflow-x: clip;
 	}
 
 	.site-header {
@@ -1663,7 +1729,7 @@ const whatsappUrl =
 		top: 0;
 		width: 100%;
 		height: 100vh;
-		overflow: hidden;
+		overflow: clip;
 		background:
 			radial-gradient(circle at 50% 50%, rgba(38, 75, 164, 0.18), transparent 29%),
 			radial-gradient(circle at 20% 85%, rgba(132, 40, 255, 0.08), transparent 30%),
@@ -1889,7 +1955,7 @@ const whatsappUrl =
 	}
 
 	.about-index {
-		color: rgba(112, 145, 190, 0.42);
+		color: #91a1b8;
 		font-size: 0.6rem;
 		font-weight: 500;
 		letter-spacing: 0.24em;
@@ -2087,7 +2153,7 @@ const whatsappUrl =
 		align-items: center;
 		justify-items: end;
 
-		padding: 0 clamp(44px, 5.4vw, 88px);
+		padding: 88px clamp(44px, 5.4vw, 88px) 24px;
 		pointer-events: none;
 	}
 
@@ -2425,7 +2491,7 @@ const whatsappUrl =
 		html,
 		body {
 			width: 100%;
-			overflow-x: hidden;
+			overflow-x: clip;
 		}
 
 		.scroll-stage {
@@ -2481,6 +2547,7 @@ const whatsappUrl =
 				rgba(2, 5, 10, 0.97);
 			backdrop-filter: blur(22px);
 			opacity: 0;
+			visibility: hidden;
 			pointer-events: none;
 			transform: translateY(-14px);
 			transition:
@@ -2489,6 +2556,7 @@ const whatsappUrl =
 		}
 
 		.site-header.is-menu-open .site-navigation {
+			visibility: visible;
 			opacity: 1;
 			pointer-events: auto;
 			transform: translateY(0);
@@ -2851,4 +2919,80 @@ const whatsappUrl =
 		}
 	}
 
+</style>
+<style is:global>
+	/* The document remains readable until the large-screen animation is ready. */
+	[id] { scroll-margin-top: 96px; }
+	a:focus-visible, button:focus-visible, [tabindex="-1"]:focus-visible { outline: 2px solid #8ccfff; outline-offset: 5px; }
+	.skip-link { position: fixed; top: 8px; left: 16px; z-index: 200; padding: 12px; background: #091a30; color: white; transform: translateY(-160%); }
+	.skip-link:focus { transform: none; }
+	:root:not(.experience-animated) .scroll-stage { height: auto; }
+	:root:not(.experience-animated) .scene { position: relative; height: auto; min-height: 100svh; overflow: clip; padding: 110px 0 60px; }
+	:root:not(.experience-animated) .ambient { display: none; }
+	:root:not(.experience-animated) .noden-symbol { position: relative; top: auto; left: auto; width: min(52vw, 260px); margin: 10px auto 34px; transform: none; }
+	:root:not(.experience-animated) :is(.copy, .brand-scene, .about-copy, .division-shell, .final-demand, .final-contact-link) { position: relative; inset: auto; transform: none; opacity: 1; visibility: visible; pointer-events: auto; }
+	:root:not(.experience-animated) :is(.copy, .about-copy) { width: min(90%, 1000px); margin: 0 auto; }
+	:root:not(.experience-animated) .start-copy { padding-bottom: 70px; }
+	:root:not(.experience-animated) .start-copy h1 { font-size: clamp(2.4rem, 7vw, 5rem); }
+	:root:not(.experience-animated) :is(.brand-lockup, .final-brand-lockup, .scroll-hint) { display: none; }
+	:root:not(.experience-animated) .about-copy { display: block; padding: 42px 0 70px; }
+	:root:not(.experience-animated) .about-content { margin-top: 22px; }
+	:root:not(.experience-animated) .about-services { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; }
+	:root:not(.experience-animated) .service-card { display: block; padding: 22px; }
+	:root:not(.experience-animated) .service-card p { font-size: 1rem; line-height: 1.6; }
+	:root:not(.experience-animated) .division-shell { display: block; width: 100%; padding: 0; margin-bottom: 24px; }
+	:root:not(.experience-animated) .division-copy { padding: clamp(22px, 5vw, 42px); }
+	:root:not(.experience-animated) :is(.about-copy h2, .division-copy h2, .final-demand h2) { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; }
+	:root:not(.experience-animated) :is(.about-lead, .division-copy .division-lead, .division-list li) { font-size: 1rem; line-height: 1.65; }
+	:root:not(.experience-animated) :is(.about-kicker, .about-eyebrow, .division-kicker, .coverage-label, .division-meta) { font-size: .72rem; letter-spacing: .12em; color: #a9bad2; white-space: normal; }
+	:root:not(.experience-animated) .coverage-cities span { padding: 8px 12px; font-size: .85rem; }
+	:root:not(.experience-animated) .final-copy { padding: 65px 0 30px; text-align: center; }
+	:root:not(.experience-animated) .final-contact-link { margin-top: 28px; }
+	@media (max-width: 800px) {
+		.menu-toggle { width: 44px; height: 44px; }
+		.site-navigation { inset: 60px 0 auto; max-height: calc(100dvh - 60px); overflow-y: auto; justify-content: flex-start; padding: 20px 24px; }
+	}
+	@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+</style>
+
+<style is:global>
+	.copy.start-copy { width: min(82vw, 850px); z-index: 12; pointer-events: auto; }
+	.copy.start-copy h1 { font-size: clamp(2.25rem, 4.5vw, 4.5rem); line-height: 1.08; letter-spacing: -.055em; }
+	.copy.start-copy .start-kicker { color: #a9bad2; font-size: .72rem; letter-spacing: .24em; }
+	.copy.start-copy .start-message { max-width: 630px; margin: 22px auto 0; color: #b4c3d8; font-size: 1.05rem; line-height: 1.6; letter-spacing: 0; }
+	.start-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
+	.start-actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 12px 16px; border: 1px solid #30445e; border-radius: 12px; background: #0c1729; color: #e6efff; font-size: .84rem; text-decoration: none; }
+	.start-actions .start-contact { flex-basis: 100%; max-width: 260px; margin: 0 calc(50% - 130px) 10px; border-color: #76b9ff; background: #123966; }
+	.start-actions a:hover { border-color: #8ccfff; background: #183353; }
+	.contact-description { font-size: 1rem; line-height: 1.6; color: #b4c3d8; }
+	:root:not(.experience-animated) .start-copy h1 { font-size: clamp(2.25rem, 5vw, 4.5rem); }
+	:root:not(.experience-animated) .start-copy { width: min(90%, 850px); }
+	.experience-animated .final-demand h2 { font-size: clamp(2rem, 4vw, 4rem); }
+	@media (max-width: 480px) { .start-actions a { width: 100%; } }
+</style>
+
+<style is:global>
+ .experience-preparing :is(.brand-scene, .division-shell, .final-copy, .noden-symbol) { visibility: hidden; }
+</style>
+
+<style is:global>
+ @media (min-width: 1100px) and (min-height: 550px) and (max-height: 799px) {
+  .experience-animated .about-copy { top: 37%; }
+  .experience-animated .about-kicker { margin-bottom: 8px; }
+  .experience-animated .about-lead, .experience-animated .about-coverage { margin-top: 10px; }
+  .experience-animated .about-services { margin-top: 14px; }
+  .experience-animated .service-card { min-height: 132px; padding: 14px; }
+  .experience-animated .service-card h3 { margin: 12px 0 8px; }
+  .experience-animated .division-shell > .division-copy { width: min(44vw, 540px); padding: 20px 24px; }
+  .experience-animated .division-copy h2 { font-size: 2rem; }
+  .experience-animated .division-copy .division-kicker { margin-bottom: 12px; }
+  .experience-animated .division-copy .division-lead { margin-top: 12px; font-size: .95rem; line-height: 1.45; }
+  .experience-animated .division-list { margin-top: 14px; gap: 6px; }
+  .experience-animated .division-list li { font-size: .875rem; }
+  .experience-animated .division-copy .division-meta { margin-top: 14px; }
+  .experience-animated .division-link { margin-top: 14px; }
+  .experience-animated .start-copy h1 { font-size: 3rem; margin: 18px 0; }
+  .experience-animated .start-copy .start-message { margin-top: 14px; }
+  .experience-animated .start-actions { margin-top: 18px; }
+ }
 </style>

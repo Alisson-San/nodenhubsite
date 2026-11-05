@@ -1,0 +1,13 @@
+---
+import type {Campaign} from '../../lib/campaigns/types';
+interface Props {campaign:Campaign}
+const {campaign:c}=Astro.props;
+---
+<dialog class="campaign-dialog" data-campaign={JSON.stringify(c)} aria-labelledby={'campaign-title-'+c.id}>
+ <button type="button" class="close" data-campaign-close aria-label="Fechar destaque">×</button>
+ {c.imageUrl&&<img src={c.imageUrl} alt={c.imageAlt} width="600" height="320" loading="lazy" />}
+ <div class="body"><span>Novidades da Noden</span><h2 id={'campaign-title-'+c.id}>{c.title}</h2><p>{c.description}</p><a href={c.href} rel={c.href.startsWith('https:')?'noopener noreferrer':undefined}>{c.buttonLabel} ↗</a></div>
+</dialog>
+<style>
+dialog{position:fixed;inset:0;margin:auto;width:min(580px,calc(100% - 2rem));max-height:85dvh;padding:0;border:1px solid #756acf88;border-radius:24px;background:#141729;color:#f5f6fa;box-shadow:0 24px 100px #0009;font-family:Inter,system-ui,sans-serif;overflow:auto;overflow-wrap:anywhere}dialog::backdrop{background:#050812bb;backdrop-filter:blur(5px)}img{display:block;width:100%;height:clamp(150px,30vh,300px);object-fit:cover}.body{padding:1.7rem}.body>span{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:#b4cff5}h2{font-size:clamp(1.5rem,5vw,2.4rem);line-height:1.15;margin:.6rem 0}p{line-height:1.65;white-space:pre-line;color:#d1d5e4}a{display:inline-flex;align-items:center;min-height:46px;padding:0 1rem;border-radius:12px;background:#c7ccff;color:#17182c;text-decoration:none;font-weight:700}.close{position:absolute;right:10px;top:10px;width:44px;height:44px;border:1px solid #ffffff66;border-radius:50%;background:#13172dec;color:white;font-size:1.7rem;cursor:pointer}:is(button,a):focus-visible{outline:3px solid #8ad8ff;outline-offset:3px}
+</style>

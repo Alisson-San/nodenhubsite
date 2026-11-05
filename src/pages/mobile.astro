@@ -1,6 +1,11 @@
 ---
 export const prerender = false;
 
+import { splitHomeHighlights } from "../lib/site/homeContent";
+
+import Campaigns from "../components/campaigns/Campaigns.astro";
+import SiteFooter from "../components/common/SiteFooter.astro";
+
 import NodenMarkStatic from "../components/NodenMarkStatic-conectores-visiveis.astro";
 
 import {
@@ -39,27 +44,14 @@ const whatsappUrl =
 			content={site.description}
 		/>
 		<meta name="theme-color" content="#02050a" />
-		<link rel="canonical" href="/" />
+		<link rel="canonical" href={new URL("/", site.url)} />
 		<title>{site.name} — Technology Hub</title>
 
-		<script is:inline>
-			(() => {
-				const mobileBreakpoint = 820;
-				const currentPath = window.location.pathname.replace(/\/$/, "");
 
-				if (
-					window.innerWidth > mobileBreakpoint &&
-					currentPath === "/mobile"
-				) {
-					window.location.replace(
-						`/${window.location.search}${window.location.hash}`,
-					);
-				}
-			})();
-		</script>
 	</head>
 
 	<body>
+		<Campaigns page="/mobile" />
 		<header class="mobile-header">
 			<a class="mobile-logo" href="#inicio" aria-label="Noden — início">
 				<span>N</span>
@@ -93,15 +85,11 @@ const whatsappUrl =
 				<div class="hero-copy reveal">
 					<span class="section-kicker">NODEN TECHNOLOGY HUB</span>
 
-					<h1>
-						Tecnologia para
-						<span>resolver de verdade.</span>
-					</h1>
-
-					<p>
-						Suporte residencial, performance gamer e soluções em dados
-						reunidos em um só lugar.
-					</p>
+					<h1>{site.home.title}</h1>
+					<p>{site.home.description}</p>
+					<nav class="division-shortcuts" aria-label="Escolha uma divisão">
+						<a href="/home">Home</a><a href="/game">Game</a><a href="/data">Data</a>
+					</nav>
 
 					<div class="hero-actions">
 						<a class="primary-action" href="#servicos">
@@ -114,7 +102,7 @@ const whatsappUrl =
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							Falar no WhatsApp
+							{site.home.contactLabel}
 						</a>
 					</div>
 				</div>
@@ -130,16 +118,8 @@ const whatsappUrl =
 					<span class="section-index">01</span>
 					<span class="section-kicker">QUEM SOMOS</span>
 
-					<h2>
-						Um hub.
-						<span>Três frentes.</span>
-					</h2>
-
-					<p>
-						A Noden conecta serviços complementares para acompanhar você
-						desde as necessidades do dia a dia até projetos de performance,
-						automação e inteligência de dados.
-					</p>
+					<h2>{site.home.aboutTitle}</h2>
+					<p>{site.home.aboutDescription}</p>
 				</div>
 
 				<div class="coverage reveal">
@@ -165,7 +145,7 @@ const whatsappUrl =
 				</div>
 
 				<div class="service-stack">
-					<article class="mobile-service service-home reveal">
+					<article id="noden-home" tabindex="-1" class="mobile-service service-home reveal">
 						<div class="service-icon service-icon-home" aria-hidden="true">
 							<svg viewBox="0 0 120 120">
 								<path d="M 23 56 L 60 24 L 97 56" />
@@ -176,19 +156,11 @@ const whatsappUrl =
 
 						<div class="service-copy">
 							<span class="service-label">NODEN HOME</span>
-							<h3>Suporte técnico presencial para sua casa.</h3>
+							<h3>{site.home.homeTitle}</h3>
 
-							<p>
-								Atendimento residencial com diagnóstico claro,
-								instalações, manutenção e orientação.
-							</p>
+							<p>{site.home.homeDescription}</p>
 
-							<ul>
-								<li>Instalação e configuração de equipamentos</li>
-								<li>Limpeza, formatação e otimização</li>
-								<li>Upgrades de memória e SSD</li>
-								<li>Consultoria para dúvidas e problemas</li>
-							</ul>
+							<ul>{splitHomeHighlights(site.home.homeHighlights).map((item) => <li>{item}</li>)}</ul>
 
 							<a
 								class="service-page-link"
@@ -214,7 +186,7 @@ const whatsappUrl =
 						</div>
 					</article>
 
-					<article class="mobile-service service-game reveal">
+					<article id="noden-game" tabindex="-1" class="mobile-service service-game reveal">
 						<div class="service-icon service-icon-game" aria-hidden="true">
 							<svg viewBox="0 0 160 120">
 								<path d="M 43 36 H 117 C 137 36 147 54 142 73 L 136 92 C 132 106 117 110 106 99 L 92 82 H 68 L 54 99 C 43 110 28 106 24 92 L 18 73 C 13 54 23 36 43 36 Z" />
@@ -226,19 +198,11 @@ const whatsappUrl =
 
 						<div class="service-copy">
 							<span class="service-label">NODEN GAME</span>
-							<h3>Setup gamer pensado em otimização.</h3>
+							<h3>{site.home.gameTitle}</h3>
 
-							<p>
-								Montagem, revisão e evolução do setup com foco em
-								desempenho, estabilidade e custo-benefício.
-							</p>
+							<p>{site.home.gameDescription}</p>
 
-							<ul>
-								<li>Montagem e revisão completa do setup</li>
-								<li>Diagnóstico de gargalos</li>
-								<li>Upgrades e refrigeração</li>
-								<li>Consultoria de peças e compatibilidade</li>
-							</ul>
+							<ul>{splitHomeHighlights(site.home.gameHighlights).map((item) => <li>{item}</li>)}</ul>
 
 							<a
 								class="service-page-link"
@@ -264,7 +228,7 @@ const whatsappUrl =
 						</div>
 					</article>
 
-					<article class="mobile-service service-data reveal">
+					<article id="noden-data" tabindex="-1" class="mobile-service service-data reveal">
 						<div class="service-icon service-icon-data" aria-hidden="true">
 							<svg viewBox="0 0 120 120">
 								<ellipse cx="60" cy="31" rx="31" ry="13" />
@@ -275,19 +239,11 @@ const whatsappUrl =
 
 						<div class="service-copy">
 							<span class="service-label">NODEN DATA</span>
-							<h3>Dados organizados para decisões reais.</h3>
+							<h3>{site.home.dataTitle}</h3>
 
-							<p>
-								BI, analytics, automação e soluções de software para
-								transformar informação em resultado.
-							</p>
+							<p>{site.home.dataDescription}</p>
 
-							<ul>
-								<li>Dashboards e indicadores</li>
-								<li>Soluções de software e automação</li>
-								<li>Integração e tratamento de dados</li>
-								<li>BI, analytics e apoio à decisão</li>
-							</ul>
+							<ul>{splitHomeHighlights(site.home.dataHighlights).map((item) => <li>{item}</li>)}</ul>
 
 							<a
 								class="service-page-link"
@@ -315,7 +271,7 @@ const whatsappUrl =
 				</div>
 			</section>
 
-			<section class="contact mobile-section">
+			<section id="contato" class="contact mobile-section">
 				<div class="contact-mark reveal" aria-hidden="true">
 					<NodenMarkStatic idPrefix="mobile-contact-mark" />
 				</div>
@@ -323,14 +279,8 @@ const whatsappUrl =
 				<div class="contact-copy reveal">
 					<span class="section-kicker">NODEN</span>
 
-					<h2>
-						Várias demandas.
-						<span>Um só lugar.</span>
-					</h2>
-
-					<p>
-						Conte o que você precisa e vamos encontrar o melhor caminho.
-					</p>
+					<h2>{site.home.contactTitle}</h2>
+					<p>{site.home.contactDescription}</p>
 
 					<a
 						class="contact-button"
@@ -345,45 +295,26 @@ const whatsappUrl =
 							</svg>
 						</span>
 
-						<span>ENTRE EM CONTATO</span>
+						<span>{site.home.contactLabel}</span>
 					</a>
 				</div>
 			</section>
 		</main>
 
-		<footer>
-			<div class="footer-logo" aria-label="NODEN">
-				<span>N</span>
-
-				<span class="footer-logo-mark" aria-hidden="true">
-					<NodenMarkStatic idPrefix="mobile-footer-mark" />
-				</span>
-
-				<span>DEN</span>
-			</div>
-
-			<p>Technology Hub</p>
-		</footer>
+		<SiteFooter site={site} logoIdPrefix="mobile-shared-footer" />
 
 		<script>
-			const revealElements = document.querySelectorAll<HTMLElement>(".reveal");
-
-			const observer = new IntersectionObserver(
-				(entries) => {
+			// Animate only elements already entering view; content stays visible if JS fails.
+			if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+				const observer = new IntersectionObserver((entries) => {
 					entries.forEach((entry) => {
-						if (entry.isIntersecting) {
-							entry.target.classList.add("is-visible");
-							observer.unobserve(entry.target);
-						}
+						if (!entry.isIntersecting) return;
+						entry.target.animate([{ transform: "translateY(16px)" }, { transform: "none" }], { duration: 450, easing: "ease-out" });
+						observer.unobserve(entry.target);
 					});
-				},
-				{
-					threshold: 0.14,
-					rootMargin: "0px 0px -8% 0px",
-				},
-			);
-
-			revealElements.forEach((element) => observer.observe(element));
+				});
+				document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+			}
 		</script>
 	</body>
 </html>
@@ -878,34 +809,9 @@ const whatsappUrl =
 		fill: currentColor;
 	}
 
-	footer {
-		padding: 28px 20px 38px;
-		text-align: center;
-		border-top: 1px solid rgba(109, 141, 190, 0.11);
-		background: #02050a;
-	}
-
-	.footer-logo {
-		justify-content: center;
-	}
-
-	.footer-logo-mark {
-		display: inline-block;
-		width: 30px;
-		height: 30px;
-	}
-
-	footer p {
-		margin: 8px 0 0;
-		color: #5f718a;
-		font-size: 0.52rem;
-		letter-spacing: 0.24em;
-		text-transform: uppercase;
-	}
-
 	.reveal {
-		opacity: 0;
-		transform: translateY(24px);
+		opacity: 1;
+		transform: none;
 		transition:
 			opacity 700ms ease,
 			transform 700ms ease;
@@ -927,4 +833,18 @@ const whatsappUrl =
 			transition: none;
 		}
 	}
+</style>
+
+<style>
+ [id] { scroll-margin-top: 90px; }
+ a:focus-visible, [tabindex="-1"]:focus-visible { outline: 2px solid #8ccfff; outline-offset: 5px; }
+</style>
+
+<style>
+ .division-shortcuts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+ .division-shortcuts a { display: inline-flex; align-items: center; justify-content: center; min-width: 70px; min-height: 44px; padding: 10px 16px; border: 1px solid #30445e; border-radius: 12px; color: #dcecff; text-decoration: none; }
+ .hero { min-height: auto; padding-top: 110px; padding-bottom: 60px; }
+ .hero-mark { width: min(42vw, 170px); margin-bottom: 28px; }
+ .hero-copy h1 { font-size: clamp(2rem, 7.2vw, 3.6rem); }
+ .hero-scroll { position: relative; margin: 34px auto 0; inset: auto; transform: none; }
 </style>

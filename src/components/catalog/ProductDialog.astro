@@ -1,0 +1,16 @@
+---
+import type {RuntimeSiteConfig} from "../../types/site";
+import ProductDetails from './ProductDetails.astro';
+import type {PricingItem,ServiceDivision} from '../../types/services';
+import type {ProductDetail} from '../../lib/catalog/editorTypes';
+interface Props {site?:RuntimeSiteConfig;item:PricingItem;detail:ProductDetail;division:ServiceDivision;preview?:boolean}
+const {item,detail,division,preview=false}=Astro.props;const id='product-'+(item.id||detail.slug);
+---
+<dialog id={id} aria-label={item.name} class="product-dialog"><div class="dialog-bar">{preview?<span>Prévia dos detalhes</span>:<a href={'/produtos/'+detail.slug}>Ver detalhes completos ↗</a>}<button type="button" data-close-product aria-label="Fechar detalhes">✕</button></div><ProductDetails item={item} detail={detail} division={division} site={Astro.props.site}/></dialog>
+<script>
+document.addEventListener('click',event=>{const target=event.target as Element;const opener=target.closest<HTMLAnchorElement>('[data-product-dialog]');if(opener){const dialog=document.getElementById(opener.dataset.productDialog!) as HTMLDialogElement|null;if(dialog&&typeof dialog.showModal==='function'){event.preventDefault();dialog.showModal();}}const close=target.closest('[data-close-product]');if(close)(close.closest('dialog') as HTMLDialogElement).close();});
+document.querySelectorAll<HTMLDialogElement>('.product-dialog').forEach(dialog=>{dialog.addEventListener('close',()=>{dialog.querySelectorAll<HTMLIFrameElement>('iframe').forEach(frame=>{const button=document.createElement('button');button.type='button';button.dataset.videoUrl=frame.src;button.dataset.videoTitle=frame.title;button.textContent='▶ Assistir: '+frame.title;frame.replaceWith(button);});});dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});});
+</script>
+<style>
+.product-dialog{box-sizing:border-box;width:min(900px,calc(100% - 24px));max-height:90dvh;padding:clamp(18px,4vw,40px);border:1px solid #456387;border-radius:24px;background:#091321;color:white;overscroll-behavior:contain}.product-dialog::backdrop{background:#010713d9;backdrop-filter:blur(6px)}.dialog-bar{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:24px}.dialog-bar a{color:#b9d9ff}.dialog-bar button{min-width:44px;min-height:44px;border:1px solid #536c8e;border-radius:50%;background:#14243a;color:white;cursor:pointer}
+</style>

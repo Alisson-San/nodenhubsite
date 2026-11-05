@@ -1,4 +1,9 @@
 ---
+import type {RuntimeSiteConfig} from "../../types/site";
+import {loadSiteConfig} from "../../lib/site/siteRepository";
+import type {ProductDetail} from "../../lib/catalog/editorTypes";
+import ProductCard from "../catalog/ProductCard.astro";
+import {loadProductDetails} from "../../lib/catalog/productRepository";
 import {
 	formatCurrency,
 } from "../../lib/formatting";
@@ -18,6 +23,9 @@ import type {
 } from "../../types/services";
 
 interface Props {
+	site?: RuntimeSiteConfig;
+	productDetails?: Record<string,ProductDetail>;
+	preview?: boolean;
 	id?: string;
 	division: ServiceDivision;
 	eyebrow?: string;
@@ -45,6 +53,9 @@ const {
 	items,
 	disclaimer = "Os valores podem variar conforme o estado do equipamento, complexidade do serviço, peças necessárias e deslocamento.",
 } = Astro.props;
+
+const site = Astro.props.site ?? await loadSiteConfig();
+const productDetails = Astro.props.productDetails ?? await loadProductDetails(division);
 
 const titleId =
 	`${id}-title`;
@@ -126,6 +137,7 @@ const resolveWhatsAppUrl = (
 
 	return getWhatsAppUrl(
 		message,
+		site,
 	);
 };
 
@@ -484,6 +496,7 @@ const hasInteractiveControls =
 															item.price!
 														: 0;
 
+												if (item.id && productDetails[item.id]) return <ProductCard item={item} site={site} detail={productDetails[item.id]} division={division} preview={Astro.props.preview}/>;
 												return (
 													<article
 														class:list={[
