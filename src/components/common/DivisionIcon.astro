@@ -1,0 +1,44 @@
+---
+/**
+ * Ícone de cada divisão (casinha, controle, banco de dados), no sistema de
+ * coordenadas do anel da logo: centro em 0,0 e anel de raio 180.
+ * Use dentro de um <svg> ou <g>; traço e preenchimento vêm do pai
+ * (classe .fill para os botões do controle).
+ */
+import type { ServiceDivision } from "../../types/services";
+
+interface Props {
+	division: ServiceDivision;
+}
+
+const { division } = Astro.props;
+---
+
+{
+	division === "home" && (
+		<g transform="translate(0 6) scale(0.95)">
+			<path d="M -62 7 L 0 -48 L 62 7" />
+			<path d="M -45 0 V 70 H 45 V 0" />
+			<path d="M -15 70 V 28 H 15 V 70" />
+		</g>
+	)
+}
+{
+	division === "game" && (
+		<g transform="translate(0 -46) scale(0.72)">
+			<path d="M -95 -18 H 95 C 135 -18 158 20 148 65 L 137 108 C 128 142 92 151 66 124 L 34 84 H -34 L -66 124 C -92 151 -128 142 -137 108 L -148 65 C -158 20 -135 -18 -95 -18 Z" />
+			<path d="M -78 30 V 80 M -103 55 H -53" />
+			<circle class="fill" cx="77" cy="30" r="12" />
+			<circle class="fill" cx="103" cy="66" r="12" />
+		</g>
+	)
+}
+{
+	division === "data" && (
+		<g transform="translate(0 -12) scale(0.84)">
+			<ellipse cx="0" cy="-58" rx="72" ry="28" />
+			<path d="M -72 -58 V 0 C -72 25 -39 46 0 46 C 39 46 72 25 72 0 V -58" />
+			<path d="M -72 0 V 58 C -72 83 -39 104 0 104 C 39 104 72 83 72 58 V 0" />
+		</g>
+	)
+}

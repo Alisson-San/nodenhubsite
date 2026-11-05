@@ -1,0 +1,76 @@
+---
+/**
+ * Marca individual de cada divisão: o anel da logo Noden com o ícone
+ * da área (Home = casinha, Game = controle, Data = banco de dados).
+ */
+import DivisionIcon from "./DivisionIcon.astro";
+import { divisions } from "../../lib/site/divisions";
+import type { ServiceDivision } from "../../types/services";
+
+interface Props {
+	division: ServiceDivision;
+	/** Diâmetro em px; também aceita valores CSS. */
+	size?: number | string;
+	class?: string;
+	/** Fundo escuro: ícone claro. */
+	inverse?: boolean;
+	/** Quando false, recebe nome acessível. */
+	decorative?: boolean;
+}
+
+const { division, size = 48, class: className = "", inverse = false, decorative = true } = Astro.props;
+const gradients: Record<ServiceDivision, [string, string, string]> = {
+	home: ["#4236ff", "#1f69ff", "#13d5f2"],
+	game: ["#c52aff", "#8b31ff", "#3347ff"],
+	data: ["#2454ff", "#089dff", "#17d9ef"],
+};
+const id = `dm-${division}-${Math.random().toString(36).slice(2, 8)}`;
+const dimension = typeof size === "number" ? `${size}px` : size;
+---
+
+<svg
+	class:list={["division-mark", className, { "division-mark--inverse": inverse }]}
+	viewBox="-240 -240 480 480"
+	style={`width:${dimension};height:${dimension}`}
+	role={decorative ? undefined : "img"}
+	aria-hidden={decorative ? "true" : undefined}
+	aria-label={decorative ? undefined : divisions[division].name}
+	focusable="false"
+>
+	<defs>
+		<linearGradient id={id} x1="0%" y1="50%" x2="100%" y2="50%">
+			<stop offset="0%" stop-color={gradients[division][0]} />
+			<stop offset="50%" stop-color={gradients[division][1]} />
+			<stop offset="100%" stop-color={gradients[division][2]} />
+		</linearGradient>
+	</defs>
+	<circle r="180" fill="none" stroke={`url(#${id})`} stroke-width="64" />
+	<g class="division-mark__icon">
+		<DivisionIcon division={division} />
+	</g>
+</svg>
+
+<style>
+	.division-mark {
+		display: inline-block;
+		flex: none;
+		overflow: visible;
+	}
+	.division-mark__icon {
+		fill: none;
+		stroke: var(--ink);
+		stroke-width: 18;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.division-mark__icon :global(.fill) {
+		fill: var(--ink);
+		stroke: none;
+	}
+	.division-mark--inverse .division-mark__icon {
+		stroke: var(--white);
+	}
+	.division-mark--inverse .division-mark__icon :global(.fill) {
+		fill: var(--white);
+	}
+</style>

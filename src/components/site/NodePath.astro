@@ -1,0 +1,169 @@
+---
+import type { Promise as NodenPromise } from "../../lib/site/divisionContent";
+
+interface Props {
+	title: string;
+	steps: NodenPromise[];
+	areas?: string[];
+	editList?: string;
+	id?: string;
+}
+
+const { title, steps, areas, editList, id = "como-funciona" } = Astro.props;
+---
+
+<section class="path section" aria-labelledby={`${id}-titulo`} id={id}>
+	<div class="wrap">
+		<h2 class="h2" id={`${id}-titulo`}>{title}</h2>
+		<ol class="path__list" data-edit-list={editList} style={`--steps:${steps.length}`}>
+			{
+				steps.map((step, index) => (
+					<li style={`--i:${index}`}>
+						<span class="path__node" aria-hidden="true">
+							{index + 1}
+						</span>
+						<h3 class="h3">{step.title}</h3>
+						<p>{step.text}</p>
+					</li>
+				))
+			}
+		</ol>
+		{
+			areas && areas.length > 0 && (
+				<p class="path__areas">
+					Busca e entrega em <strong>{areas.join(" · ")}</strong>.
+				</p>
+			)
+		}
+	</div>
+</section>
+
+<style>
+	.path {
+		background: var(--white);
+		border-bottom: var(--border);
+	}
+	.path__list {
+		position: relative;
+		list-style: none;
+		margin: clamp(32px, 5vw, 56px) 0 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(var(--steps), minmax(0, 1fr));
+		gap: 28px;
+	}
+	/* Linha que liga os nós, com um pacote percorrendo o caminho */
+	.path__list::before {
+		content: "";
+		position: absolute;
+		left: 36px;
+		right: 36px;
+		top: 36px;
+		border-top: 3px dashed var(--ink);
+	}
+	.path__list::after {
+		content: "";
+		position: absolute;
+		top: 29px;
+		left: 36px;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: var(--violet);
+		box-shadow: 0 0 0 4px var(--white);
+		animation: packet 6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+	}
+	@keyframes packet {
+		0% {
+			left: 36px;
+			background: var(--cyan);
+		}
+		50% {
+			background: var(--indigo);
+		}
+		100% {
+			left: calc(100% - 52px);
+			background: var(--violet);
+		}
+	}
+	.path__list li {
+		position: relative;
+		display: grid;
+		gap: 10px;
+		align-content: start;
+	}
+	.path__node {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: 72px;
+		height: 72px;
+		border-radius: 50%;
+		border: 12px solid var(--cyan);
+		outline: 2px solid var(--ink);
+		background: var(--white);
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: 1.5rem;
+		margin-bottom: 8px;
+	}
+	.path__list li:nth-child(3n + 2) .path__node {
+		border-color: var(--indigo);
+	}
+	.path__list li:nth-child(3n + 3) .path__node {
+		border-color: var(--violet);
+	}
+	:global([data-division]) .path__node {
+		border-color: var(--accent) !important;
+	}
+	.path__list p {
+		color: var(--ink-2);
+	}
+	.path__areas {
+		margin-top: 28px;
+		font-size: 1.05rem;
+	}
+	@media (max-width: 760px) {
+		.path__list {
+			grid-template-columns: 1fr;
+			gap: 26px;
+			padding-left: 92px;
+		}
+		.path__list::before {
+			left: 35px;
+			right: auto;
+			top: 36px;
+			bottom: 36px;
+			border-top: 0;
+			border-left: 3px dashed var(--ink);
+		}
+		.path__list::after {
+			left: 29px;
+			animation-name: packet-vertical;
+		}
+		@keyframes packet-vertical {
+			0% {
+				top: 29px;
+				background: var(--cyan);
+			}
+			50% {
+				background: var(--indigo);
+			}
+			100% {
+				top: calc(100% - 52px);
+				background: var(--violet);
+			}
+		}
+		.path__node {
+			position: absolute;
+			left: -92px;
+			top: -4px;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.path__list::after {
+			animation: none;
+		}
+	}
+</style>

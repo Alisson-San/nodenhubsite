@@ -9,6 +9,8 @@ const os = require('os');
 const base = process.argv[2] || 'http://localhost:4321';
 const out = process.argv[3] || fs.mkdtempSync(path.join(os.tmpdir(), 'noden-site-'));
 const pages = ['/', '/noden-home', '/noden-game', '/noden-data', '/links'];
+// A apresentação da inicial é longa por definição (rolagem guiada); a verificação
+// de rolagem horizontal vale para todas as páginas.
 const sizes = [[320, 740], [390, 844], [768, 1024], [910, 698], [1440, 900], [740, 360]];
 let failures = 0;
 const check = (ok, label) => {
@@ -77,11 +79,39 @@ const check = (ok, label) => {
 	}
 	check((await fetch(base + '/pagina-que-nao-existe')).status === 404, 'página inexistente responde 404');
 
-	// Movimento reduzido: sem transições longas
-	const reduced = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
-	await reduced.goto(base + '/', { waitUntil: 'networkidle' });
-	const duration = await reduced.locator('.ring-link').first().evaluate((el) => getComputedStyle(el).transitionDuration);
-	check(parseFloat(duration) < 0.01, `movimento reduzido respeitado (${duration})`);
+	// Apresentação dos três nós
+	const story = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+	await story.goto(base + '/', { waitUntil: 'networkidle' });
+	check(await story.locator('[data-story]').evaluate((el) => el.classList.contains('story--live')), 'apresentação animada ativa no desktop');
+	await story.click('[data-story-rail] [data-story-goto="3"]');
+	await story.waitForTimeout(1500);
+	check(await story.locator('#apresentacao-game').evaluate((el) => el.classList.contains('is-active')), 'trilha lateral leva ao ato Noden Game');
+	await story.evaluate(() => window.scrollTo(0, 0));
+	await story.waitForTimeout(400);
+	await story.locator('#apresentacao-data a.btn').focus();
+	await story.waitForTimeout(600);
+	check(await story.locator('#apresentacao-data').evaluate((el) => el.classList.contains('is-active')), 'foco por teclado leva a cena ao ato do link');
+	const storyEnd = await story.evaluate(() => { const r = document.querySelector('[data-story]'); return r.offsetTop + r.offsetHeight - window.innerHeight; });
+	await story.evaluate((y) => window.scrollTo(0, y), storyEnd);
+	await story.waitForTimeout(800);
+	const wordmark = Number(await story.locator('[data-wordmark]').getAttribute('opacity'));
+	check(wordmark > 0.95, `fim da apresentação forma NODEN HUB (opacidade ${wordmark})`);
+	await story.close();
+
+	for (const [label, options] of [['movimento reduzido', { reducedMotion: 'reduce' }], ['sem JavaScript', { javaScriptEnabled: false }]]) {
+		const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, ...options });
+		await page.goto(base + '/', { waitUntil: 'networkidle' });
+		const live = await page.locator('[data-story]').evaluate((el) => el.classList.contains('story--live'));
+		const visible = await page.locator('[data-act]').evaluateAll((els) => els.filter((el) => getComputedStyle(el).opacity === '1' && el.getBoundingClientRect().height > 0).length);
+		check(!live && visible === 6, `${label}: leitura normal com os 6 atos visíveis (${visible})`);
+		await page.close();
+	}
+
+	// Tela baixa: texto não cabe na cena fixa → leitura normal
+	const low = await browser.newPage({ viewport: { width: 360, height: 560 } });
+	await low.goto(base + '/', { waitUntil: 'networkidle' });
+	check(!(await low.locator('[data-story]').evaluate((el) => el.classList.contains('story--live'))), 'tela baixa usa leitura normal');
+	await low.close();
 
 	await browser.close();
 	console.log(`\n${failures} falha(s). Capturas em ${out}`);

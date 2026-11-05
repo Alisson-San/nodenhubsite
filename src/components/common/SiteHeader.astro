@@ -1,6 +1,7 @@
 ---
 import SiteLogo from "./SiteLogo.astro";
 import WhatsAppIcon from "./WhatsAppIcon.astro";
+import DivisionMark from "./DivisionMark.astro";
 import { getWhatsAppUrl, siteConfig } from "../../config/site";
 import { divisionOrder, divisions } from "../../lib/site/divisions";
 import type { RuntimeSiteConfig } from "../../types/site";
@@ -30,7 +31,7 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 								data-division={id}
 								aria-current={current === id ? "page" : undefined}
 							>
-								<span class="dot" aria-hidden="true" />
+								<DivisionMark division={id} size={26} />
 								{divisions[id].name}
 							</a>
 						</li>
@@ -65,7 +66,7 @@ const whatsappUrl = getWhatsAppUrl(whatsappMessage, site);
 					divisionOrder.map((id) => (
 						<li>
 							<a href={divisions[id].path} data-division={id} aria-current={current === id ? "page" : undefined}>
-								<span class="dot" aria-hidden="true" />
+								<DivisionMark division={id} size={44} />
 								<span>
 									<strong>{divisions[id].name}</strong>
 									<small>{divisions[id].audience}</small>

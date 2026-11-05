@@ -19,8 +19,8 @@ export const divisions: Record<ServiceDivision, DivisionMeta> = {
 		path: "/noden-home",
 		legacyPath: "/home",
 		name: "Noden Home",
-		audience: "Para sua casa",
-		pitch: "Computador, notebook, internet e Wi-Fi resolvidos sem você sair de casa.",
+		audience: "Casa e dia a dia",
+		pitch: "Tecnologia do dia a dia, para sua casa e para você: computador, notebook, internet e Wi-Fi.",
 	},
 	game: {
 		id: "game",

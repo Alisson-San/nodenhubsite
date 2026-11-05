@@ -61,3 +61,20 @@ O editor antigo (`/admin/editor`, agora "Editor de produtos") continua para míd
 - Imagens e mídias de produto continuam no "Editor de produtos" do painel.
 - Alertas anteriores do Supabase (`write_audit_log`, proteção de senhas vazadas) seguem pendentes.
 - `npm audit`: 4 moderados de build (glob/minimatch via adaptador Vercel); correção exigiria rebaixar o adaptador.
+
+## Atualização — apresentação dos três nós
+A ideia original da inicial voltou, refeita sem GSAP (`src/components/site/NodeStory.astro` + `src/lib/site/nodeStory.ts`, ~6 KB):
+
+0. Logo Noden unida (geometria e gradientes da logo oficial).
+1. Os nós se separam e formam uma rede, com pacotes circulando entre eles e os ícones aparecendo.
+2–4. Cada divisão ganha o centro com sua marca: Noden Home (casinha, anel de cima), Noden Game (controle, esquerda), Noden Data (banco de dados, direita). Texto, destaques e preço "a partir de" ao lado.
+5. Os nós voltam às posições da logo, os conectores se desenham e surge **N◎DEN HUB**: o centro que conecta as três.
+
+- Trilha lateral com os seis atos, link "Pular apresentação" e links diretos (`/#apresentacao-game`).
+- O texto de todos os atos continua acessível a leitores de tela e teclado; ao receber foco, a cena vai até o ato.
+- Leitura normal (sem fixar a cena) com movimento reduzido, sem JavaScript, em tela baixa, quando algum texto não cabe, e no modo de edição.
+- Testado em 1440×900, 1280×720, 1024×768, 910×698, 768×1024, 740×600 e 390×844. Em 360×640 o texto não cabe e a página usa leitura normal.
+
+Marcas individuais (`DivisionMark`/`DivisionIcon`, recuperadas da versão anterior): menu, rodapé, links, abertura de cada divisão (mini-rede com a divisão ligada às outras duas), cartões e faixa de serviços.
+Também novos: faixa contínua de serviços (`ServiceTicker`) e "Como funciona" como caminho de nós com um pacote percorrendo (`NodePath`), nas páginas das divisões e na inicial.
+Textos editáveis novos: `storyTitle` e `storyDescription` (fim da apresentação).

@@ -4,7 +4,7 @@ import Campaigns from "../campaigns/Campaigns.astro";
 import DivisionHero from "../site/DivisionHero.astro";
 import PromiseBar from "../site/PromiseBar.astro";
 import Solutions from "../site/Solutions.astro";
-import Steps from "../site/Steps.astro";
+import NodePath from "../site/NodePath.astro";
 import Catalog from "../site/Catalog.astro";
 import ClosingCta from "../site/ClosingCta.astro";
 import OtherDivisions from "../site/OtherDivisions.astro";
@@ -71,7 +71,7 @@ if (editable) {
 		editable={editable}
 	/>
 
-	<Steps steps={extras.steps} editList={editable ? "steps" : undefined} />
+	<NodePath title="Como funciona" steps={extras.steps} areas={division === "data" ? undefined : site.serviceAreas} editList={editable ? "steps" : undefined} />
 
 	<Catalog
 		site={site}

@@ -3,19 +3,18 @@ export const prerender = false;
 
 import PublicLayout from "../layouts/PublicLayout.astro";
 import Campaigns from "../components/campaigns/Campaigns.astro";
-import WhatsAppIcon from "../components/common/WhatsAppIcon.astro";
 import ClosingCta from "../components/site/ClosingCta.astro";
+import NodeStory from "../components/site/NodeStory.astro";
+import ServiceTicker from "../components/site/ServiceTicker.astro";
+import NodePath from "../components/site/NodePath.astro";
 import HomeEditor from "../components/editor/HomeEditor.astro";
 
 import { getWhatsAppUrl } from "../config/site";
-import { formatCurrency } from "../lib/formatting";
-import { divisionOrder, divisions } from "../lib/site/divisions";
 import { loadHomeView } from "../lib/site/homeView";
-import { splitHomeHighlights } from "../lib/site/homeContent";
-import type { ServiceDivision } from "../types/services";
 
 const { site, content, startingPrices, editor } = await loadHomeView(Astro);
 if (editor) Astro.response.headers.set("Cache-Control", "private, no-store");
+const whatsappUrl = getWhatsAppUrl(undefined, site);
 
 const promises = [
 	{ title: "Atendimento no mesmo dia", text: "Chamou cedo, encaixamos na agenda do dia." },
@@ -23,12 +22,6 @@ const promises = [
 	{ title: "Avaliação remota grátis", text: "Mande foto ou vídeo e descubra o próximo passo." },
 	{ title: "Orçamento antes", text: "Nenhum serviço começa sem o seu ok." },
 ];
-
-const cards: Record<ServiceDivision, { title: string; description: string; highlights: string[]; meta: string }> = {
-	home: { title: content.homeTitle, description: content.homeDescription, highlights: splitHomeHighlights(content.homeHighlights), meta: content.homeMeta },
-	game: { title: content.gameTitle, description: content.gameDescription, highlights: splitHomeHighlights(content.gameHighlights), meta: content.gameMeta },
-	data: { title: content.dataTitle, description: content.dataDescription, highlights: splitHomeHighlights(content.dataHighlights), meta: content.dataMeta },
-};
 
 const steps = [
 	{ title: "Chame no WhatsApp", text: "Conte o problema. Foto e vídeo ajudam." },
@@ -48,35 +41,9 @@ const steps = [
 >
 	{!editor && <Campaigns page="/" />}
 
-	<section class="start-hero" aria-labelledby="inicio-titulo">
-		<div class="wrap start-hero__grid">
-			<div class="start-hero__copy">
-				<p class="kicker">Noden · {site.serviceAreas.slice(0, 2).join(", ")} e região</p>
-				<h1 class="display" id="inicio-titulo" data-home-field="title">{content.title}</h1>
-				<p class="lead" data-home-field="description">{content.description}</p>
-				<div class="start-hero__actions">
-					<a class="btn btn--whatsapp" href={getWhatsAppUrl(undefined, site)} target="_blank" rel="noopener">
-						<WhatsAppIcon />
-						<span>{content.contactLabel}</span>
-					</a>
-					<a class="link-arrow" href="#frentes">Ver o que fazemos <span aria-hidden="true">↓</span></a>
-				</div>
-			</div>
+	<NodeStory content={content} startingPrices={startingPrices} whatsappUrl={whatsappUrl} areas={site.serviceAreas} />
 
-			<nav class="rings" aria-label="Escolha a divisão">
-				{
-					divisionOrder.map((id) => (
-						<a class:list={["ring-link", `ring-link--${id}`]} href={divisions[id].path} data-division={id}>
-							<span class="ring-link__inner">
-								<small>{cards[id].meta}</small>
-								<strong>{divisions[id].name.replace("Noden ", "")}</strong>
-							</span>
-						</a>
-					))
-				}
-			</nav>
-		</div>
-	</section>
+	<ServiceTicker />
 
 	<section class="start-promises" aria-label="Por que chamar a Noden">
 		<div class="wrap">
@@ -93,75 +60,13 @@ const steps = [
 		</div>
 	</section>
 
-	<section class="fronts section" id="frentes" aria-labelledby="frentes-titulo">
-		<div class="wrap">
-			<header class="fronts__head">
-				<h2 class="h2" id="frentes-titulo" data-home-field="aboutTitle">{content.aboutTitle}</h2>
-				<p class="lead" data-home-field="aboutDescription">{content.aboutDescription}</p>
-			</header>
-
-			<div class="fronts__list">
-				{
-					divisionOrder.map((id, index) => (
-						<article class="front" data-division={id} aria-labelledby={`frente-${id}`}>
-							<div class="front__side">
-								<span class="front__n" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-								<p class="front__meta" data-home-field={`${id}Meta`}>{cards[id].meta}</p>
-								<p class="front__name">{divisions[id].name}</p>
-								{startingPrices[id] !== null && (
-									<p class="front__price">
-										<small>Serviços a partir de</small>
-										<strong>{formatCurrency(startingPrices[id]!)}</strong>
-									</p>
-								)}
-							</div>
-							<div class="front__main">
-								<h3 class="h2" id={`frente-${id}`} data-home-field={`${id}Title`}>{cards[id].title}</h3>
-								<p class="front__desc" data-home-field={`${id}Description`}>{cards[id].description}</p>
-								<ul class="front__highlights" data-home-field={`${id}Highlights`} data-home-list>
-									{cards[id].highlights.map((h) => (
-										<li>{h}</li>
-									))}
-								</ul>
-								<div class="front__actions">
-									<a class="btn btn--accent" href={divisions[id].path}>
-										Ver {divisions[id].name} <span aria-hidden="true">→</span>
-									</a>
-									<a class="link-arrow" href={`${divisions[id].path}#precos`}>Ver preços</a>
-								</div>
-							</div>
-						</article>
-					))
-				}
-			</div>
-		</div>
-	</section>
-
-	<section class="start-steps section" aria-labelledby="como-titulo">
-		<div class="wrap">
-			<h2 class="h2" id="como-titulo">Do WhatsApp ao equipamento funcionando.</h2>
-			<ol class="start-steps__list">
-				{
-					steps.map((step, i) => (
-						<li>
-							<span aria-hidden="true">{i + 1}</span>
-							<h3 class="h3">{step.title}</h3>
-							<p>{step.text}</p>
-						</li>
-					))
-				}
-			</ol>
-			<p class="start-steps__areas">
-				Busca e entrega em <strong>{site.serviceAreas.join(" · ")}</strong>.
-			</p>
-		</div>
-	</section>
+	<NodePath title="Do WhatsApp ao equipamento funcionando." steps={steps} areas={site.serviceAreas} />
 
 	<ClosingCta
 		title={content.contactTitle}
 		description={content.contactDescription}
 		buttonLabel={content.contactLabel}
-		buttonHref={getWhatsAppUrl(undefined, site)}
+		buttonHref={whatsappUrl}
 		editTarget="home"
 	/>
 
@@ -169,298 +74,10 @@ const steps = [
 </PublicLayout>
 
 <style>
-	.start-hero {
-		overflow: hidden;
-		border-bottom: var(--border);
-	}
-	.start-hero__grid {
-		display: grid;
-		grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-		gap: clamp(32px, 5vw, 64px);
-		align-items: center;
-		padding-block: clamp(36px, 6vw, 88px) clamp(48px, 7vw, 100px);
-	}
-	.start-hero .kicker {
-		margin-bottom: 20px;
-	}
-	.start-hero h1 {
-		max-width: 14ch;
-		font-size: clamp(2.6rem, 6.6vw, 5.6rem);
-	}
-	.start-hero .lead {
-		margin-top: 24px;
-	}
-	.start-hero__actions {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 16px 28px;
-		margin-top: 32px;
-	}
-
-	/* Três anéis da marca = três divisões */
-	.rings {
-		position: relative;
-		width: min(100%, 520px);
-		aspect-ratio: 1 / 0.95;
-		margin-inline: auto;
-	}
-	.ring-link {
-		position: absolute;
-		width: 56%;
-		aspect-ratio: 1;
-		border-radius: 50%;
-		border: clamp(16px, 3vw, 30px) solid var(--accent);
-		display: grid;
-		place-items: center;
-		text-align: center;
-		text-decoration: none;
-		color: var(--ink);
-		background: transparent;
-		transition: background 0.2s ease, transform 0.2s ease;
-	}
-	.ring-link--data {
-		top: 0;
-		left: 22%;
-	}
-	.ring-link--game {
-		bottom: 0;
-		left: 0;
-	}
-	.ring-link--home {
-		bottom: 0;
-		right: 0;
-	}
-	.ring-link:hover,
-	.ring-link:focus-visible {
-		background: var(--accent);
-		color: var(--on-accent);
-		transform: scale(1.03);
-		z-index: 2;
-	}
-	.ring-link:focus-visible {
-		outline: 3px solid var(--ink);
-		outline-offset: 4px;
-		box-shadow: none;
-		border-radius: 50%;
-	}
-	.ring-link__inner {
-		display: grid;
-		gap: 2px;
-		padding: 10px;
-		background: var(--paper);
-		border-radius: 12px;
-	}
-	.ring-link:hover .ring-link__inner,
-	.ring-link:focus-visible .ring-link__inner {
-		background: transparent;
-	}
-	.ring-link small {
-		font-weight: 700;
-		font-size: 0.85rem;
-	}
-	.ring-link strong {
-		font-family: var(--font-display);
-		font-size: clamp(1.5rem, 3vw, 2.2rem);
-		letter-spacing: -0.03em;
-		line-height: 1;
-	}
-
 	.start-promises {
-		padding-top: clamp(28px, 5vw, 56px);
+		padding-block: clamp(32px, 5vw, 64px) 0;
 	}
 	.start-promises .promise-list {
 		box-shadow: var(--shadow);
-	}
-
-	.fronts__head {
-		display: grid;
-		gap: 14px;
-		margin-bottom: clamp(32px, 5vw, 56px);
-	}
-	.fronts__list {
-		display: grid;
-		gap: 28px;
-	}
-	.front {
-		display: grid;
-		grid-template-columns: minmax(220px, 0.8fr) minmax(0, 2fr);
-		border: var(--border);
-		border-radius: calc(var(--radius) + 6px);
-		background: var(--white);
-		overflow: hidden;
-		box-shadow: 8px 8px 0 var(--accent);
-	}
-	.front__side {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		padding: clamp(22px, 3vw, 36px);
-		background: var(--accent);
-		color: var(--on-accent);
-		border-right: var(--border);
-	}
-	.front__n {
-		font-family: var(--font-display);
-		font-size: 1rem;
-		font-weight: 800;
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-		border: 2px solid currentColor;
-		display: grid;
-		place-items: center;
-		margin-bottom: 18px;
-	}
-	.front__meta {
-		font-weight: 700;
-	}
-	.front__name {
-		font-family: var(--font-display);
-		font-weight: 800;
-		font-size: clamp(1.8rem, 3vw, 2.4rem);
-		letter-spacing: -0.03em;
-		line-height: 1;
-	}
-	.front__price {
-		margin-top: auto;
-		padding-top: 28px;
-		display: grid;
-	}
-	.front__price small {
-		font-weight: 700;
-	}
-	.front__price strong {
-		font-family: var(--font-display);
-		font-size: clamp(2rem, 4vw, 2.8rem);
-		font-weight: 800;
-		letter-spacing: -0.03em;
-		line-height: 1;
-	}
-	.front__main {
-		display: grid;
-		gap: 18px;
-		align-content: start;
-		padding: clamp(22px, 3.5vw, 44px);
-	}
-	.front__main h3 {
-		font-size: clamp(1.8rem, 4vw, 3rem);
-		max-width: 18ch;
-	}
-	.front__desc {
-		font-size: 1.1rem;
-		color: var(--ink-2);
-		max-width: 58ch;
-	}
-	.front__highlights {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-	}
-	.front__highlights li {
-		padding: 6px 14px;
-		border: 1.5px solid var(--ink);
-		border-radius: 999px;
-		background: var(--accent-soft);
-		font-weight: 600;
-		font-size: 0.95rem;
-	}
-	.front__actions {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 14px 26px;
-		margin-top: 6px;
-	}
-
-	.start-steps {
-		background: var(--white);
-		border-top: var(--border);
-	}
-	.start-steps__list {
-		list-style: none;
-		margin: clamp(28px, 5vw, 48px) 0 0;
-		padding: 0;
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-		gap: 0;
-		border: var(--border);
-		border-radius: var(--radius);
-		overflow: hidden;
-	}
-	.start-steps__list li {
-		display: grid;
-		gap: 8px;
-		align-content: start;
-		padding: 26px;
-		border-right: var(--border);
-		border-bottom: var(--border);
-		margin: 0 -2px -2px 0;
-	}
-	.start-steps__list li span {
-		font-family: var(--font-display);
-		font-weight: 800;
-		font-size: 3rem;
-		line-height: 1;
-		background: var(--brand-gradient);
-		-webkit-background-clip: text;
-		background-clip: text;
-		color: transparent;
-	}
-	.start-steps__list li:nth-child(1) span {
-		background: none;
-		color: var(--cyan-text);
-	}
-	.start-steps__list li:nth-child(2) span {
-		background: none;
-		color: var(--indigo-text);
-	}
-	.start-steps__list li:nth-child(3) span {
-		background: none;
-		color: var(--violet-text);
-	}
-	.start-steps__list li:nth-child(4) span {
-		background: none;
-		color: var(--ink);
-	}
-	.start-steps__list p {
-		color: var(--ink-2);
-	}
-	.start-steps__areas {
-		margin-top: 22px;
-		font-size: 1.05rem;
-	}
-
-	@media (max-width: 900px) {
-		.start-hero__grid {
-			grid-template-columns: 1fr;
-		}
-		.rings {
-			width: min(100%, 400px);
-		}
-		.front {
-			grid-template-columns: 1fr;
-		}
-		.front__side {
-			border-right: 0;
-			border-bottom: var(--border);
-		}
-		.front__price {
-			padding-top: 14px;
-		}
-	}
-	@media (max-width: 520px) {
-		.start-hero__actions .btn {
-			width: 100%;
-		}
-		.ring-link strong {
-			font-size: 1.35rem;
-		}
-		.ring-link small {
-			font-size: 0.75rem;
-		}
 	}
 </style>

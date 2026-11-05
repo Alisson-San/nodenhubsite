@@ -1,6 +1,7 @@
 ---
 import SiteLogo from "./SiteLogo.astro";
 import WhatsAppIcon from "./WhatsAppIcon.astro";
+import DivisionMark from "./DivisionMark.astro";
 import { getWhatsAppUrl, siteConfig } from "../../config/site";
 import { divisionOrder, divisions } from "../../lib/site/divisions";
 import type { RuntimeSiteConfig } from "../../types/site";
@@ -32,7 +33,7 @@ const socials = site.socialLinks.filter((link) => link.isActive && link.platform
 					divisionOrder.map((id) => (
 						<li data-division={id}>
 							<a href={divisions[id].path}>
-								<span class="dot" aria-hidden="true" />
+								<DivisionMark division={id} size={28} inverse />
 								{divisions[id].name}
 							</a>
 						</li>

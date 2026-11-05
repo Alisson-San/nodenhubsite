@@ -4,6 +4,7 @@ export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SiteLogo from "../components/common/SiteLogo.astro";
 import WhatsAppIcon from "../components/common/WhatsAppIcon.astro";
+import DivisionMark from "../components/common/DivisionMark.astro";
 import { buildLinkItems } from "../data/links";
 import { loadSiteConfig } from "../lib/site/siteRepository";
 import { divisionOrder, divisions } from "../lib/site/divisions";
@@ -35,7 +36,7 @@ const [whatsapp, ...contacts] = buildLinkItems(site).filter((item) => item.href 
 			{
 				divisionOrder.map((id) => (
 					<a class="link-row" href={divisions[id].path} data-division={id}>
-						<span class="link-row__ring" aria-hidden="true" />
+						<DivisionMark division={id} size={48} />
 						<span>
 							<strong>{divisions[id].name}</strong>
 							<small>{divisions[id].pitch}</small>

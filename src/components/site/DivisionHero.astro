@@ -1,5 +1,8 @@
 ---
 import WhatsAppIcon from "../common/WhatsAppIcon.astro";
+import DivisionMark from "../common/DivisionMark.astro";
+import DivisionIcon from "../common/DivisionIcon.astro";
+import { divisionOrder } from "../../lib/site/divisions";
 import { divisions } from "../../lib/site/divisions";
 import type { DivisionExtras } from "../../lib/site/divisionContent";
 import type { ServiceDivision, ServiceItem } from "../../types/services";
@@ -42,6 +45,9 @@ const sentence = (value: string) =>
 const eyebrowText = sentence(eyebrow.trim());
 const showEyebrow = eyebrowText.toLocaleLowerCase("pt-BR") !== meta.name.toLocaleLowerCase("pt-BR");
 const visibleServices = services.filter((s) => !s.inactive).slice(0, 5);
+// As outras duas divisões, ligadas à atual (a rede Noden).
+const siblingSpots: [number, number][] = [[110, 90], [560, 470]];
+const siblings = divisionOrder.filter((id) => id !== division).map((id, i): [ServiceDivision, number, number] => [id, ...siblingSpots[i]]);
 const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "Decisão com clareza"];
 ---
 
@@ -49,7 +55,7 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 	<div class="wrap hero__grid">
 		<div class="hero__copy">
 			<p class="hero__eyebrow">
-				<span class="hero__badge">{meta.name}</span>
+				<span class="hero__badge"><DivisionMark division={division} size={30} inverse={division !== "home"} />{meta.name}</span>
 				<span data-edit-field="hero_eyebrow" hidden={!showEyebrow}>{eyebrowText}</span>
 			</p>
 			<h1 class="display hero__title" id="hero-titulo" data-edit-field="hero_title">{title}</h1>
@@ -76,11 +82,26 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		</div>
 
 		<div class="hero__visual">
-			<div class="hero__rings" aria-hidden="true">
-				<span class="r r1"></span>
-				<span class="r r2"></span>
-				<span class="r r3"></span>
-			</div>
+			<svg class="hero__net" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
+				<defs>
+					<linearGradient id="hn-home" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#4236ff" /><stop offset="45%" stop-color="#1f69ff" /><stop offset="100%" stop-color="#13d5f2" /></linearGradient>
+					<linearGradient id="hn-game" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#c52aff" /><stop offset="55%" stop-color="#8b31ff" /><stop offset="100%" stop-color="#3347ff" /></linearGradient>
+					<linearGradient id="hn-data" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#2454ff" /><stop offset="50%" stop-color="#089dff" /><stop offset="100%" stop-color="#17d9ef" /></linearGradient>
+				</defs>
+				{siblings.map(([, x, y]) => <line class="hero__edge" x1="400" y1="160" x2={x} y2={y} />)}
+				<circle class="hero__packet" r="9" />
+				{siblings.map(([id, x, y]) => (
+					<g transform={`translate(${x} ${y}) scale(0.3)`} class="hero__sibling">
+						<circle r="180" fill="var(--paper)" stroke={`url(#hn-${id})`} stroke-width="70" />
+						<g class="hero__icon"><DivisionIcon division={id} /></g>
+					</g>
+				))}
+				<g class="hero__main" transform="translate(400 160) scale(0.8)">
+					<circle r="180" class="hero__main-fill" />
+					<circle r="180" fill="none" stroke={`url(#hn-${division})`} stroke-width="70" class="hero__main-ring" />
+					<g class="hero__icon"><DivisionIcon division={division} /></g>
+				</g>
+			</svg>
 
 			{
 				division === "home" && (
@@ -161,6 +182,9 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		margin-bottom: 22px;
 	}
 	.hero__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
 		padding: 6px 14px;
 		border: 2px solid currentColor;
 		border-radius: 999px;
@@ -221,47 +245,77 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 	/* Visual */
 	.hero__visual {
 		position: relative;
-		min-height: 360px;
+		min-height: 600px;
 		display: grid;
-		place-items: center;
+		align-items: end;
+		justify-items: start;
 	}
-	.hero__rings {
+	.hero__net {
 		position: absolute;
-		inset: -10% -18% -10% 0;
-		pointer-events: none;
-	}
-	.r {
-		position: absolute;
-		border-radius: 50%;
+		top: -6%;
+		right: -10%;
+		width: 112%;
+		height: auto;
 		aspect-ratio: 1;
-		border: clamp(18px, 2.6vw, 34px) solid;
+		pointer-events: none;
+		overflow: visible;
 	}
-	.r1 {
-		width: 62%;
-		top: -4%;
-		left: 22%;
-		border-color: var(--indigo);
+	.hero__edge {
+		stroke: currentColor;
+		stroke-width: 3;
+		stroke-dasharray: 2 12;
+		stroke-linecap: round;
+		opacity: 0.6;
 	}
-	.r2 {
-		width: 54%;
-		bottom: -6%;
-		left: -2%;
-		border-color: var(--violet);
+	.hero__packet {
+		fill: currentColor;
+		offset-path: path("M 110 90 L 400 160 L 560 470");
+		animation: hero-packet 5s ease-in-out infinite alternate;
 	}
-	.r3 {
-		width: 58%;
-		bottom: -12%;
-		right: -4%;
-		border-color: var(--cyan);
+	@keyframes hero-packet {
+		from {
+			offset-distance: 0%;
+		}
+		to {
+			offset-distance: 100%;
+		}
 	}
-	:global([data-division="home"]) .r3,
-	:global([data-division="data"]) .r1 {
-		border-color: var(--white);
+	.hero__icon {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 16;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
-	:global([data-division="game"]) .r2 {
-		border-color: var(--white);
+	.hero__icon :global(.fill) {
+		fill: currentColor;
+		stroke: none;
 	}
-
+	.hero__sibling .hero__icon {
+		stroke: var(--ink);
+		stroke-width: 22;
+	}
+	.hero__sibling .hero__icon :global(.fill) {
+		fill: var(--ink);
+	}
+	.hero__main-fill {
+		fill: color-mix(in srgb, currentColor 8%, transparent);
+	}
+	.hero__main-ring {
+		transform-origin: 0 0;
+		animation: hero-spin 30s linear infinite;
+	}
+	@keyframes hero-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.hero__packet,
+		.hero__main-ring {
+			animation: none;
+		}
+	}
 	.card {
 		position: relative;
 		width: min(100%, 380px);
@@ -388,9 +442,13 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		.hero__visual {
 			min-height: 0;
 			padding-block: 24px 8px;
+			justify-items: stretch;
 		}
-		.hero__rings {
+		.hero__net {
 			display: none;
+		}
+		.card {
+			width: 100%;
 		}
 	}
 	@media (max-width: 520px) {
