@@ -1,35 +1,50 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { sceneAt } from "./nodeStory";
+import { RINGS } from "./brand";
 
-test("começa com a logo unida e termina formando NODEN HUB", () => {
-	const start = sceneAt(0).state;
-	const end = sceneAt(1).state;
-	assert.equal(start.draw, 1);
-	assert.equal(start.wordmark, 0);
-	assert.equal(end.draw, 1);
+const angle = (n: { x: number; y: number }) => (Math.atan2(n.y - 500, n.x - 600) * 180) / Math.PI;
+
+test("abre e fecha com a logo oficial; anéis vetoriais só com os nós separados", () => {
+	const start = sceneAt(0);
+	const end = sceneAt(1);
+	assert.equal(start.symbol, 1);
+	assert.equal(end.symbol, 1);
 	assert.equal(end.wordmark, 1);
-	assert.equal(start.edges, 0);
+	assert.equal(start.nodes.home.ring, 0);
+	assert.equal(sceneAt(0.2).symbol, 0);
+	assert.equal(sceneAt(0.2).nodes.game.ring, 1);
 });
 
-test("nós separados mostram ícones, rótulos e a rede, sem os conectores", () => {
-	const { state, act } = sceneAt(0.2);
-	assert.equal(act, 1);
-	assert.equal(state.draw, 0);
-	assert.equal(state.edges, 1);
-	for (const node of Object.values(state.nodes)) {
-		assert.equal(node.icon, 1);
-		assert.equal(node.label, 1);
+test("os anéis vetoriais coincidem com os da logo nas posições unidas", () => {
+	const { nodes, frame } = sceneAt(0);
+	for (const id of ["home", "game", "data"] as const) {
+		assert.ok(Math.abs(nodes[id].x - (RINGS[id].cx * frame.k + frame.tx)) < 0.01, id);
+		assert.ok(Math.abs(nodes[id].y - (RINGS[id].cy * frame.k + frame.ty)) < 0.01, id);
+		assert.ok(Math.abs(nodes[id].r - RINGS[id].r * frame.k) < 0.01, id);
 	}
 });
 
-test("cada divisão ganha o centro no seu ato", () => {
+test("cada divisão ocupa o topo e é a maior no seu ato", () => {
 	for (const [progress, active] of [[0.4, "home"], [0.6, "game"], [0.8, "data"]] as const) {
-		const { state, act } = sceneAt(progress);
-		assert.equal(act, Math.round(progress * 5));
-		const sizes = Object.entries(state.nodes).sort((a, b) => b[1].s - a[1].s);
-		assert.equal(sizes[0][0], active);
-		assert.equal(state.nodes[active].fill, 1);
+		const scene = sceneAt(progress);
+		assert.equal(scene.act, Math.round(progress * 5));
+		const biggest = Object.entries(scene.nodes).sort((a, b) => b[1].r - a[1].r)[0][0];
+		assert.equal(biggest, active);
+		assert.ok(scene.nodes[active].y < 500, `${active} no alto`);
+		for (const node of Object.values(scene.nodes)) assert.equal(node.icon, 1);
+	}
+});
+
+test("entre divisões o triângulo gira sempre no mesmo sentido", () => {
+	const steps = [0.4, 0.5, 0.6, 0.7, 0.8];
+	for (const id of ["home", "game", "data"] as const) {
+		for (let i = 1; i < steps.length; i++) {
+			const before = angle(sceneAt(steps[i - 1]).nodes[id]);
+			const after = angle(sceneAt(steps[i]).nodes[id]);
+			const delta = ((((after - before) % 360) + 540) % 360) - 180;
+			assert.ok(delta >= -0.5, `${id} ${steps[i - 1]}→${steps[i]} girou ${delta.toFixed(1)}°`);
+		}
 	}
 });
 

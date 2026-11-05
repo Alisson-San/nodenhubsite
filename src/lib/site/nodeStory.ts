@@ -1,21 +1,30 @@
 /**
  * Apresentação dos três nós da Noden, guiada pela rolagem.
  *
- * Atos: 0 logo unida · 1 nós separados · 2 Home · 3 Game · 4 Data · 5 reconexão.
- * Sem JavaScript, com movimento reduzido, em tela baixa ou quando algum texto
- * não couber, a página continua em leitura normal (sem fixar a cena).
+ * Atos: 0 logo unida · 1 nós separados em rede · 2 Home · 3 Game · 4 Data ·
+ * 5 reconexão em NODEN HUB. Entre as divisões o triângulo gira 120°, e a
+ * divisão da vez sobe para o centro; no fim a volta completa recompõe a logo.
+ *
+ * Nos atos 0 e 5 a logo é a imagem oficial (fita contínua); os nós vetoriais
+ * repetem os mesmos anéis (lib/site/brand.ts) e assumem quando a fita se abre.
+ *
+ * Sem JavaScript, com movimento reduzido, em tela baixa, quando algum texto
+ * não cabe ou no modo de edição, a página segue em leitura normal.
  */
 import type { ServiceDivision } from "../../types/services";
+import { RINGS, SYMBOL } from "./brand";
 
 type Vec = [number, number];
 interface NodeState {
-	x: number;
-	y: number;
-	s: number;
+	/** Ângulo (graus) e distância em relação ao centro da cena. */
+	a: number;
+	d: number;
+	/** Raio do anel na cena. */
+	r: number;
 	fill: number;
 	icon: number;
 	label: number;
-	op: number;
+	spot: number;
 }
 interface Frame {
 	tx: number;
@@ -25,94 +34,121 @@ interface Frame {
 interface SceneState {
 	frame: Frame;
 	nodes: Record<ServiceDivision, NodeState>;
+	/** Imagem oficial da logo (0–1); os anéis vetoriais usam o complemento. */
+	symbol: number;
 	edges: number;
-	draw: number;
 	wordmark: number;
 }
 
 const ids: ServiceDivision[] = ["home", "game", "data"];
-// Centro dos anéis na logo oficial (viewBox 1024).
-const LOGO: Record<ServiceDivision, Vec> = { home: [525, 310], game: [305, 706], data: [750, 706] };
-const RING = 180;
-const SPREAD: Record<ServiceDivision, Vec> = { home: [550, 190], game: [225, 790], data: [875, 790] };
-const FOCUS: Vec = [560, 470];
+const CENTER: Vec = [600, 500];
+const INTRO: Frame = { tx: CENTER[0] - (SYMBOL.width / 2) * 0.9, ty: CENTER[1] - (SYMBOL.height / 2) * 0.9, k: 0.9 };
+const FINAL: Frame = { tx: CENTER[0] - (SYMBOL.width / 2) * 0.38, ty: CENTER[1] - (SYMBOL.height / 2) * 0.38, k: 0.38 };
 
-const frameIntro: Frame = { tx: 23, ty: -64, k: 1 };
-const frameFinal: Frame = { tx: 249, ty: 259, k: 0.42 };
+const toPolar = ([x, y]: Vec): { a: number; d: number } => ({
+	a: (Math.atan2(y - CENTER[1], x - CENTER[0]) * 180) / Math.PI,
+	d: Math.hypot(x - CENTER[0], y - CENTER[1]),
+});
+const fromPolar = (a: number, d: number): Vec => [
+	CENTER[0] + d * Math.cos((a * Math.PI) / 180),
+	CENTER[1] + d * Math.sin((a * Math.PI) / 180),
+];
 
 function assembled(frame: Frame): Record<ServiceDivision, NodeState> {
 	const out = {} as Record<ServiceDivision, NodeState>;
 	for (const id of ids) {
-		out[id] = { x: LOGO[id][0] * frame.k + frame.tx, y: LOGO[id][1] * frame.k + frame.ty, s: frame.k, fill: 0, icon: 0, label: 0, op: 1 };
+		const ring = RINGS[id];
+		const { a, d } = toPolar([ring.cx * frame.k + frame.tx, ring.cy * frame.k + frame.ty]);
+		out[id] = { a, d, r: ring.r * frame.k, fill: 0, icon: 0, label: 0, spot: 0 };
 	}
 	return out;
 }
+
+// Ângulos do triângulo: topo, baixo-esquerda, baixo-direita (como na logo).
+const TOP = -90;
+const LEFT = 150;
+const RIGHT = 30;
 
 function spread(): Record<ServiceDivision, NodeState> {
+	const angle: Record<ServiceDivision, number> = { home: TOP, game: LEFT, data: RIGHT };
 	const out = {} as Record<ServiceDivision, NodeState>;
-	for (const id of ids) out[id] = { x: SPREAD[id][0], y: SPREAD[id][1], s: 120 / RING, fill: 0.7, icon: 1, label: 1, op: 1 };
+	for (const id of ids) out[id] = { a: angle[id], d: 300, r: 120, fill: 1, icon: 1, label: 1, spot: 0 };
 	return out;
 }
 
-function focus(active: ServiceDivision): Record<ServiceDivision, NodeState> {
-	const out = {} as Record<ServiceDivision, NodeState>;
-	for (const id of ids) {
-		out[id] =
-			id === active
-				? { x: FOCUS[0], y: FOCUS[1], s: 250 / RING, fill: 1, icon: 1, label: 0, op: 1 }
-				: { x: SPREAD[id][0], y: SPREAD[id][1], s: 72 / RING, fill: 0.5, icon: 1, label: 0, op: 0.45 };
-	}
-	return out;
+/** A divisão ativa no topo/centro; as outras nos cantos de baixo. */
+function focus(order: [ServiceDivision, ServiceDivision, ServiceDivision]): Record<ServiceDivision, NodeState> {
+	const [active, left, right] = order;
+	return {
+		[active]: { a: TOP, d: 40, r: 205, fill: 1, icon: 1, label: 0, spot: 1 },
+		[left]: { a: LEFT, d: 360, r: 82, fill: 1, icon: 1, label: 1, spot: 0 },
+		[right]: { a: RIGHT, d: 360, r: 82, fill: 1, icon: 1, label: 1, spot: 0 },
+	} as Record<ServiceDivision, NodeState>;
 }
 
 const states: SceneState[] = [
-	{ frame: frameIntro, nodes: assembled(frameIntro), edges: 0, draw: 1, wordmark: 0 },
-	{ frame: frameIntro, nodes: spread(), edges: 1, draw: 0, wordmark: 0 },
-	{ frame: frameIntro, nodes: focus("home"), edges: 0.55, draw: 0, wordmark: 0 },
-	{ frame: frameIntro, nodes: focus("game"), edges: 0.55, draw: 0, wordmark: 0 },
-	{ frame: frameIntro, nodes: focus("data"), edges: 0.55, draw: 0, wordmark: 0 },
-	{ frame: frameFinal, nodes: assembled(frameFinal), edges: 0, draw: 1, wordmark: 1 },
+	{ frame: INTRO, nodes: assembled(INTRO), symbol: 1, edges: 0, wordmark: 0 },
+	{ frame: INTRO, nodes: spread(), symbol: 0, edges: 1, wordmark: 0 },
+	{ frame: INTRO, nodes: focus(["home", "game", "data"]), symbol: 0, edges: 0.6, wordmark: 0 },
+	{ frame: INTRO, nodes: focus(["game", "data", "home"]), symbol: 0, edges: 0.6, wordmark: 0 },
+	{ frame: INTRO, nodes: focus(["data", "home", "game"]), symbol: 0, edges: 0.6, wordmark: 0 },
+	{ frame: FINAL, nodes: assembled(FINAL), symbol: 1, edges: 0, wordmark: 1 },
 ];
 const ACTS = states.length;
 
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+/** Menor giro entre dois ângulos (-180, 180]. */
+const turn = (from: number, to: number) => ((((to - from) % 360) + 540) % 360) - 180;
+
+export interface Rendered {
+	act: number;
+	symbol: number;
+	edges: number;
+	wordmark: number;
+	frame: Frame;
+	nodes: Record<ServiceDivision, { x: number; y: number; r: number; fill: number; icon: number; label: number; spot: number; ring: number }>;
+}
 
 /** Estado da cena para um progresso 0–1 (exportado para testes). */
-export function sceneAt(progress: number): { state: SceneState; act: number } {
+export function sceneAt(progress: number): Rendered {
 	const position = clamp(progress) * (ACTS - 1);
 	const index = Math.min(ACTS - 2, Math.floor(position));
 	const local = position - index;
-	// Pausa no começo e no fim de cada ato; a transição ocupa o meio.
-	const t = ease(clamp((local - 0.18) / 0.64));
+	// Pausa no começo e no fim de cada ato; o movimento ocupa o meio.
+	const t = ease(clamp((local - 0.16) / 0.68));
 	const a = states[index];
 	const b = states[index + 1];
-	const nodes = {} as Record<ServiceDivision, NodeState>;
+
+	// A fita oficial some logo que os nós começam a se abrir e só volta
+	// quando eles já estão de novo nas posições da logo.
+	const symbol = b.symbol > a.symbol ? lerp(a.symbol, b.symbol, clamp((t - 0.82) / 0.18)) : lerp(a.symbol, b.symbol, clamp(t / 0.12));
+
+	const nodes = {} as Rendered["nodes"];
 	for (const id of ids) {
 		const na = a.nodes[id];
 		const nb = b.nodes[id];
+		const angle = na.a + turn(na.a, nb.a) * t;
+		const [x, y] = fromPolar(angle, lerp(na.d, nb.d, t));
 		nodes[id] = {
-			x: lerp(na.x, nb.x, t),
-			y: lerp(na.y, nb.y, t),
-			s: lerp(na.s, nb.s, t),
+			x,
+			y,
+			r: lerp(na.r, nb.r, t),
 			fill: lerp(na.fill, nb.fill, t),
 			icon: lerp(na.icon, nb.icon, t),
 			label: lerp(na.label, nb.label, t),
-			op: lerp(na.op, nb.op, t),
+			spot: lerp(na.spot, nb.spot, t),
+			ring: 1 - symbol,
 		};
 	}
 	return {
 		act: Math.round(position),
-		state: {
-			frame: { tx: lerp(a.frame.tx, b.frame.tx, t), ty: lerp(a.frame.ty, b.frame.ty, t), k: lerp(a.frame.k, b.frame.k, t) },
-			nodes,
-			// Conectores: recolhem logo no início da separação e só se desenham
-			// quando os nós já chegaram às posições da logo.
-			draw: lerp(a.draw, b.draw, b.draw > a.draw ? clamp((t - 0.72) / 0.28) : clamp(t / 0.25)),
-			edges: lerp(a.edges, b.edges, t),
-			wordmark: lerp(a.wordmark, b.wordmark, clamp(t * 2 - 1)),
-		},
+		symbol,
+		edges: lerp(a.edges, b.edges, t),
+		wordmark: lerp(a.wordmark, b.wordmark, clamp(t * 2 - 1)),
+		frame: { tx: lerp(a.frame.tx, b.frame.tx, t), ty: lerp(a.frame.ty, b.frame.ty, t), k: lerp(a.frame.k, b.frame.k, t) },
+		nodes,
 	};
 }
 
@@ -123,23 +159,20 @@ export function startNodeStory(): void {
 	const stage = root.querySelector<HTMLElement>("[data-story-stage]")!;
 	const panels = [...root.querySelectorAll<HTMLElement>("[data-act]")];
 	const railLinks = [...root.querySelectorAll<HTMLAnchorElement>("[data-story-rail] [data-story-goto]")];
-	const nodeEls = Object.fromEntries(ids.map((id) => [id, root.querySelector<SVGGElement>(`[data-node="${id}"]`)!])) as Record<ServiceDivision, SVGGElement>;
-	const parts = Object.fromEntries(
-		ids.map((id) => {
-			const el = nodeEls[id];
-			return [id, { fill: el.querySelector("[data-fill]")!, icon: el.querySelector("[data-icon]")!, label: el.querySelector("[data-label]")! }];
-		}),
-	) as Record<ServiceDivision, { fill: Element; icon: Element; label: Element }>;
+	const world = root.querySelector<SVGGElement>("[data-world]")!;
 	const frameEl = root.querySelector<SVGGElement>("[data-frame]")!;
-	const connectors = [...root.querySelectorAll<SVGPathElement>("[data-connector]")];
+	const symbolEl = root.querySelector<SVGImageElement>("[data-symbol]")!;
 	const edgesEl = root.querySelector<SVGGElement>("[data-edges]")!;
-	const edgeLines = {
-		"home-game": root.querySelector<SVGLineElement>('[data-edge="data-game"]')!,
-		"home-data": root.querySelector<SVGLineElement>('[data-edge="data-home"]')!,
-		"game-data": root.querySelector<SVGLineElement>('[data-edge="game-home"]')!,
-	};
+	const edgeLines = [...root.querySelectorAll<SVGLineElement>("[data-edge]")];
 	const packets = [...root.querySelectorAll<SVGCircleElement>("[data-packet]")];
 	const wordmark = root.querySelector<SVGGElement>("[data-wordmark]")!;
+	const nodes = Object.fromEntries(
+		ids.map((id) => {
+			const el = root.querySelector<SVGGElement>(`[data-node="${id}"]`)!;
+			const part = (name: string) => el.querySelector(`[data-${name}]`)!;
+			return [id, { el, ring: part("ring"), fill: part("fill"), icon: part("icon"), label: part("label"), spot: part("spot") }];
+		}),
+	) as Record<ServiceDivision, { el: SVGGElement; ring: Element; fill: Element; icon: Element; label: Element; spot: Element }>;
 
 	const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 	let live = false;
@@ -149,10 +182,10 @@ export function startNodeStory(): void {
 
 	const editing = () => Boolean(document.getElementById("noden-home-editor-state"));
 	const canLive = () => !reduced.matches && !editing() && window.innerWidth >= 360 && window.innerHeight >= 600;
-
 	const scrollRange = () => Math.max(1, root.offsetHeight - stage.offsetHeight);
 	const progress = () => clamp(-root.getBoundingClientRect().top / scrollRange());
 	const actTop = (act: number) => window.scrollY + root.getBoundingClientRect().top + (act / (ACTS - 1)) * scrollRange();
+	const fixed = (v: number, digits = 2) => v.toFixed(digits);
 
 	function setAct(act: number) {
 		if (act === currentAct) return;
@@ -167,50 +200,60 @@ export function startNodeStory(): void {
 		});
 	}
 
-	function render(time: number) {
-		const { state, act } = sceneAt(progress());
-		setAct(act);
+	function paint(scene: Rendered, time: number) {
+		frameEl.setAttribute("transform", `translate(${fixed(scene.frame.tx, 1)} ${fixed(scene.frame.ty, 1)}) scale(${fixed(scene.frame.k, 4)})`);
+		symbolEl.setAttribute("opacity", fixed(scene.symbol, 3));
+		wordmark.setAttribute("opacity", fixed(scene.wordmark, 3));
 
 		for (const id of ids) {
-			const n = state.nodes[id];
-			nodeEls[id].setAttribute("transform", `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)}) scale(${n.s.toFixed(4)})`);
-			nodeEls[id].setAttribute("opacity", n.op.toFixed(3));
-			parts[id].fill.setAttribute("opacity", n.fill.toFixed(3));
-			parts[id].icon.setAttribute("opacity", n.icon.toFixed(3));
-			parts[id].label.setAttribute("opacity", n.label.toFixed(3));
+			const n = scene.nodes[id];
+			const part = nodes[id];
+			part.el.setAttribute("transform", `translate(${fixed(n.x, 1)} ${fixed(n.y, 1)}) scale(${fixed(n.r / RINGS[id].r, 4)})`);
+			part.ring.setAttribute("opacity", fixed(n.ring, 3));
+			part.fill.setAttribute("opacity", fixed(n.fill * n.ring, 3));
+			part.icon.setAttribute("opacity", fixed(n.icon, 3));
+			part.label.setAttribute("opacity", fixed(n.label, 3));
+			part.spot.setAttribute("opacity", fixed(n.spot, 3));
 		}
 
-		frameEl.setAttribute("transform", `translate(${state.frame.tx.toFixed(1)} ${state.frame.ty.toFixed(1)}) scale(${state.frame.k.toFixed(4)})`);
-		for (const path of connectors) path.style.strokeDashoffset = String(1 - state.draw);
-		wordmark.setAttribute("opacity", state.wordmark.toFixed(3));
-
-		edgesEl.setAttribute("opacity", state.edges.toFixed(3));
-		if (state.edges > 0.01) {
-			const pos = (id: ServiceDivision): Vec => [state.nodes[id].x, state.nodes[id].y];
-			const pairs: [keyof typeof edgeLines, ServiceDivision, ServiceDivision][] = [
-				["home-game", "home", "game"],
-				["home-data", "home", "data"],
-				["game-data", "game", "data"],
+		edgesEl.setAttribute("opacity", fixed(scene.edges, 3));
+		if (scene.edges > 0.01) {
+			const pairs: [ServiceDivision, ServiceDivision][] = [
+				["home", "game"],
+				["game", "data"],
+				["data", "home"],
 			];
-			pairs.forEach(([key, a, b], index) => {
-				const [x1, y1] = pos(a);
-				const [x2, y2] = pos(b);
-				const line = edgeLines[key];
-				line.setAttribute("x1", x1.toFixed(1));
-				line.setAttribute("y1", y1.toFixed(1));
-				line.setAttribute("x2", x2.toFixed(1));
-				line.setAttribute("y2", y2.toFixed(1));
-				// Pacotes de dados circulando entre os nós.
-				const t = ((time / 2600 + index / 3) % 1 + 1) % 1;
-				const forward = index % 2 === 0 ? t : 1 - t;
-				packets[index].setAttribute("cx", lerp(x1, x2, forward).toFixed(1));
-				packets[index].setAttribute("cy", lerp(y1, y2, forward).toFixed(1));
+			pairs.forEach(([from, to], index) => {
+				const p = scene.nodes[from];
+				const q = scene.nodes[to];
+				// A linha começa e termina na borda dos anéis, não no centro.
+				const length = Math.hypot(q.x - p.x, q.y - p.y) || 1;
+				const ux = (q.x - p.x) / length;
+				const uy = (q.y - p.y) / length;
+				const x1 = p.x + ux * (p.r + 30);
+				const y1 = p.y + uy * (p.r + 30);
+				const x2 = q.x - ux * (q.r + 30);
+				const y2 = q.y - uy * (q.r + 30);
+				const line = edgeLines[index];
+				line.setAttribute("x1", fixed(x1, 1));
+				line.setAttribute("y1", fixed(y1, 1));
+				line.setAttribute("x2", fixed(x2, 1));
+				line.setAttribute("y2", fixed(y2, 1));
+				const t = (((time / 2400 + index / 3) % 1) + 1) % 1;
+				packets[index].setAttribute("cx", fixed(lerp(x1, x2, t), 1));
+				packets[index].setAttribute("cy", fixed(lerp(y1, y2, t), 1));
 			});
 		}
+
+		// Respiração sutil enquanto a logo está unida na abertura.
+		const idle = scene.act === 0 ? 1 - clamp(progress() * 12) : 0;
+		world.setAttribute("transform", idle > 0 ? `translate(0 ${fixed(Math.sin(time / 900) * 8 * idle, 2)})` : "");
 	}
 
 	function loop(time: number) {
-		render(time);
+		const scene = sceneAt(progress());
+		setAct(scene.act);
+		paint(scene, time);
 		frame = visible && live ? requestAnimationFrame(loop) : 0;
 	}
 
@@ -221,18 +264,8 @@ export function startNodeStory(): void {
 	function resetStatic() {
 		currentAct = -1;
 		panels.forEach((panel) => panel.classList.remove("is-active", "is-before"));
-		for (const id of ids) {
-			const n = states[0].nodes[id];
-			nodeEls[id].setAttribute("transform", `translate(${n.x} ${n.y}) scale(1)`);
-			nodeEls[id].setAttribute("opacity", "1");
-			parts[id].fill.setAttribute("opacity", "0");
-			parts[id].icon.setAttribute("opacity", "0");
-			parts[id].label.setAttribute("opacity", "0");
-		}
-		frameEl.setAttribute("transform", "translate(23 -64)");
-		for (const path of connectors) path.style.strokeDashoffset = "0";
-		wordmark.setAttribute("opacity", "0");
-		edgesEl.setAttribute("opacity", "0");
+		paint(sceneAt(0), 0);
+		world.removeAttribute("transform");
 	}
 
 	/** O texto de algum ato não cabe na tela fixa? Então lemos em fluxo normal. */
@@ -257,8 +290,7 @@ export function startNodeStory(): void {
 			return;
 		}
 		currentAct = -1;
-		render(performance.now());
-		start();
+		loop(performance.now());
 	}
 
 	const goTo = (act: number, smooth = true) => {
@@ -269,13 +301,12 @@ export function startNodeStory(): void {
 		link.addEventListener("click", (event) => {
 			if (!live) return;
 			event.preventDefault();
-			const act = Number(link.dataset.storyGoto);
-			goTo(act);
+			goTo(Number(link.dataset.storyGoto));
 			history.replaceState(null, "", link.hash);
 		});
 	});
 
-	// Teclado: um link de um ato escondido recebe foco → a cena vai até ele.
+	// Teclado e leitores de tela: o foco em um ato leva a cena até ele.
 	root.addEventListener("focusin", (event) => {
 		if (!live) return;
 		const panel = (event.target as HTMLElement).closest<HTMLElement>("[data-act]");
@@ -295,10 +326,8 @@ export function startNodeStory(): void {
 	reduced.addEventListener("change", evaluate);
 
 	evaluate();
-	// As fontes mudam a altura dos textos: reavalia quando carregarem.
 	document.fonts?.ready.then(evaluate);
 
-	// Link direto para um ato (ex.: /#apresentacao-game).
 	const target = location.hash ? panels.findIndex((panel) => `#${panel.id}` === location.hash) : -1;
 	if (live && target > 0) requestAnimationFrame(() => goTo(target, false));
 }

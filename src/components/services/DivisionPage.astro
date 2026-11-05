@@ -2,9 +2,8 @@
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import Campaigns from "../campaigns/Campaigns.astro";
 import DivisionHero from "../site/DivisionHero.astro";
-import PromiseBar from "../site/PromiseBar.astro";
 import Solutions from "../site/Solutions.astro";
-import NodePath from "../site/NodePath.astro";
+import Journey from "../site/Journey.astro";
 import Catalog from "../site/Catalog.astro";
 import ClosingCta from "../site/ClosingCta.astro";
 import OtherDivisions from "../site/OtherDivisions.astro";
@@ -62,8 +61,6 @@ if (editable) {
 		areas={site.serviceAreas}
 	/>
 
-	<PromiseBar promises={extras.promises} editList={editable ? "promises" : undefined} />
-
 	<Solutions
 		title={page.servicesSection.title}
 		description={page.servicesSection.description}
@@ -71,7 +68,7 @@ if (editable) {
 		editable={editable}
 	/>
 
-	<NodePath title="Como funciona" steps={extras.steps} areas={division === "data" ? undefined : site.serviceAreas} editList={editable ? "steps" : undefined} />
+	<Journey title="Como funciona" tone="division" steps={extras.steps} promises={extras.promises} areas={division === "data" ? undefined : site.serviceAreas} editable={editable} />
 
 	<Catalog
 		site={site}
@@ -91,6 +88,7 @@ if (editable) {
 		buttonHref={getWhatsAppUrl(page.cta.message, site)}
 		secondaryLabel={page.cta.secondaryLabel}
 		secondaryHref={page.cta.secondaryHref}
+		division={division}
 	/>
 
 	<OtherDivisions current={division} />

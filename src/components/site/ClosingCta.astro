@@ -1,5 +1,19 @@
 ---
+/**
+ * Chamada final: texto + exemplo de conversa no WhatsApp que se escreve
+ * quando aparece na tela, com as três marcas da Noden orbitando.
+ * A conversa é ilustrativa (rotulada como exemplo) e só usa promessas
+ * confirmadas pela Noden.
+ */
 import WhatsAppIcon from "../common/WhatsAppIcon.astro";
+import DivisionMark from "../common/DivisionMark.astro";
+import { divisionOrder } from "../../lib/site/divisions";
+import type { ServiceDivision } from "../../types/services";
+
+interface ChatLine {
+	from: "client" | "noden";
+	text: string;
+}
 
 interface Props {
 	title: string;
@@ -10,93 +24,346 @@ interface Props {
 	secondaryHref?: string;
 	/** Campos editáveis: divisão (padrão) ou página inicial. */
 	editTarget?: "division" | "home";
+	division?: ServiceDivision;
 }
 
-const { title, description, buttonLabel, buttonHref, secondaryLabel, secondaryHref, editTarget = "division" } = Astro.props;
-const edit = (division: string, home: string) =>
-	editTarget === "home" ? { "data-home-field": home } : { "data-edit-field": division };
+const { title, description, buttonLabel, buttonHref, secondaryLabel, secondaryHref, editTarget = "division", division } = Astro.props;
+const edit = (divisionField: string, home: string) =>
+	editTarget === "home" ? { "data-home-field": home } : { "data-edit-field": divisionField };
+
+const chats: Record<ServiceDivision | "hub", ChatLine[]> = {
+	hub: [
+		{ from: "client", text: "Oi! Meu notebook tá muito lento 😩" },
+		{ from: "noden", text: "Oi! Manda uma foto ou vídeo que a gente avalia de graça 👀" },
+		{ from: "client", text: "Consegue buscar hoje?" },
+		{ from: "noden", text: "Se a agenda permitir, buscamos hoje mesmo. E você recebe o orçamento antes de qualquer serviço 🚐" },
+	],
+	home: [
+		{ from: "client", text: "O Wi-Fi não pega no quarto 😤" },
+		{ from: "noden", text: "Conta como é a casa e o roteador. A avaliação remota é grátis." },
+		{ from: "client", text: "Dá pra resolver essa semana?" },
+		{ from: "noden", text: "Dá sim. Passamos o orçamento antes e, se a agenda permitir, atendemos no mesmo dia." },
+	],
+	game: [
+		{ from: "client", text: "Quero trocar a placa de vídeo. Compensa? 🎮" },
+		{ from: "noden", text: "Me manda sua config e os jogos. Conferimos a compatibilidade antes de você comprar." },
+		{ from: "client", text: "E a montagem?" },
+		{ from: "noden", text: "A gente busca o PC, monta, testa temperatura e estabilidade e devolve rodando liso." },
+	],
+	data: [
+		{ from: "client", text: "Perdemos horas montando relatório no Excel 📊" },
+		{ from: "noden", text: "Conta como é o processo hoje? A partir dele dá pra pensar em automação e dashboard." },
+		{ from: "client", text: "Vocês fazem sob medida?" },
+		{ from: "noden", text: "Sim. A proposta sai do tamanho e do momento da sua empresa." },
+	],
+};
+const chat = chats[division ?? "hub"];
 ---
 
 <section class="closing" aria-labelledby="contato-titulo" id="contato">
 	<div class="wrap closing__inner">
-		<span class="closing__ring" aria-hidden="true"></span>
-		<h2 class="h2" id="contato-titulo" {...edit("cta_title", "contactTitle")}>{title}</h2>
-		<p class="closing__text" {...edit("cta_description", "contactDescription")}>{description}</p>
-		<div class="closing__actions">
-			<a class="btn btn--whatsapp" href={buttonHref} target="_blank" rel="noopener">
-				<WhatsAppIcon />
-				<span {...edit("cta_button_label", "contactLabel")}>{buttonLabel}</span>
-			</a>
-			{
-				secondaryLabel && secondaryHref && (
-					<a class="link-arrow" href={secondaryHref}>
-						{secondaryLabel}
-					</a>
-				)
-			}
+		<div class="closing__copy">
+			<h2 class="h2" id="contato-titulo" {...edit("cta_title", "contactTitle")}>{title}</h2>
+			<p class="closing__text" {...edit("cta_description", "contactDescription")}>{description}</p>
+			<div class="closing__actions">
+				<a class="btn btn--whatsapp" href={buttonHref} target="_blank" rel="noopener">
+					<WhatsAppIcon />
+					<span {...edit("cta_button_label", "contactLabel")}>{buttonLabel}</span>
+				</a>
+				{
+					secondaryLabel && secondaryHref && (
+						<a class="link-arrow" href={secondaryHref}>
+							{secondaryLabel}
+						</a>
+					)
+				}
+			</div>
+		</div>
+
+		<div class="closing__visual">
+			<div class="orbit" aria-hidden="true">
+				{
+					divisionOrder.map((id, index) => (
+						<span class="orbit__item" style={`--i:${index}`}>
+							<DivisionMark division={id} size="100%" />
+						</span>
+					))
+				}
+			</div>
+
+			<div class="chat" data-chat>
+				<div class="chat__head">
+					<img src="/brand/noden-symbol-128.webp" alt="" width="40" height="40" />
+					<span>
+						<strong>Noden</strong>
+						<small>exemplo de conversa</small>
+					</span>
+				</div>
+				<ol class="chat__body" aria-label="Exemplo de conversa com a Noden">
+					{
+						chat.map((line) => (
+							<li class:list={["chat__msg", `chat__msg--${line.from}`]} data-chat-msg>
+								<span class="sr-only">{line.from === "client" ? "Cliente:" : "Noden:"}</span>
+								{line.text}
+							</li>
+						))
+					}
+					<li class="chat__typing" aria-hidden="true" data-chat-typing hidden>
+						<span></span><span></span><span></span>
+					</li>
+				</ol>
+			</div>
 		</div>
 	</div>
 </section>
 
+<script>
+	const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	for (const chat of document.querySelectorAll<HTMLElement>("[data-chat]")) {
+		if (reduced) continue;
+		const messages = [...chat.querySelectorAll<HTMLElement>("[data-chat-msg]")];
+		const typing = chat.querySelector<HTMLElement>("[data-chat-typing]")!;
+		chat.classList.add("chat--live");
+		const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+		const play = async () => {
+			for (const message of messages) {
+				if (message.classList.contains("chat__msg--noden")) {
+					message.before(typing);
+					typing.hidden = false;
+					await wait(1100);
+					typing.hidden = true;
+				} else await wait(500);
+				message.classList.add("is-shown");
+			}
+		};
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				observer.disconnect();
+				play();
+			},
+			{ threshold: 0.4 },
+		);
+		observer.observe(chat);
+	}
+</script>
+
 <style>
 	.closing {
-		background: var(--ink);
-		color: var(--white);
+		position: relative;
 		overflow: hidden;
+		background:
+			radial-gradient(circle at 1px 1px, rgb(255 255 255 / 9%) 1.2px, transparent 1.6px) 0 0 / 28px 28px,
+			#0f0b29;
+		color: var(--white);
 	}
 	.closing__inner {
-		position: relative;
-		padding-block: clamp(64px, 10vw, 130px);
+		display: grid;
+		grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+		gap: clamp(32px, 5vw, 72px);
+		align-items: center;
+		padding-block: clamp(64px, 9vw, 120px);
+	}
+	.closing__copy {
 		display: grid;
 		gap: 22px;
 		justify-items: start;
 	}
 	.closing h2 {
-		max-width: 16ch;
-		font-size: clamp(2.2rem, 6vw, 4.6rem);
-		position: relative;
+		max-width: 15ch;
+		font-size: clamp(2.2rem, 5.6vw, 4.4rem);
 	}
 	.closing__text {
-		max-width: 52ch;
+		max-width: 46ch;
 		font-size: 1.15rem;
-		color: #d9d5ee;
-		position: relative;
+		color: #d4cff0;
 	}
 	.closing__actions {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 16px 28px;
 		align-items: center;
-		margin-top: 10px;
-		position: relative;
+		margin-top: 6px;
 	}
 	.closing__actions .btn {
-		--btn-shadow: var(--accent);
+		--btn-shadow: var(--violet);
 		border-color: var(--white);
 	}
-	.closing__ring {
-		position: absolute;
-		right: -6%;
-		top: 50%;
-		width: min(48vw, 520px);
-		aspect-ratio: 1;
-		transform: translateY(-50%);
-		border-radius: 50%;
-		border: clamp(24px, 4vw, 56px) solid var(--accent);
-		opacity: 0.9;
+	.closing__actions .link-arrow {
+		color: var(--white);
 	}
 	.closing :focus-visible {
 		outline-color: var(--white);
 		box-shadow: none;
 	}
-	@media (max-width: 720px) {
-		.closing__ring {
-			top: auto;
-			bottom: -30%;
-			right: -30%;
-			width: 80vw;
-			transform: none;
+
+	/* Conversa */
+	.closing__visual {
+		position: relative;
+		margin: 0;
+		display: grid;
+		place-items: center;
+		min-height: 460px;
+	}
+	.chat {
+		position: relative;
+		z-index: 2;
+		width: min(100%, 360px);
+		border: 2px solid var(--white);
+		border-radius: 28px;
+		background: #ece5dd;
+		color: #111b21;
+		overflow: hidden;
+		box-shadow: 10px 10px 0 var(--violet);
+	}
+	.chat__head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 14px 18px;
+		background: #075e54;
+		color: var(--white);
+	}
+	.chat__head img {
+		width: 40px;
+		height: 40px;
+		padding: 5px;
+		border-radius: 50%;
+		background: var(--white);
+		object-fit: contain;
+	}
+	.chat__head strong {
+		display: block;
+		font-size: 1.05rem;
+	}
+	.chat__head small {
+		color: #c9eae4;
+	}
+	.chat__body {
+		list-style: none;
+		margin: 0;
+		padding: 18px 14px 22px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		min-height: 300px;
+	}
+	.chat__msg {
+		max-width: 82%;
+		padding: 9px 12px;
+		border-radius: 12px;
+		font-size: 0.97rem;
+		line-height: 1.35;
+		box-shadow: 0 1px 0 rgb(0 0 0 / 12%);
+	}
+	.chat__msg--client {
+		align-self: flex-end;
+		background: #d9fdd3;
+		border-top-right-radius: 4px;
+	}
+	.chat__msg--noden {
+		align-self: flex-start;
+		background: var(--white);
+		border-top-left-radius: 4px;
+	}
+	.chat--live .chat__msg {
+		opacity: 0;
+		transform: translateY(10px) scale(0.96);
+		transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+	}
+	.chat--live .chat__msg.is-shown {
+		opacity: 1;
+		transform: none;
+	}
+	.chat__typing {
+		align-self: flex-start;
+		display: flex;
+		gap: 4px;
+		padding: 12px 14px;
+		border-radius: 12px;
+		background: var(--white);
+	}
+	.chat__typing[hidden] {
+		display: none;
+	}
+	.chat__typing span {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: #8696a0;
+		animation: typing 1s infinite ease-in-out;
+	}
+	.chat__typing span:nth-child(2) {
+		animation-delay: 0.15s;
+	}
+	.chat__typing span:nth-child(3) {
+		animation-delay: 0.3s;
+	}
+	@keyframes typing {
+		0%,
+		100% {
+			transform: translateY(0);
 			opacity: 0.5;
+		}
+		50% {
+			transform: translateY(-4px);
+			opacity: 1;
+		}
+	}
+
+	/* Órbita com as três marcas */
+	.orbit {
+		position: absolute;
+		inset: 0;
+		margin: auto;
+		width: min(100%, 470px);
+		aspect-ratio: 1;
+		border-radius: 50%;
+		border: 2px dashed rgb(255 255 255 / 22%);
+		animation: orbit 36s linear infinite;
+	}
+	.orbit__item {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 74px;
+		height: 74px;
+		margin: -37px 0 0 -37px;
+		transform: rotate(calc(var(--i) * 120deg - 90deg)) translateX(min(50vw, 235px)) rotate(calc(var(--i) * -120deg + 90deg));
+	}
+	.orbit__item :global(.division-mark) {
+		animation: orbit 36s linear infinite reverse;
+		background: #17123d;
+		border-radius: 50%;
+		padding: 8px;
+	}
+	@keyframes orbit {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.orbit,
+		.orbit__item :global(.division-mark),
+		.chat__typing span {
+			animation: none;
+		}
+	}
+	@media (max-width: 860px) {
+		.closing__inner {
+			grid-template-columns: 1fr;
+		}
+		.closing__visual {
+			min-height: 420px;
+		}
+		.orbit {
+			width: min(100%, 400px);
+		}
+		.orbit__item {
+			width: 60px;
+			height: 60px;
+			margin: -30px 0 0 -30px;
+			transform: rotate(calc(var(--i) * 120deg - 90deg)) translateX(min(46vw, 200px)) rotate(calc(var(--i) * -120deg + 90deg));
 		}
 	}
 </style>

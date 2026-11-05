@@ -78,3 +78,13 @@ A ideia original da inicial voltou, refeita sem GSAP (`src/components/site/NodeS
 Marcas individuais (`DivisionMark`/`DivisionIcon`, recuperadas da versão anterior): menu, rodapé, links, abertura de cada divisão (mini-rede com a divisão ligada às outras duas), cartões e faixa de serviços.
 Também novos: faixa contínua de serviços (`ServiceTicker`) e "Como funciona" como caminho de nós com um pacote percorrendo (`NodePath`), nas páginas das divisões e na inicial.
 Textos editáveis novos: `storyTitle` e `storyDescription` (fim da apresentação).
+
+## Atualização — fidelidade da logo e rodada criativa
+- **Logo**: a logo oficial é uma fita contínua (os anéis se abrem e se ligam), não três círculos com conectores. A geometria foi medida em `public/Design sem nome.png` (`src/lib/site/brand.ts`: centro, raio, espessura e degradê de cada anel). Nos momentos unidos a apresentação mostra a imagem oficial (`public/brand/noden-symbol.webp`); os nós vetoriais coincidem com os anéis e assumem quando a fita se abre. Cabeçalho e rodapé também usam a imagem oficial.
+- **Apresentação**: palco escuro com textura de rede. Entre as divisões o triângulo gira 120°, sempre no mesmo sentido; a divisão da vez sobe ao centro e as outras ficam nos cantos, com cor e ícone. A volta completa recompõe a logo em N◎DEN TECHNOLOGY HUB.
+- **Ícones** na cor do próprio anel (casinha, controle, banco de dados), em todo o site.
+- **Jornada** (`Journey.astro`) substitui a faixa de promessas e o "como funciona": uma van percorre a rota com a rolagem e cada parada mostra a etapa e a promessa que acontece nela. Nas divisões usa a cor da divisão e as promessas/etapas editáveis (pareadas pela ordem).
+- **Chamada final**: exemplo de conversa no WhatsApp que se escreve ao aparecer (rotulado como exemplo; só promessas confirmadas), com as três marcas orbitando. Uma conversa por divisão.
+- **Menos branco**: fundo lavanda com textura de pontos e área de preços na cor da divisão. `--cyan-text` escurecido para manter 5,3:1 no fundo novo.
+- Removidos: faixa contínua de serviços, barra de promessas, caminho de nós antigo e o símbolo vetorial com conectores.
+- Verificação: `npm run validate` sem erros/avisos; 42 testes unitários; `public-site.cjs` (incluindo jornada, conversa e movimento reduzido) e `inline-editor.cjs` sem falhas.

@@ -2,6 +2,7 @@ import type { ServiceDivision } from "../../types/services";
 
 /**
  * Conteúdo complementar das páginas de divisão (promessas e etapas).
+ * Na jornada, cada etapa mostra a promessa de mesmo índice.
  * Editável pelo modo de edição do site; publicado em site_settings
  * na chave "site.division_content".
  *
@@ -27,10 +28,10 @@ export const DIVISION_CONTENT_KEY = "site.division_content";
 export const defaultDivisionExtras: Record<ServiceDivision, DivisionExtras> = {
 	home: {
 		promises: [
-			{ title: "Atendimento no mesmo dia", text: "Chamou cedo, a gente encaixa na agenda do dia." },
-			{ title: "Buscamos e entregamos", text: "Você não precisa sair de casa com o equipamento." },
 			{ title: "Avaliação remota grátis", text: "Mande foto, vídeo ou descreva o problema." },
 			{ title: "Orçamento antes", text: "Nada é feito sem o seu ok." },
+			{ title: "Buscamos e entregamos", text: "Você não precisa sair de casa com o equipamento." },
+			{ title: "Atendimento no mesmo dia", text: "Chamou cedo, a gente encaixa na agenda do dia." },
 		],
 		steps: [
 			{ title: "Chame no WhatsApp", text: "Conte o que está acontecendo. Foto e vídeo ajudam." },
@@ -41,10 +42,10 @@ export const defaultDivisionExtras: Record<ServiceDivision, DivisionExtras> = {
 	},
 	game: {
 		promises: [
-			{ title: "Buscamos e entregamos seu PC", text: "Sem desmontar o setup para carregar até a loja." },
 			{ title: "Compatibilidade antes da compra", text: "Você não gasta em peça que não conversa com o resto." },
-			{ title: "Testado antes de voltar", text: "Temperaturas e estabilidade conferidas no final do serviço." },
 			{ title: "Orçamento antes", text: "Mão de obra e peças aprovadas por você." },
+			{ title: "Buscamos e entregamos seu PC", text: "Sem desmontar o setup para carregar até a loja." },
+			{ title: "Testado antes de voltar", text: "Temperaturas e estabilidade conferidas no final do serviço." },
 		],
 		steps: [
 			{ title: "Mande seu setup", text: "Peças, jogos, resolução e o que está incomodando." },
@@ -56,8 +57,8 @@ export const defaultDivisionExtras: Record<ServiceDivision, DivisionExtras> = {
 	data: {
 		promises: [
 			{ title: "Começa pelo seu processo", text: "Entendemos como a empresa trabalha antes de propor tecnologia." },
-			{ title: "Do tamanho da sua empresa", text: "Proposta pensada para o momento e o porte do negócio." },
 			{ title: "Do dado ao sistema", text: "Dashboards, automações, integrações, sites e plataformas." },
+			{ title: "Do tamanho da sua empresa", text: "Proposta pensada para o momento e o porte do negócio." },
 			{ title: "Foco no resultado", text: "Tecnologia aplicada a problemas reais da operação." },
 		],
 		steps: [

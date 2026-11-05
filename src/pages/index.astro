@@ -5,8 +5,7 @@ import PublicLayout from "../layouts/PublicLayout.astro";
 import Campaigns from "../components/campaigns/Campaigns.astro";
 import ClosingCta from "../components/site/ClosingCta.astro";
 import NodeStory from "../components/site/NodeStory.astro";
-import ServiceTicker from "../components/site/ServiceTicker.astro";
-import NodePath from "../components/site/NodePath.astro";
+import Journey from "../components/site/Journey.astro";
 import HomeEditor from "../components/editor/HomeEditor.astro";
 
 import { getWhatsAppUrl } from "../config/site";
@@ -16,17 +15,18 @@ const { site, content, startingPrices, editor } = await loadHomeView(Astro);
 if (editor) Astro.response.headers.set("Cache-Control", "private, no-store");
 const whatsappUrl = getWhatsAppUrl(undefined, site);
 
+// Cada etapa da jornada leva a promessa que acontece nela.
 const promises = [
-	{ title: "Atendimento no mesmo dia", text: "Chamou cedo, encaixamos na agenda do dia." },
-	{ title: "Busca e entrega", text: `Retiramos e devolvemos em ${site.serviceAreas.join(", ")}.` },
-	{ title: "Avaliação remota grátis", text: "Mande foto ou vídeo e descubra o próximo passo." },
+	{ title: "Avaliação remota grátis", text: "Foto ou vídeo já mostram o próximo passo." },
 	{ title: "Orçamento antes", text: "Nenhum serviço começa sem o seu ok." },
+	{ title: "Atendimento no mesmo dia", text: "Chamou cedo, encaixamos na agenda do dia." },
+	{ title: "Busca e entrega", text: "Você não precisa sair de casa com o equipamento." },
 ];
 
 const steps = [
 	{ title: "Chame no WhatsApp", text: "Conte o problema. Foto e vídeo ajudam." },
 	{ title: "Receba o orçamento", text: "Você aprova antes de qualquer serviço." },
-	{ title: "A gente busca", text: "Ou atende aí. No mesmo dia quando a agenda permite." },
+	{ title: "A gente busca", text: "Ou atende aí, no endereço combinado." },
 	{ title: "Volta funcionando", text: "Testado e com explicação do que foi feito." },
 ];
 ---
@@ -43,24 +43,8 @@ const steps = [
 
 	<NodeStory content={content} startingPrices={startingPrices} whatsappUrl={whatsappUrl} areas={site.serviceAreas} />
 
-	<ServiceTicker />
 
-	<section class="start-promises" aria-label="Por que chamar a Noden">
-		<div class="wrap">
-			<ul class="promise-list">
-				{
-					promises.map((p) => (
-						<li>
-							<strong>{p.title}</strong>
-							<span>{p.text}</span>
-						</li>
-					))
-				}
-			</ul>
-		</div>
-	</section>
-
-	<NodePath title="Do WhatsApp ao equipamento funcionando." steps={steps} areas={site.serviceAreas} />
+	<Journey title="Do WhatsApp ao equipamento funcionando." steps={steps} promises={promises} areas={site.serviceAreas} />
 
 	<ClosingCta
 		title={content.contactTitle}
@@ -72,12 +56,3 @@ const steps = [
 
 	{editor && <HomeEditor slot="after" state={editor} />}
 </PublicLayout>
-
-<style>
-	.start-promises {
-		padding-block: clamp(32px, 5vw, 64px) 0;
-	}
-	.start-promises .promise-list {
-		box-shadow: var(--shadow);
-	}
-</style>

@@ -107,6 +107,33 @@ const check = (ok, label) => {
 		await page.close();
 	}
 
+	// Jornada: as paradas acendem conforme a van passa
+	const journey = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+	await journey.goto(base + '/', { waitUntil: 'networkidle' });
+	const routeTop = await journey.evaluate(() => document.querySelector('[data-journey]').getBoundingClientRect().top + scrollY);
+	await journey.evaluate((y) => window.scrollTo(0, y - 700), routeTop);
+	await journey.waitForTimeout(400);
+	const early = await journey.locator('[data-journey-stop].is-reached').count();
+	await journey.evaluate((y) => window.scrollTo(0, y + 500), routeTop);
+	await journey.waitForTimeout(400);
+	const late = await journey.locator('[data-journey-stop].is-reached').count();
+	check(early < late && late === 4, `jornada acende as paradas com a rolagem (${early} → ${late})`);
+
+	// Conversa da chamada final
+	await journey.evaluate(() => document.querySelector('#contato').scrollIntoView({ block: 'center' }));
+	await journey.waitForTimeout(5500);
+	const shownMessages = await journey.locator('[data-chat-msg].is-shown').count();
+	const total = await journey.locator('[data-chat-msg]').count();
+	check(shownMessages === total && total > 0, `conversa aparece inteira (${shownMessages}/${total})`);
+	await journey.close();
+
+	const calm = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+	await calm.goto(base + '/', { waitUntil: 'networkidle' });
+	const calmStops = await calm.locator('[data-journey-stop].is-reached').count();
+	const calmChat = await calm.locator('[data-chat-msg]').evaluateAll((els) => els.every((el) => getComputedStyle(el).opacity === '1'));
+	check(calmStops === 4 && calmChat, 'movimento reduzido: jornada e conversa já completas');
+	await calm.close();
+
 	// Tela baixa: texto não cabe na cena fixa → leitura normal
 	const low = await browser.newPage({ viewport: { width: 360, height: 560 } });
 	await low.goto(base + '/', { waitUntil: 'networkidle' });

@@ -3,11 +3,11 @@
  * Cores derivadas da logo: violeta, índigo e ciano.
  * Contrastes medidos (WCAG 2.2):
  *   --ink sobre --paper ............ 17.3:1
- *   --muted sobre --paper ........... 6.4:1
+ *   --muted sobre --paper ........... 6.0:1
  *   branco sobre --violet ........... 5.3:1
  *   branco sobre --indigo ........... 7.7:1
  *   --ink sobre --cyan .............. 9.0:1
- *   --cyan-text sobre --paper ....... 4.6:1
+ *   --cyan-text sobre --paper ....... 5.3:1
  *   --violet-text sobre --paper ..... 5.8:1
  */
 @import "@fontsource-variable/bricolage-grotesque";
@@ -17,8 +17,8 @@
 	--ink: #120e2a;
 	--ink-2: #2a2547;
 	--muted: #5a5675;
-	--paper: #f6f5fa;
-	--paper-2: #ecebf4;
+	--paper: #f1eefb;
+	--paper-2: #e6e1f7;
 	--white: #ffffff;
 	--line: #120e2a;
 	--line-soft: #d6d3e4;
@@ -30,7 +30,7 @@
 	--indigo-text: #2633e8;
 	--indigo-soft: #e3e5fd;
 	--cyan: #22c3ee;
-	--cyan-text: #00799f;
+	--cyan-text: #006a8c;
 	--cyan-soft: #dcf5fc;
 	--whatsapp: #1fa855;
 
@@ -88,7 +88,10 @@ html {
 
 body {
 	margin: 0;
-	background: var(--paper);
+	/* Textura de rede: pontos discretos, o motivo dos "nós" da marca. */
+	background:
+		radial-gradient(circle at 1px 1px, rgb(18 14 42 / 8%) 1.1px, transparent 1.5px) 0 0 / 26px 26px,
+		var(--paper);
 	color: var(--ink);
 	font-family: var(--font-body);
 	font-size: 1.0625rem;

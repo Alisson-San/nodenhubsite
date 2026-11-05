@@ -3,6 +3,7 @@ import WhatsAppIcon from "../common/WhatsAppIcon.astro";
 import DivisionIcon from "../common/DivisionIcon.astro";
 import DivisionMark from "../common/DivisionMark.astro";
 import { formatCurrency } from "../../lib/formatting";
+import { RINGS, SYMBOL } from "../../lib/site/brand";
 import { divisionOrder, divisions } from "../../lib/site/divisions";
 import { splitHomeHighlights, type HomeContent } from "../../lib/site/homeContent";
 import type { ServiceDivision } from "../../types/services";
@@ -22,8 +23,6 @@ const cards: Record<ServiceDivision, { title: string; description: string; highl
 	data: { title: content.dataTitle, description: content.dataDescription, highlights: splitHomeHighlights(content.dataHighlights), meta: content.dataMeta, label: "Empresa" },
 };
 
-// Ordem da apresentação; a posição de cada nó repete a logo (Data no topo,
-// Game à esquerda, Home à direita).
 const acts = [
 	{ id: "inicio", label: "Início" },
 	{ id: "apresentacao-nos", label: "Os três nós" },
@@ -31,10 +30,9 @@ const acts = [
 	{ id: "apresentacao-conexao", label: "Conectados" },
 ];
 
-// Posições e gradientes da logo oficial: Home no anel de cima,
-// Game à esquerda e Data à direita.
-const logo = { home: [525, 310], game: [305, 706], data: [750, 706] } as const;
-const ringGradient: Record<ServiceDivision, string> = { home: "st-grad-top", game: "st-grad-left", data: "st-grad-right" };
+// Logo unida = imagem oficial; os nós vetoriais repetem os mesmos anéis.
+// Posição inicial: logo centrada (ver INTRO em lib/site/nodeStory.ts).
+const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 ---
 
 <section class="story" data-story aria-labelledby="inicio-titulo">
@@ -42,60 +40,66 @@ const ringGradient: Record<ServiceDivision, string> = { home: "st-grad-top", gam
 
 	<div class="story__stage" data-story-stage>
 		<div class="story__scene" aria-hidden="true">
-			<svg viewBox="0 0 1100 1000" class="story__svg" focusable="false">
+			<svg viewBox="0 0 1200 1000" class="story__svg" focusable="false">
 				<defs>
-					<linearGradient id="st-grad-top" x1="0%" y1="50%" x2="100%" y2="50%">
-						<stop offset="0%" stop-color="#4236ff" /><stop offset="45%" stop-color="#1f69ff" /><stop offset="100%" stop-color="#13d5f2" />
-					</linearGradient>
-					<linearGradient id="st-grad-left" x1="0%" y1="50%" x2="100%" y2="50%">
-						<stop offset="0%" stop-color="#c52aff" /><stop offset="55%" stop-color="#8b31ff" /><stop offset="100%" stop-color="#3347ff" />
-					</linearGradient>
-					<linearGradient id="st-grad-right" x1="0%" y1="50%" x2="100%" y2="50%">
-						<stop offset="0%" stop-color="#2454ff" /><stop offset="50%" stop-color="#089dff" /><stop offset="100%" stop-color="#17d9ef" />
-					</linearGradient>
-					<linearGradient id="st-flow-main" x1="300" y1="540" x2="650" y2="515" gradientUnits="userSpaceOnUse">
-						<stop offset="0%" stop-color="#a835ff" /><stop offset="55%" stop-color="#6f4cff" /><stop offset="100%" stop-color="#209cff" />
-					</linearGradient>
-					<linearGradient id="st-flow-right" x1="500" y1="800" x2="690" y2="560" gradientUnits="userSpaceOnUse">
-						<stop offset="0%" stop-color="#4b4dff" /><stop offset="60%" stop-color="#3467ff" /><stop offset="100%" stop-color="#1f69ff" />
-					</linearGradient>
+					{
+						divisionOrder.map((id) => (
+							<>
+								<linearGradient id={`st-ring-${id}`} gradientUnits="userSpaceOnUse" x1={-RINGS[id].r} y1="0" x2={RINGS[id].r} y2="0">
+									<stop offset="0%" stop-color={RINGS[id].stops[0]} />
+									<stop offset="50%" stop-color={RINGS[id].stops[1]} />
+									<stop offset="100%" stop-color={RINGS[id].stops[2]} />
+								</linearGradient>
+								<radialGradient id={`st-spot-${id}`}>
+									<stop offset="0%" stop-color={RINGS[id].stops[1]} stop-opacity="0.45" />
+									<stop offset="100%" stop-color={RINGS[id].stops[1]} stop-opacity="0" />
+								</radialGradient>
+							</>
+						))
+					}
 				</defs>
 
-				<!-- Arestas da rede (visíveis com os nós separados) -->
-				<g class="st-edges" data-edges opacity="0">
-					<line data-edge="data-game" />
-					<line data-edge="data-home" />
-					<line data-edge="game-home" />
-					<circle r="11" class="st-packet st-packet--violet" data-packet="0" />
-					<circle r="11" class="st-packet st-packet--cyan" data-packet="1" />
-					<circle r="11" class="st-packet st-packet--indigo" data-packet="2" />
-				</g>
+				<g data-world>
+					<!-- Rede entre os nós separados -->
+					<g class="st-edges" data-edges opacity="0">
+						<line data-edge="0" />
+						<line data-edge="1" />
+						<line data-edge="2" />
+						<circle r="9" class="st-packet" fill={RINGS.game.stops[0]} data-packet="0" />
+						<circle r="9" class="st-packet" fill={RINGS.home.stops[2]} data-packet="1" />
+						<circle r="9" class="st-packet" fill={RINGS.data.stops[0]} data-packet="2" />
+					</g>
 
-				{
-					divisionOrder.map((id) => (
-						<g class="st-node" data-node={id} transform={`translate(${logo[id][0] + 23} ${logo[id][1] - 64}) scale(1)`}>
-							<circle r="134" class={`st-fill st-fill--${id}`} opacity="0" data-fill />
-							<circle r="180" fill="none" stroke={`url(#${ringGradient[id]})`} stroke-width="92" />
-							<g class="st-icon" opacity="0" data-icon>
-								<DivisionIcon division={id} />
+					<!-- Logo oficial (fita contínua) -->
+					<g data-frame transform={`translate(${intro.tx} ${intro.ty}) scale(${intro.k})`}>
+						<image href={SYMBOL.src} width={SYMBOL.width} height={SYMBOL.height} data-symbol />
+					</g>
+
+					{
+						divisionOrder.map((id) => (
+							<g
+								class="st-node"
+								data-node={id}
+								transform={`translate(${(RINGS[id].cx * intro.k + intro.tx).toFixed(1)} ${(RINGS[id].cy * intro.k + intro.ty).toFixed(1)}) scale(${intro.k})`}
+							>
+								<circle r={RINGS[id].r * 1.9} fill={`url(#st-spot-${id})`} opacity="0" data-spot />
+								<circle r={RINGS[id].r - RINGS[id].width / 2} class="st-fill" opacity="0" data-fill />
+								<circle r={RINGS[id].r} fill="none" stroke={`url(#st-ring-${id})`} stroke-width={RINGS[id].width} opacity="0" data-ring />
+								<g class="st-icon" stroke={`url(#st-ring-${id})`} style={`--icon-fill:url(#st-ring-${id})`} opacity="0" data-icon>
+									<DivisionIcon division={id} />
+								</g>
+								<text class="st-label" y={RINGS[id].r + RINGS[id].width / 2 + 100} text-anchor="middle" opacity="0" data-label>
+									{cards[id].label}
+								</text>
 							</g>
-							<text class="st-label" y="320" text-anchor="middle" opacity="0" data-label>
-								{cards[id].label}
-							</text>
-						</g>
-					))
-				}
+						))
+					}
 
-				<!-- Conectores da logo: desenham-se quando os nós se unem -->
-				<g data-frame transform="translate(23 -64)">
-					<path class="st-connector" d="M 300 524 C 430 546 515 524 600 472" stroke="url(#st-flow-main)" pathLength="1" data-connector />
-					<path class="st-connector" d="M 473 771 C 518 700 578 610 646 559" stroke="url(#st-flow-right)" pathLength="1" data-connector />
-				</g>
-
-				<g class="st-wordmark" data-wordmark opacity="0">
-					<text x="236" y="572" text-anchor="end">N</text>
-					<text x="680" y="572" text-anchor="start">DEN</text>
-					<text class="st-hub" x="550" y="760" text-anchor="middle">HUB</text>
+					<g class="st-wordmark" data-wordmark opacity="0">
+						<text x="392" y="566" text-anchor="end">N</text>
+						<text x="808" y="566" text-anchor="start">DEN</text>
+						<text class="st-hub" x="600" y="770" text-anchor="middle">TECHNOLOGY HUB</text>
+					</g>
 				</g>
 			</svg>
 		</div>
@@ -403,66 +407,110 @@ const ringGradient: Record<ServiceDivision, string> = { home: "st-grad-top", gam
 
 	/* SVG */
 	.st-edges line {
-		stroke: var(--ink);
+		stroke: rgb(255 255 255 / 55%);
 		stroke-width: 3;
 		stroke-dasharray: 2 14;
 		stroke-linecap: round;
 	}
-	.st-packet--violet {
-		fill: var(--violet);
-	}
-	.st-packet--cyan {
-		fill: var(--cyan);
-	}
-	.st-packet--indigo {
-		fill: var(--indigo);
-	}
-	.st-fill--home {
-		fill: var(--cyan-soft);
-	}
-	.st-fill--game {
-		fill: var(--violet-soft);
-	}
-	.st-fill--data {
-		fill: var(--indigo-soft);
+	.st-fill {
+		fill: #17123d;
 	}
 	.st-icon {
 		fill: none;
-		stroke: var(--ink);
-		stroke-width: 15;
+		stroke-width: 24;
 		stroke-linecap: round;
 		stroke-linejoin: round;
 	}
 	.st-icon :global(.fill) {
-		fill: var(--ink);
+		fill: var(--icon-fill);
 		stroke: none;
 	}
 	.st-label {
 		font-family: var(--font-display);
 		font-weight: 800;
-		font-size: 76px;
-		fill: var(--ink);
-	}
-	.st-connector {
-		fill: none;
-		stroke-width: 92;
-		stroke-linecap: round;
-		stroke-dasharray: 1;
-		stroke-dashoffset: 0;
-	}
-	.st-wordmark .st-hub {
-		font-family: var(--font-body);
-		font-weight: 700;
-		font-size: 64px;
-		letter-spacing: 48px;
-		fill: var(--muted);
+		font-size: 92px;
+		fill: #ffffff;
 	}
 	.st-wordmark text {
 		font-family: var(--font-display);
 		font-weight: 800;
-		font-size: 220px;
-		letter-spacing: 6px;
-		fill: var(--ink);
+		font-size: 196px;
+		letter-spacing: 4px;
+		fill: #ffffff;
+	}
+	.st-wordmark .st-hub {
+		font-family: var(--font-body);
+		font-weight: 700;
+		font-size: 44px;
+		letter-spacing: 22px;
+		fill: #b9b3e0;
+	}
+
+	/* Palco escuro com textura de rede */
+	.story {
+		--story-bg: #0f0b29;
+		background:
+			radial-gradient(circle at 1px 1px, rgb(255 255 255 / 9%) 1.2px, transparent 1.6px) 0 0 / 28px 28px,
+			var(--story-bg);
+		color: var(--white);
+	}
+	.story :global(.lead),
+	.story .story__desc {
+		color: #d4cff0;
+	}
+	.story :global(.kicker) {
+		color: #8fe6ff;
+	}
+	.story :global(.link-arrow) {
+		color: var(--white);
+	}
+	.story [data-division="home"] {
+		--accent-light: #6fe3ff;
+	}
+	.story [data-division="game"] {
+		--accent-light: #d3a3ff;
+	}
+	.story [data-division="data"] {
+		--accent-light: #a9b1ff;
+	}
+	.story .story__price strong {
+		color: var(--accent-light);
+	}
+	.story .story__price small,
+	.story .story__nodes small {
+		color: #b9b3e0;
+	}
+	.story .story__chips li {
+		border-color: rgb(255 255 255 / 35%);
+		background: rgb(255 255 255 / 7%);
+	}
+	.story .story__pick a {
+		background: rgb(255 255 255 / 6%);
+		border-color: rgb(255 255 255 / 45%);
+		color: var(--white);
+	}
+	.story .story__panel {
+		border-top-color: rgb(255 255 255 / 12%);
+	}
+	.story :focus-visible {
+		outline-color: var(--white);
+		box-shadow: none;
+	}
+	.story .story__rail a {
+		color: #b9b3e0;
+	}
+	.story .story__rail a[aria-current] {
+		color: var(--white);
+	}
+	.story .story__rail-dot {
+		border-color: var(--white);
+		background: var(--story-bg);
+	}
+	.story .story__rail a[aria-current] .story__rail-dot {
+		background: var(--white);
+	}
+	.story .story__rail ol::before {
+		border-right-color: rgb(255 255 255 / 25%);
 	}
 
 	/* ---------- Apresentação animada (ativada pelo script) ---------- */

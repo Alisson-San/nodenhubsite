@@ -3,6 +3,7 @@ import WhatsAppIcon from "../common/WhatsAppIcon.astro";
 import DivisionMark from "../common/DivisionMark.astro";
 import DivisionIcon from "../common/DivisionIcon.astro";
 import { divisionOrder } from "../../lib/site/divisions";
+import { RINGS } from "../../lib/site/brand";
 import { divisions } from "../../lib/site/divisions";
 import type { DivisionExtras } from "../../lib/site/divisionContent";
 import type { ServiceDivision, ServiceItem } from "../../types/services";
@@ -84,22 +85,27 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 		<div class="hero__visual">
 			<svg class="hero__net" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
 				<defs>
-					<linearGradient id="hn-home" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#4236ff" /><stop offset="45%" stop-color="#1f69ff" /><stop offset="100%" stop-color="#13d5f2" /></linearGradient>
-					<linearGradient id="hn-game" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#c52aff" /><stop offset="55%" stop-color="#8b31ff" /><stop offset="100%" stop-color="#3347ff" /></linearGradient>
-					<linearGradient id="hn-data" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#2454ff" /><stop offset="50%" stop-color="#089dff" /><stop offset="100%" stop-color="#17d9ef" /></linearGradient>
+					{divisionOrder.map((id) => (
+						<linearGradient id={`hn-${id}`} gradientUnits="userSpaceOnUse" x1={-RINGS[id].r} y1="0" x2={RINGS[id].r} y2="0">
+							<stop offset="0%" stop-color={RINGS[id].stops[0]} />
+							<stop offset="50%" stop-color={RINGS[id].stops[1]} />
+							<stop offset="100%" stop-color={RINGS[id].stops[2]} />
+						</linearGradient>
+					))}
 				</defs>
 				{siblings.map(([, x, y]) => <line class="hero__edge" x1="400" y1="160" x2={x} y2={y} />)}
 				<circle class="hero__packet" r="9" />
 				{siblings.map(([id, x, y]) => (
-					<g transform={`translate(${x} ${y}) scale(0.3)`} class="hero__sibling">
-						<circle r="180" fill="var(--paper)" stroke={`url(#hn-${id})`} stroke-width="70" />
-						<g class="hero__icon"><DivisionIcon division={id} /></g>
+					<g transform={`translate(${x} ${y}) scale(0.27)`} class="hero__node">
+						<circle r={RINGS[id].r} class="hero__node-fill" />
+						<circle r={RINGS[id].r} fill="none" stroke={`url(#hn-${id})`} stroke-width={RINGS[id].width} />
+						<g class="hero__icon" stroke={`url(#hn-${id})`} style={`--icon-fill:url(#hn-${id})`}><DivisionIcon division={id} /></g>
 					</g>
 				))}
-				<g class="hero__main" transform="translate(400 160) scale(0.8)">
-					<circle r="180" class="hero__main-fill" />
-					<circle r="180" fill="none" stroke={`url(#hn-${division})`} stroke-width="70" class="hero__main-ring" />
-					<g class="hero__icon"><DivisionIcon division={division} /></g>
+				<g class="hero__node hero__main" transform="translate(400 160) scale(0.66)">
+					<circle r={RINGS[division].r} class="hero__node-fill" />
+					<g class="hero__main-ring"><circle r={RINGS[division].r} fill="none" stroke={`url(#hn-${division})`} stroke-width={RINGS[division].width} /></g>
+					<g class="hero__icon" stroke={`url(#hn-${division})`} style={`--icon-fill:url(#hn-${division})`}><DivisionIcon division={division} /></g>
 				</g>
 			</svg>
 
@@ -282,24 +288,16 @@ const pipeline = ["Seu processo", "Dados organizados", "Sistema sob medida", "De
 	}
 	.hero__icon {
 		fill: none;
-		stroke: currentColor;
-		stroke-width: 16;
+		stroke-width: 24;
 		stroke-linecap: round;
 		stroke-linejoin: round;
 	}
 	.hero__icon :global(.fill) {
-		fill: currentColor;
+		fill: var(--icon-fill);
 		stroke: none;
 	}
-	.hero__sibling .hero__icon {
-		stroke: var(--ink);
-		stroke-width: 22;
-	}
-	.hero__sibling .hero__icon :global(.fill) {
-		fill: var(--ink);
-	}
-	.hero__main-fill {
-		fill: color-mix(in srgb, currentColor 8%, transparent);
+	.hero__node-fill {
+		fill: #17123d;
 	}
 	.hero__main-ring {
 		transform-origin: 0 0;
