@@ -25,10 +25,10 @@ const cards: Record<ServiceDivision, { title: string; description: string; highl
 	data: { title: content.dataTitle, description: content.dataDescription, highlights: splitHomeHighlights(content.dataHighlights), meta: content.dataMeta, label: "Empresa" },
 };
 
-const acts = [
+const acts: { id: string; label: string; division?: ServiceDivision }[] = [
 	{ id: "inicio", label: "Início" },
 	{ id: "apresentacao-nos", label: "Os três nós" },
-	...divisionOrder.map((id) => ({ id: `apresentacao-${id}`, label: divisions[id].name })),
+	...divisionOrder.map((id) => ({ id: `apresentacao-${id}`, label: divisions[id].name, division: id })),
 	{ id: "apresentacao-conexao", label: "Conectados" },
 ];
 
@@ -60,7 +60,6 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 			}
 		})();
 	</script>
-	<a class="story__skip" href="#depois-da-apresentacao">Pular apresentação</a>
 
 	<div class="story__stage" data-story-stage>
 		<div class="story__scene" aria-hidden="true">
@@ -217,19 +216,34 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 			</article>
 		</div>
 
-		<nav class="story__rail" aria-label="Partes da apresentação" data-story-rail>
+		<!--
+			Trilha: estações num trilho que se preenche conforme a rolagem.
+			As divisões aparecem com a própria marca; o nome surge numa etiqueta
+			ao lado (ativa, hover ou foco), sem quebrar linha.
+		-->
+		<nav class="story__rail" aria-label="Partes da apresentação" data-story-rail style="--rail-p: 0">
 			<ol>
 				{
 					acts.map((act, index) => (
 						<li>
-							<a href={`#${act.id}`} data-story-goto={index} aria-current={index === 0 ? "step" : undefined}>
-								<span class="story__rail-dot" aria-hidden="true" />
+							<a
+								href={`#${act.id}`}
+								data-story-goto={index}
+								aria-current={index === 0 ? "step" : undefined}
+								class:list={["story__station", { "story__station--division": act.division }]}
+							>
+								<span class="story__rail-dot" aria-hidden="true">
+									{act.division && <DivisionMark division={act.division} size="100%" />}
+								</span>
 								<span class="story__rail-label">{act.label}</span>
 							</a>
 						</li>
 					))
 				}
 			</ol>
+			<p class="story__rail-count" aria-hidden="true">
+				<span data-story-count>01</span>/{String(acts.length).padStart(2, "0")}
+			</p>
 		</nav>
 	</div>
 </section>
@@ -244,21 +258,6 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 	/* ---------- Base (sem JavaScript, movimento reduzido ou tela pequena) ---------- */
 	.story {
 		position: relative;
-	}
-	.story__skip {
-		position: absolute;
-		left: 16px;
-		top: 8px;
-		z-index: 20;
-		padding: 10px 16px;
-		border-radius: 999px;
-		background: var(--ink);
-		color: var(--white);
-		font-weight: 700;
-		transform: translateY(-200%);
-	}
-	.story__skip:focus {
-		transform: none;
 	}
 	.story__stage {
 		width: 100%;
@@ -517,22 +516,6 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 		outline-color: var(--white);
 		box-shadow: none;
 	}
-	.story .story__rail a {
-		color: #b9b3e0;
-	}
-	.story .story__rail a[aria-current] {
-		color: var(--white);
-	}
-	.story .story__rail-dot {
-		border-color: var(--white);
-		background: var(--story-bg);
-	}
-	.story .story__rail a[aria-current] .story__rail-dot {
-		background: var(--white);
-	}
-	.story .story__rail ol::before {
-		border-right-color: rgb(255 255 255 / 25%);
-	}
 
 	/* Respiração da logo no topo: transform no contêiner (compositor). */
 	:global(.story--at-start) .story__scene {
@@ -558,7 +541,7 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 		top: var(--header-h);
 		height: calc(100svh - var(--header-h));
 		max-width: none;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) 150px;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) 96px;
 		grid-template-rows: 1fr;
 		padding-left: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
 		overflow: hidden;
@@ -622,50 +605,121 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 		padding-right: var(--gutter);
 	}
 	.story__rail ol {
+		--station: 44px;
 		list-style: none;
 		margin: 0;
 		padding: 0;
 		display: grid;
-		gap: 2px;
+		gap: 4px;
 		position: relative;
 	}
-	.story__rail ol::before {
+	/* Trilho tracejado + preenchimento em degradê que acompanha a rolagem */
+	.story__rail ol::before,
+	.story__rail ol::after {
 		content: "";
 		position: absolute;
-		right: 7px;
-		top: 22px;
-		bottom: 22px;
-		border-right: 2px dashed var(--line-soft);
+		right: calc(var(--station) / 2 - 1px);
+		top: calc(var(--station) / 2);
+		bottom: calc(var(--station) / 2);
+		width: 2px;
+		border-radius: 2px;
 	}
-	.story__rail a {
+	.story__rail ol::before {
+		background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 28%) 0 4px, transparent 4px 9px);
+	}
+	.story__rail ol::after {
+		background: linear-gradient(to bottom, #b231fb, #2d2ffc 50%, #01ccfe);
+		box-shadow: 0 0 12px rgb(45 47 252 / 70%);
+		transform: scaleY(var(--rail-p, 0));
+		transform-origin: top;
+		transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
+	.story__station {
 		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		gap: 10px;
-		min-height: 44px;
-		color: var(--muted);
-		font-size: 0.85rem;
-		font-weight: 700;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: var(--station);
+		height: var(--station);
+		border-radius: 50%;
+		color: var(--white);
 		text-decoration: none;
 	}
 	.story__rail-dot {
-		width: 16px;
-		height: 16px;
+		display: grid;
+		place-items: center;
+		width: 12px;
+		height: 12px;
 		border-radius: 50%;
-		border: 3px solid var(--ink);
-		background: var(--paper);
-		transition: background 0.2s ease, transform 0.2s ease;
+		border: 2px solid rgb(255 255 255 / 70%);
+		background: var(--story-bg, #07061a);
+		transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1.3), background 0.3s ease, box-shadow 0.3s ease;
 	}
-	.story__rail a[aria-current] {
-		color: var(--ink);
+	.story__station[aria-current] .story__rail-dot {
+		background: var(--white);
+		border-color: var(--white);
+		transform: scale(1.35);
+		box-shadow: 0 0 0 5px rgb(255 255 255 / 12%);
 	}
-	.story__rail a[aria-current] .story__rail-dot {
-		background: var(--ink);
+	/* Estações das divisões: a marca da área no lugar do ponto */
+	.story__station--division .story__rail-dot {
+		width: 26px;
+		height: 26px;
+		border: 0;
+		padding: 1px;
+		background: var(--story-bg, #07061a);
+		opacity: 0.6;
+	}
+	.story__station--division[aria-current] .story__rail-dot {
+		background: var(--story-bg, #07061a);
+		opacity: 1;
+		transform: scale(1.3);
+		box-shadow: 0 0 22px rgb(45 47 252 / 55%);
+	}
+	.story__station:hover .story__rail-dot,
+	.story__station:focus-visible .story__rail-dot {
+		opacity: 1;
 		transform: scale(1.2);
 	}
-	.story__rail a:hover .story__rail-dot {
-		background: var(--accent);
+	/* Nome em etiqueta ao lado, numa linha só */
+	.story__rail-label {
+		position: absolute;
+		right: calc(100% + 6px);
+		top: 50%;
+		padding: 5px 12px;
+		border: 1px solid rgb(255 255 255 / 16%);
+		border-radius: 999px;
+		background: rgb(12 10 34 / 92%);
+		color: var(--white);
+		font-size: 0.82rem;
+		font-weight: 700;
+		white-space: nowrap;
+		pointer-events: none;
+		opacity: 0;
+		transform: translate(8px, -50%);
+		transition: opacity 0.25s ease, transform 0.3s ease;
+	}
+	.story__station[aria-current] .story__rail-label,
+	.story__station:hover .story__rail-label,
+	.story__station:focus-visible .story__rail-label {
+		opacity: 1;
+		transform: translate(0, -50%);
+	}
+	/* Com o mouse sobre outra estação, só ela mostra o nome */
+	.story__rail ol:hover .story__station[aria-current]:not(:hover) .story__rail-label {
+		opacity: 0;
+	}
+	.story__rail-count {
+		margin: 10px 0 0;
+		width: var(--station, 44px);
+		text-align: center;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.04em;
+		color: rgb(255 255 255 / 55%);
+	}
+	.story__rail-count span {
+		color: var(--white);
 	}
 
 	/* Telas baixas (notebooks): texto mais compacto para caber na cena fixa */
@@ -696,14 +750,7 @@ const intro = { tx: 157.2, ty: 61.25, k: 0.9 };
 	}
 	@media (max-width: 1100px) {
 		:global(.story--live) .story__stage {
-			grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr) 44px;
-		}
-		.story__rail-label {
-			position: absolute;
-			width: 1px;
-			height: 1px;
-			overflow: hidden;
-			clip: rect(0 0 0 0);
+			grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr) 64px;
 		}
 	}
 
