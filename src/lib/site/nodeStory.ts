@@ -159,6 +159,8 @@ export function startNodeStory(): void {
 	const stage = root.querySelector<HTMLElement>("[data-story-stage]")!;
 	const panels = [...root.querySelectorAll<HTMLElement>("[data-act]")];
 	const railLinks = [...root.querySelectorAll<HTMLAnchorElement>("[data-story-rail] [data-story-goto]")];
+	const rail = root.querySelector<HTMLElement>("[data-story-rail]");
+	const railCount = root.querySelector<HTMLElement>("[data-story-count]");
 	const frameEl = root.querySelector<SVGGElement>("[data-frame]")!;
 	const symbolEl = root.querySelector<SVGImageElement>("[data-symbol]")!;
 	const edgesEl = root.querySelector<SVGGElement>("[data-edges]")!;
@@ -197,6 +199,9 @@ export function startNodeStory(): void {
 			if (index === act) link.setAttribute("aria-current", "step");
 			else link.removeAttribute("aria-current");
 		});
+		// Trilho preenchido até a estação ativa e contador "03/06"
+		rail?.style.setProperty("--rail-p", String(railLinks.length > 1 ? act / (railLinks.length - 1) : 0));
+		if (railCount) railCount.textContent = String(act + 1).padStart(2, "0");
 	}
 
 	function paint(scene: Rendered, time: number) {

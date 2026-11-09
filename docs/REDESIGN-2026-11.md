@@ -70,7 +70,7 @@ A ideia original da inicial voltou, refeita sem GSAP (`src/components/site/NodeS
 2–4. Cada divisão ganha o centro com sua marca: Noden Home (casinha, anel de cima), Noden Game (controle, esquerda), Noden Data (banco de dados, direita). Texto, destaques e preço "a partir de" ao lado.
 5. Os nós voltam às posições da logo, os conectores se desenham e surge **N◎DEN HUB**: o centro que conecta as três.
 
-- Trilha lateral com os seis atos, link "Pular apresentação" e links diretos (`/#apresentacao-game`).
+- Trilha lateral com os seis atos: trilho que se preenche com a rolagem, marcas das divisões nas estações, nome em etiqueta de uma linha (ativa, hover ou foco), contador "04/06" e links diretos (`/#apresentacao-game`). O link "Pular apresentação" saiu (aparecia sobre o cabeçalho); o "Pular para o conteúdo" global continua.
 - O texto de todos os atos continua acessível a leitores de tela e teclado; ao receber foco, a cena vai até o ato.
 - Leitura normal (sem fixar a cena) com movimento reduzido, sem JavaScript, em tela baixa, quando algum texto não cabe, e no modo de edição.
 - Testado em 1440×900, 1280×720, 1024×768, 910×698, 768×1024, 740×600 e 390×844. Em 360×640 o texto não cabe e a página usa leitura normal.
